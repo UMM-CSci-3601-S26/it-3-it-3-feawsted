@@ -1,0 +1,27 @@
+version: 2
+updates:
+- package-ecosystem: gradle
+  directory: "./"
+  schedule:
+    interval: weekly
+    time: "12:00"
+    timezone: America/Chicago
+  open-pull-requests-limit: 20
+- package-ecosystem: docker
+  directory: "./"
+  schedule:
+    interval: weekly
+    time: "12:00"
+    timezone: America/Chicago
+  open-pull-requests-limit: 20
+  ignore:
+  - dependency-name: openjdk
+    versions:
+    - "> 21.pre.jdk.pre.slim"
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: weekly
+    time: "12:00"
+    timezone: America/Chicago
+  open-pull-requests-limit: 20

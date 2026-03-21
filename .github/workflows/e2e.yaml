@@ -1,0 +1,52 @@
+name: End-to-End
+
+on: [push]
+
+jobs:
+  ng-e2e:
+    runs-on: ubuntu-latest
+
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - '27017-27019:27017-27019'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+
+    - name: Cache Gradle artifacts (downloaded JARs, the wrapper, and any downloaded JDKs)
+      uses: actions/cache@v5
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+          ~/.gradle/jdks
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/.gradle/') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Use Node.js 22
+      uses: actions/setup-node@v6
+      with:
+        node-version: 22
+        cache: 'npm'
+        cache-dependency-path: ./client/package-lock.json
+
+    - name: Install client dependencies
+      run: npm ci
+      working-directory: ./client
+
+    - name: Start backend server
+      run: ${{ github.workspace }}/server/gradlew run -p ${{ github.workspace }}/server/ &
+
+    - name: Wait for backend to be ready
+      run: npx wait-on http://localhost:4567/api/users
+      working-directory: ./client
+
+    - name: Run e2e tests
+      uses: cypress-io/github-action@v7
+      with:
+        command: npm run e2e
+        working-directory: ./client

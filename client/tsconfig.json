@@ -1,0 +1,41 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "./dist/out-tsc",
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "declaration": false,
+    "experimentalDecorators": true,
+    "module": "es2020",
+    "moduleResolution": "bundler",
+    "importHelpers": true,
+    "target": "ES2022",
+    "lib": [
+      "es2020",
+      "dom"
+    ],
+    "useDefineForClassFields": false,
+    "skipLibCheck": true
+  },
+  "exclude": [
+    "./cypress.config.ts"
+  ],
+  "angularCompilerOptions": {
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true,
+    "extendedDiagnostics": {
+      "checks": {
+        "invalidBananaInBox": "error",
+        "nullishCoalescingNotNullable": "error",
+        "textAttributeNotBinding": "error",
+        "suffixNotSupported": "error",
+        "optionalChainNotNullable": "error",
+        "interpolatedSignalNotInvoked": "error",
+        "uninvokedFunctionInEventBinding": "error",
+        "unusedStandaloneImports": "warning",
+      }
+    }
+  }
+}

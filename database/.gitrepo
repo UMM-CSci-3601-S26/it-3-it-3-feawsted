@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/UMM-CSci-3601/3601-database.git
+	branch = main
+	commit = 1ff1c4dd073df5fe7f085cba1f738462aa3b8ed8
+	parent = ca9d00a8effc65d7eb58135beadd0b61fd6a097a
+	method = merge
+	cmdver = 0.4.9
