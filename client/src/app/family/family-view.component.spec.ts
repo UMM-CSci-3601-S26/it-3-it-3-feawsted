@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { MockFamilyService } from 'src/testing/family.service.mock';
-import { FamilyListComponent } from './family-list.component';
+import { MockFamilyService } from 'src/testing/family-service.mock';
+import { FamilyViewComponent } from './family-view.component';
 import { FamilyService } from './family.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
@@ -9,13 +9,13 @@ import { Observable, of } from 'rxjs';
 import { Family } from './family';
 
 describe('Family list', () => {
-  let familyList: FamilyListComponent;
-  let fixture: ComponentFixture<FamilyListComponent>;
+  let familyList: FamilyViewComponent;
+  let fixture: ComponentFixture<FamilyViewComponent>;
   let familyService: FamilyService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [FamilyListComponent],
+      imports: [FamilyViewComponent],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -27,7 +27,7 @@ describe('Family list', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.compileComponents().then(() => {
-      fixture = TestBed.createComponent(FamilyListComponent);
+      fixture = TestBed.createComponent(FamilyViewComponent);
       familyList = fixture.componentInstance;
       familyService = TestBed.inject(FamilyService);
       fixture.detectChanges();
@@ -66,8 +66,8 @@ describe('Family list', () => {
 });
 
 describe('Misbehaving Family List', () => {
-  let familyList: FamilyListComponent;
-  let fixture: ComponentFixture<FamilyListComponent>;
+  let familyList: FamilyViewComponent;
+  let fixture: ComponentFixture<FamilyViewComponent>;
 
   let familyServiceStub: {
     getFamilies: () => Observable<Family[]>;
@@ -90,7 +90,7 @@ describe('Misbehaving Family List', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
-        FamilyListComponent
+        FamilyViewComponent
       ],
       // providers:    [ FamilyService ]  // NO! Don't provide the real service!
       // Provide a test-double instead
@@ -103,7 +103,7 @@ describe('Misbehaving Family List', () => {
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(FamilyListComponent);
+    fixture = TestBed.createComponent(FamilyViewComponent);
     familyList = fixture.componentInstance;
     fixture.detectChanges();
   });

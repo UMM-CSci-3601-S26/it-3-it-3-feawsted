@@ -19,8 +19,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-family',
-  templateUrl: './family-list.component.html',
-  styleUrls: ['./family-list.component.scss'],
+  templateUrl: './family-view.component.html',
+  styleUrls: ['./family-view.component.scss'],
   providers: [],
   imports: [
     MatCardModule,
@@ -40,7 +40,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
   ],
 })
 
-export class FamilyListComponent {
+export class FamilyViewComponent {
   private familyService = inject(FamilyService);
 
   families = toSignal<Family[]>(

@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { OperatorDashComponent } from './operator-dash.component';
 import { FamilyService } from '../family/family.service';
-import { MockFamilyService } from 'src/testing/family.service.mock';
+import { MockFamilyService } from 'src/testing/family-service.mock';
 
 describe('OperatorDashComponent', () => {
   let component: OperatorDashComponent;

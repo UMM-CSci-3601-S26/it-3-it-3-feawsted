@@ -1,6 +1,6 @@
-import { FamilyListPage } from '../support/family-list.po';
+import { FamilyViewPage } from '../support/family-view.po';
 
-const page = new FamilyListPage();
+const page = new FamilyViewPage();
 
 describe('Family list', () => {
 

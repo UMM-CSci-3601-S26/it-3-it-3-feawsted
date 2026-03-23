@@ -40,10 +40,10 @@ import umm3601.Controller;
 
 public class FamilyController implements Controller {
 
-  private static final String API_FAMILY = "/api/family";
+  private static final String API_FAMILY = "/api/families";
   private static final String API_DASHBOARD = "/api/dashboard";
-  private static final String API_FAMILY_BY_ID = "/api/family/{id}";
-  private static final String API_FAMILY_EXPORT = "/api/family/export";
+  private static final String API_FAMILY_BY_ID = "/api/families/{id}";
+  private static final String API_FAMILY_EXPORT = "/api/families/export";
 
   // Basic email validation regex
   public static final String EMAIL_REGEX = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$";
@@ -51,15 +51,15 @@ public class FamilyController implements Controller {
   private final JacksonMongoCollection<Family> familyCollection;
 
   public FamilyController(MongoDatabase database) {
-    // Connects to the "family" collection using Jackson for serialization
+    // Connects to the "families" collection using Jackson for serialization
     familyCollection = JacksonMongoCollection.builder().build(
         database,
-        "family",
+        "families",
         Family.class,
         UuidRepresentation.STANDARD);
   }
 
-  // GET /api/family
+  // GET /api/families
   // Returns all registered families.
   public void getFamilies(Context ctx) {
     ArrayList<Family> matchingFamilies = familyCollection
@@ -71,7 +71,7 @@ public class FamilyController implements Controller {
   }
 
   /**
-   * GET /api/family/{id}
+   * GET /api/families/{id}
    * Retrieves a single family by MongoDB ObjectId.
    *
    * Includes error handling for:
@@ -96,7 +96,7 @@ public class FamilyController implements Controller {
   }
 
   /**
-   * POST /api/family
+   * POST /api/families
    * Adds a new family registration.
    *
    * Uses Javalin's bodyValidator to enforce:
@@ -123,7 +123,7 @@ public class FamilyController implements Controller {
   }
 
   /**
-   * DELETE /api/family/{id}
+   * DELETE /api/families/{id}
    * Removes a family registration.
    *
    * Returns 404 if:

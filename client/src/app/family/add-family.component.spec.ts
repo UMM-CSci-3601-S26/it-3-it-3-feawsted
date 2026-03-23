@@ -5,7 +5,7 @@ import { AbstractControl, FormArray, FormControl, FormGroup } from '@angular/for
 import { Router } from '@angular/router';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { of, throwError } from 'rxjs';
-import { MockFamilyService } from 'src/testing/family.service.mock';
+import { MockFamilyService } from 'src/testing/family-service.mock';
 import { AddFamilyComponent } from './add-family.component';
 import { provideHttpClient } from '@angular/common/http';
 import { FamilyService } from './family.service';
@@ -298,7 +298,7 @@ describe('AddFamilyComponent#submitForm()', () => {
         provideHttpClientTesting(),
         { provide: FamilyService, useClass: MockFamilyService }, // A (more-async-tests) - provide + use class of the mock
         // provideRouter([
-        //   { path: 'family/:id', component: FamilyListComponent }
+        //   { path: 'family/:id', component: FamilyViewComponent }
         // ])
       ]
     }).compileComponents().catch(error => {

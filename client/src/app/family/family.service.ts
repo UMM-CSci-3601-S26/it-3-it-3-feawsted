@@ -12,7 +12,7 @@ import { Family, DashboardStats } from './family';
 export class FamilyService {
   private httpClient = inject(HttpClient);
 
-  readonly familyUrl: string = `${environment.apiUrl}family`;
+  readonly familyUrl: string = `${environment.apiUrl}families`;
   readonly dashboardUrl: string = `${environment.apiUrl}dashboard`;
 
   getFamilies(): Observable<Family[]> {

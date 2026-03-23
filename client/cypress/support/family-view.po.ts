@@ -1,6 +1,6 @@
 //import { FamilyRole } from 'src/app/family/family';
 
-export class FamilyListPage {
+export class FamilyViewPage {
   private readonly baseUrl = '/family';
   private readonly pageTitle = '.family-list-title';
   private readonly familyCardSelector = '.family-cards-container app-family-card';
