@@ -3,6 +3,8 @@ package umm3601;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 
+import umm3601.family.FamilyController;
+
 public class Main {
 
   public static void main(String[] args) {
@@ -36,6 +38,7 @@ public class Main {
     Controller[] controllers = new Controller[] {
       // Add controllers here as you create them.
       // e.g., new UserController(database)
+      new FamilyController(database)
     };
     return controllers;
   }

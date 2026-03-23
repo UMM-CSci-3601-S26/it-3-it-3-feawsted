@@ -1,0 +1,130 @@
+<div class="flex-row">
+  <div class="flex-1">
+    <form [formGroup]="addFamilyForm" (ngSubmit)="submitForm();">
+      <mat-card class="add-family-card">
+        <mat-card-header>
+          <mat-card-title class="add-family-title">New Family</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="flex-col">
+
+            <!-- Guardian Name Input Field -->
+            <mat-form-field>
+              <mat-label>Guardian Name</mat-label>
+              <input matInput formControlName="guardianName" required>
+              @if (formControlHasError('guardianName')) {
+              <mat-error data-test="guardianNameError">
+                {{getErrorMessage('guardianName')}}
+              </mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Email Input Field -->
+            <mat-form-field>
+              <mat-label>Email</mat-label>
+              <input matInput type="email" formControlName="email" required>
+              @if (formControlHasError('email')) {
+              <mat-error data-test="emailError">
+                {{getErrorMessage('email')}}
+              </mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Address Input Field -->
+            <mat-form-field>
+              <mat-label>Address</mat-label>
+              <input matInput type="address" formControlName="address" required>
+              @if (formControlHasError('address')) {
+              <mat-error data-test="addressError">
+                {{getErrorMessage('address')}}
+              </mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Time Slot Input Field -->
+            <mat-form-field>
+              <mat-label>Time Slot</mat-label>
+              <input matInput type="timeSlot" formControlName="timeSlot" required>
+              @if (formControlHasError('timeSlot')) {
+              <mat-error data-test="timeSlotError">
+                {{getErrorMessage('timeSlot')}}
+              </mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Student Input Field(s) -->
+            <h3>Students</h3>
+            <div formArrayName="students">
+              @for (student of students.controls; track $index; let i = $index) {
+              <div [formGroupName]="i">
+
+                <!-- Student Name Input Field -->
+                <mat-form-field>
+                  <mat-label>Name</mat-label>
+                  <input matInput formControlName="name" form ControlName="name" required>
+                  <!-- @if (formControlHasError('name')) {
+                      <mat-error data-test="nameError">
+                        {{getErrorMessage('students')}}
+                      </mat-error>
+                    } -->
+                </mat-form-field>
+
+                <!-- Student Grade Input Field -->
+                <mat-form-field>
+                  <mat-label>Grade</mat-label>
+                  <input matInput formControlName="grade" form ControlName="grade" required>
+                  <!-- @if (formControlHasError('grade')) {
+                      <mat-error data-test="gradeError">
+                        {{getErrorMessage('students')}}
+                      </mat-error>
+                    } -->
+                </mat-form-field>
+
+                <!-- Student School Input Field -->
+                <mat-form-field>
+                  <mat-label>School</mat-label>
+                  <input matInput formControlName="school" form ControlName="school" required>
+                  <!-- @if (formControlHasError('school')) {
+                      <mat-error data-test="schoolError">
+                        {{getErrorMessage('students')}}
+                      </mat-error>
+                    } -->
+                </mat-form-field>
+
+                <!-- Student Requested Supplies Input Field -->
+                <mat-form-field>
+                  <mat-label>Requested Supplies</mat-label>
+                  <input matInput formControlName="requestedSupplies">
+                  <!-- @if (formControlHasError('requestedSupplies')) {
+                    <mat-error data-test="requestedSupplies">
+                      {{getErrorMessage('students')}}
+                    </mat-error>
+                  } -->
+                </mat-form-field>
+
+                <!-- Remove inputed student -->
+                <button type="button" (click)="removeStudent(i)">
+                  Remove Student
+                </button>
+
+              </div>
+              }
+            </div>
+
+            <!-- Add Additional Students -->
+            <button type="button" (click)="addStudent()">Add Student</button>
+          </div>
+
+        <!-- Submit Family Button -->
+        </mat-card-content>
+        <mat-card-actions align="end">
+          <button mat-button type="button" color="primary" [disabled]="!addFamilyForm.valid" type="submit"
+            data-test="confirmAddFamilyButton">
+            ADD FAMILY
+          </button>
+        </mat-card-actions>
+
+      </mat-card>
+    </form>
+  </div>
+</div>

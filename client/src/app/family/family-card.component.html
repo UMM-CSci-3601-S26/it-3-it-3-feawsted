@@ -1,0 +1,51 @@
+@if (family()) {
+  <!-- Cards for each individal family -->
+<mat-card class="family-card">
+
+  <mat-card-header>
+    <mat-card-title class="family-card-guardianName">{{ family().guardianName }}</mat-card-title>
+    <mat-card-subtitle class="family-card-email">{{ family().email }}</mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    <mat-list>
+      <mat-list-item>
+        <mat-icon matListItemIcon>people</mat-icon>
+        <p matListItemTitle>Students</p>
+      </mat-list-item>
+
+      <div style="margin-left: 40px;">
+        @for (student of family().students ?? []; track student.name) {
+        <div>{{ student.name }}</div>
+        }
+      </div>
+
+      <mat-divider [inset]="true"></mat-divider>
+
+      <mat-list-item>
+        <mat-icon matListItemIcon>home</mat-icon>
+        <p matListItemTitle>Address</p>
+        <p matListItemLine class="family-card-address">{{ family().address }}</p>
+      </mat-list-item>
+
+      <mat-divider [inset]="true"></mat-divider>
+
+      <mat-list-item>
+        <mat-icon matListItemIcon>clock</mat-icon>
+        <p matListItemTitle>Time Slot</p>
+        <p matListItemLine class="family-card-timeSlot">{{ family().timeSlot }}</p>
+      </mat-list-item>
+
+      <mat-divider [inset]="true"></mat-divider>
+
+      <mat-list-item>
+        <a href="mailto:{{family().email}}" matListItemIcon><mat-icon>mail</mat-icon></a>
+        <p matListItemTitle>Email</p>
+        <a matListItemLine class="family-card-email" href="mailto:{{family().email}}">{{family().email}}</a>
+        <a href="mailto:{{family().email}}" matListItemMeta mat-icon-button><mat-icon>open_in_new</mat-icon></a>
+      </mat-list-item>
+
+    </mat-list>
+  </mat-card-content>
+</mat-card>
+}
