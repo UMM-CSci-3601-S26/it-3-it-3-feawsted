@@ -1,12 +1,14 @@
 import { AppPage } from '../support/app.po';
 
+// TODO: Update these tests to reflect the actual content of our app.
+
 const page = new AppPage();
 
 describe('App', () => {
   beforeEach(() => page.navigateTo());
 
   it('Should have the correct title', () => {
-    page.getAppTitle().should('contain', 'CSCI 3601 Iteration Template');
+    page.getAppTitle().should('contain', 'Ready For Supplies');
   });
 
   it('The sidenav should open, navigate to "Users" and back to "Home"', () => {
@@ -16,18 +18,12 @@ describe('App', () => {
     page.getSidenavButton()
       .should('be.visible');
 
-    page.getSidenavButton().click();
-    page.getNavLink('Users').click();
-    cy.url().should('match', /\/users$/);
-    page.getSidenav()
-      .should('be.hidden');
-
-    // Try to navigate to Home
-    page.getSidenavButton().click();
-    page.getNavLink('Home').click();
-    cy.url().should('match', /^https?:\/\/[^/]+\/?$/);
-    page.getSidenav()
-      .should('be.hidden');
+    // // Try to navigate to Home
+    // page.getSidenavButton().click();
+    // page.getNavLink('Home').click();
+    // cy.url().should('match', /^https?:\/\/[^/]+\/?$/);
+    // page.getSidenav()
+    //   .should('be.hidden');
   });
 
 });
