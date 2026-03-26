@@ -1,0 +1,112 @@
+// .mat-list-item {
+//   border-bottom: 1px solid black;
+//   padding: 12px;
+// }
+
+.list-style {
+  border: 2px solid black;
+  width: 100%;
+  border-radius: 8px;
+  padding: 0.75rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.5rem 1rem;
+}
+
+th.mat-sort-header-sorted {
+  color: black;
+}
+
+.filter-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  row-gap: 0.01rem;
+  column-gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filter {
+  display: flex;
+  flex-direction: column;
+}
+
+.clear-button {
+  border: 1px solid gray;
+  border-radius: 4px;
+  padding: 0 16px;
+  min-height: 36px;
+  display: flex;
+}
+
+.filter-extra {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.count-display {
+  border: 1px solid gray;
+  border-radius: 4px;
+  padding: 0 16px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-description {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filters-description {
+  font-size: 0.9rem;
+}
+
+.supply-list-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.tree-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.school-group {
+  border-left: 3px solid rgba(0, 0, 0, 0.2);
+  padding-left: 0.75rem;
+}
+
+.grade-group {
+  margin-left: 1rem;
+  border-left: 2px solid rgba(0, 0, 0, 0.15);
+  padding-left: 0.75rem;
+}
+
+.teacher-group {
+  margin-left: 1rem;
+}
+
+.school-heading,
+.grade-heading,
+.teacher-heading {
+  margin: 0.35rem 0;
+}
+
+.group-label {
+  margin: 0 0 0.5rem;
+  opacity: 0.8;
+}
+
+.item-grid {
+  margin-top: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 0.75rem;
+  border: 1px solid gray;
+  border-radius: 4px;
+  padding: 1rem;
+}

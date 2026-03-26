@@ -1,0 +1,174 @@
+
+<div class="flex-row">
+  <div class="flex-1">
+    <mat-card class="search-grid">
+      <mat-card-header>
+        <mat-card-title class="inventory-table-title">Inventory</mat-card-title>
+      </mat-card-header>
+
+      <!-- Page and Filter Descriptions -->
+      <mat-card-content>
+        <p class="page-description">
+          Welcome to the inventory page! Here, you can view all items currently in the inventory, as well as filter and
+          sort them by various attributes. In the future, functionality for manipulating items (adding/removing/editing)
+          and other similar features may be added!
+        </p>
+        <hr style="margin: 1rem 0;" />
+
+        <p class="filters-description">
+          Use the fields below to filter the inventory by item, brand, color, size, type, and material. The filters will
+          be applied as you type, and you can clear them all at once using the "Clear" button on the bottom. You can
+          also sort the inventory by any column by clicking on the column header.
+        </p>
+
+        <!-- Filter Fields -->
+        <div class="filter-container">
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">Item</mat-label>
+            <input matInput [ngModel]="item() ?? ''" (ngModelChange)="item.set($event?.trim() || undefined)"
+              placeholder="contains..." data-cy="filter-item" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">Brand</mat-label>
+            <input matInput [ngModel]="brand() ?? ''" (ngModelChange)="brand.set($event?.trim() || undefined)"
+              placeholder="contains..." data-cy="filter-brand" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">Color</mat-label>
+            <input matInput [ngModel]="color() ?? ''" (ngModelChange)="color.set($event?.trim() || undefined)"
+              placeholder="contains..." data-cy="filter-color" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">Size</mat-label>
+            <input matInput [ngModel]="size() ?? ''" (ngModelChange)="size.set($event?.trim() || undefined)"
+              placeholder="contains..." data-cy="filter-size" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">Type</mat-label>
+            <input matInput [ngModel]="type() ?? ''" (ngModelChange)="type.set($event?.trim() || undefined)"
+              placeholder="contains..." data-cy="filter-type" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">Material</mat-label>
+            <input matInput [ngModel]="material() ?? ''" (ngModelChange)="material.set($event?.trim() || undefined)"
+              placeholder="contains..." data-cy="filter-material" />
+          </mat-form-field>
+        </div>
+        <div class="filter-extra">
+          <!-- Clear Filters Button -->
+          <button mat-stroked-button type="button" (click)="resetFilters()" data-cy="filter-clear" class="clear-button">
+            Clear
+          </button>
+
+          <div mat-stroked-button class="count-display">
+            Count: {{ serverFilteredInventory().length }}
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+
+<table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8 demo-table">
+  <!-- Item Column -->
+  <ng-container matColumnDef="item">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by item">Item</th>
+    <td mat-cell *matCellDef="let element" class="inventory-item" data-cy="inventory-item">{{element.item}}</td>
+  </ng-container>
+
+  <!-- Description Column -->
+  <ng-container matColumnDef="description">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by description">Description</th>
+    <td mat-cell *matCellDef="let element" class="inventory-description" data-cy="inventory-description">
+      {{element.description}}</td>
+  </ng-container>
+
+  <!-- Brand Column -->
+  <ng-container matColumnDef="brand">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by brand">Brand</th>
+    <td mat-cell *matCellDef="let element" class="inventory-brand" data-cy="inventory-brand">{{element.brand}}</td>
+  </ng-container>
+
+  <!-- Color Column -->
+  <ng-container matColumnDef="color">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by color">Color</th>
+    <td mat-cell *matCellDef="let element" class="inventory-color" data-cy="inventory-color">{{element.color}}</td>
+  </ng-container>
+
+  <!-- Size Column -->
+  <ng-container matColumnDef="size">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by size">Size</th>
+    <td mat-cell *matCellDef="let element" class="inventory-size" data-cy="inventory-size">{{element.size}}</td>
+  </ng-container>
+
+  <!-- Type Column -->
+  <ng-container matColumnDef="type">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by type">Type</th>
+    <td mat-cell *matCellDef="let element" class="inventory-type" data-cy="inventory-type">{{element.type}}</td>
+  </ng-container>
+
+  <!-- Material Column -->
+  <ng-container matColumnDef="material">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by material">Material</th>
+    <td mat-cell *matCellDef="let element" class="inventory-material" data-cy="inventory-material">{{element.material}}
+    </td>
+  </ng-container>
+
+  <!-- Count Column -->
+  <ng-container matColumnDef="count">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by count">Count</th>
+    <td mat-cell *matCellDef="let element" class="inventory-count" data-cy="inventory-count">{{element.count}}</td>
+  </ng-container>
+
+  <!-- Quantity Column -->
+  <ng-container matColumnDef="quantity">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by quantity">Quantity</th>
+    <td mat-cell *matCellDef="let element" class="inventory-quantity" data-cy="inventory-quantity">{{element.quantity}}
+    </td>
+  </ng-container>
+
+  <!-- Notes Column -->
+  <ng-container matColumnDef="notes">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by notes">Notes</th>
+    <td mat-cell *matCellDef="let element" class="inventory-notes" data-cy="inventory-notes">{{element.notes}}</td>
+  </ng-container>
+
+  <!-- Action Column -->
+  <ng-container matColumnDef="actions">
+    <th mat-header-cell *matHeaderCellDef> Actions </th>
+    <td mat-cell *matCellDef="let row">
+      <!-- The three-dot icon button -->
+      <button mat-icon-button [matMenuTriggerFor]="rowMenu" (click)="$event.stopPropagation(); currentRow = row"
+        aria-label="Row actions menu">
+        <mat-icon>more_vert</mat-icon> <!-- Make vertical dots -->
+      </button>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns;" data-cy="inventory-row"></tr>
+</table>
+
+<mat-paginator data-cy="inventory-paginator" [length]="215" [pageSize]="25" [pageSizeOptions]="[10, 25, 50, 100]"
+  aria-label="Select page">
+</mat-paginator>
+
+<!-- Row Actions Menu -->
+<mat-menu #rowMenu="matMenu">
+  <button mat-menu-item class="inventory-action delete-action" (click)="confirmDelete(currentRow?._id!)">
+    <mat-icon>delete</mat-icon>
+    <span>Delete</span>
+  </button>
+  <!-- Add more options in the future -->
+</mat-menu>
+
+<!-- Add Inventory Button -->
+<button mat-fab class="add-inventory-button" matTooltip="Add Inventory" matTooltipPosition="left"
+  routerLink="/inventory/new" data-test="addInventoryButton">
+  <mat-icon class="md-24" aria-label="Add Inventory">add</mat-icon>
+</button>

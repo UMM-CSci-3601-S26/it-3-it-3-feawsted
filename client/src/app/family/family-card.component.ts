@@ -1,0 +1,29 @@
+// Angular and Material Imports
+import { Component, input} from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
+import { CommonModule } from '@angular/common';
+
+// Family Interface Import
+import { Family } from './family';
+
+@Component({
+  selector: 'app-family-card',
+  templateUrl: './family-card.component.html',
+  styleUrls: ['./family-card.component.scss'],
+  imports: [
+    MatCardModule,
+    MatButtonModule,
+    MatListModule,
+    CommonModule,
+    MatIconModule
+  ]
+})
+
+// Component for displaying a card with family information and their requested supplies.
+// The component takes a Family object as input and renders the details in a user-friendly format.
+export class FamilyCardComponent {
+  family = input.required<Family>();
+}

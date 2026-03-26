@@ -1,0 +1,283 @@
+// Angular Imports
+import { ComponentFixture, TestBed, waitForAsync, tick, fakeAsync } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { InventoryService } from './inventory.service';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { MatPaginatorHarness } from '@angular/material/paginator/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { MatTableHarness } from '@angular/material/table/testing';
+import { HarnessLoader } from '@angular/cdk/testing';
+
+// RxJS Imports
+import { Observable, of, throwError } from 'rxjs';
+
+// Inventory Imports
+import { MockInventoryService } from 'src/testing/inventory.service.mock';
+import { Inventory } from './inventory';
+import { InventoryTableComponent } from './inventory-table.component';
+
+/**
+ * This file contains unit tests for the InventoryTableComponent, which is responsible for displaying a table of inventory items with sorting, pagination, and filtering capabilities. The tests cover the component's
+ * ability to load inventory data from the InventoryService, handle errors gracefully, and trigger the delete functionality correctly. The tests use Angular's TestBed to set up the
+ * testing environment, including providing a mock implementation of the InventoryService to simulate different scenarios. The tests verify that the component is created successfully,
+ * that it loads inventory data correctly, and that it handles errors by returning an empty array when the service fails. Additionally, the tests check that the deleteInventory() method
+ * is called with the correct parameters when a user confirms deletion of an item, and that appropriate error messages are set when deletion fails or when required parameters are missing.
+ */
+
+// Tests for the InventoryTableComponent
+describe('Inventory Table', () => {
+  let inventoryTable: InventoryTableComponent;
+  let fixture: ComponentFixture<InventoryTableComponent>
+  let inventoryService: InventoryService;
+  let loader: HarnessLoader
+
+  // Set up the testing module and component before each test
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [
+        InventoryTableComponent
+      ],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: InventoryService,
+          useClass: MockInventoryService
+        },
+        provideRouter([])
+      ]
+    });
+  });
+
+  // Compile the component and its template before running tests, and initialize the component instance and loader
+  beforeEach(waitForAsync(() => {
+    TestBed.compileComponents().then(() => {
+      fixture = TestBed.createComponent(InventoryTableComponent);
+      inventoryTable = fixture.componentInstance;
+      inventoryService = TestBed.inject(InventoryService);
+      fixture.detectChanges();
+      loader = TestbedHarnessEnvironment.loader(fixture);
+    });
+  }));
+
+  // Test to ensure the component is created successfully
+  it('should create the component', () => {
+    expect(inventoryTable).toBeTruthy();
+  });
+
+  // Test to verify that the component's serverFilteredInventory method returns a defined array
+  it('should initialize with serverFilteredTable available', () => {
+    const inventory = inventoryTable.serverFilteredInventory();
+    expect(inventory).toBeDefined();
+    expect(Array.isArray(inventory)).toBe(true);
+  });
+
+  // Test to verify that the paginator harness is loaded successfully
+  it('should load the paginator harnesses', async () => {
+    const paginators = await loader.getAllHarnesses(MatPaginatorHarness);
+    expect(paginators.length).toBe(1);
+  });
+
+  // Test to verify that the table harness is loaded successfully
+  it('should load harness for the table', async () => {
+    const tables = await loader.getAllHarnesses(MatTableHarness);
+    expect(tables.length).toBe(1);
+  });
+
+  // Tests to verify that the getInventory method is called with the correct parameters when various filter signals change, using fakeAsync and tick to handle asynchronous operations
+  it('should call getInventory() when item signal changes', fakeAsync(() => {
+    const spy = spyOn(inventoryService, 'getInventory').and.callThrough();
+    inventoryTable.item.set('Markers');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ item: 'Markers', brand: undefined, color: undefined, size: undefined, type: undefined, material: undefined });
+  }));
+
+  // Tests for brand, color, size, type, and material signals changing, ensuring that getInventory is called with the correct parameters for each case
+  it('should call getInventory() when brand signal changes', fakeAsync(() => {
+    const spy = spyOn(inventoryService, 'getInventory').and.callThrough();
+    inventoryTable.brand.set('Crayola');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: 'Crayola', color: undefined, size: undefined, type: undefined, material: undefined });
+  }));
+
+  // Test to verify that getInventory is called with the correct parameters when the color signal changes
+  it('should call getInventory() when color signal changes', fakeAsync(() => {
+    const spy = spyOn(inventoryService, 'getInventory').and.callThrough();
+    inventoryTable.color.set('Red');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: 'Red', size: undefined, type: undefined, material: undefined });
+  }));
+
+  // Test to verify that getInventory is called with the correct parameters when the size signal changes
+  it('should call getInventory() when size signal changes', fakeAsync(() => {
+    const spy = spyOn(inventoryService, 'getInventory').and.callThrough();
+    inventoryTable.size.set('Wide Ruled');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: 'Wide Ruled', type: undefined, material: undefined });
+  }));
+
+  // Test to verify that getInventory is called with the correct parameters when the type signal changes
+  it('should call getInventory() when type signal changes', fakeAsync(() => {
+    const spy = spyOn(inventoryService, 'getInventory').and.callThrough();
+    inventoryTable.type.set('Spiral');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: undefined, type: 'Spiral', material: undefined });
+  }));
+
+  // Test to verify that getInventory is called with the correct parameters when the material signal changes
+  it('should call getInventory() when material signal changes', fakeAsync(() => {
+    const spy = spyOn(inventoryService, 'getInventory').and.callThrough();
+    inventoryTable.material.set('Plastic');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: 'Plastic' });
+  }));
+
+  // Test to verify that getInventory is called with the correct parameters when both brand and color signals change
+  it('should call getInventory() when brand and color signals change', fakeAsync(() => {
+    const spy = spyOn(inventoryService, 'getInventory').and.callThrough();
+    inventoryTable.color.set('Black');
+    inventoryTable.brand.set('Crayola');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: 'Crayola', color: 'Black', size: undefined, type: undefined, material: undefined });
+  }));
+
+  // Test to verify that getInventory is called with the correct parameters when item, brand, color, and type signals change
+  it('should call getInventory() when item, brand, color, and material signals change', fakeAsync(() => {
+    const spy = spyOn(inventoryService, 'getInventory').and.callThrough();
+    inventoryTable.item.set('Notebook');
+    inventoryTable.brand.set('Five Star');
+    inventoryTable.color.set('Yellow');
+    inventoryTable.type.set('Spiral');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ item: 'Notebook', brand: 'Five Star', color: 'Yellow', size: undefined, type: 'Spiral', material: undefined });
+  }));
+
+  // Test to verify that no error message is shown on successful load of inventory data
+  it('should not show error message on successful load', () => {
+    expect(inventoryTable.errMsg()).toBeUndefined();
+  });
+
+  // Test to verify that an appropriate error message is set when deleteInventory is called with an undefined ID, and that the deleteInventory method is not called in this case
+  it('should set errMsg when delete is called with undefined id', () => {
+    const deleteSpy = spyOn(inventoryService, 'deleteInventory').and.returnValue(of(undefined));
+    inventoryTable.confirmDelete(undefined);
+
+    expect(inventoryTable.errMsg()).toEqual('Cannot delete: missing item ID');
+    expect(deleteSpy).not.toHaveBeenCalled();
+  });
+
+  // Test to verify that deleteInventory is called with the correct ID and that the item is removed from the data source when the user confirms deletion, using fakeAsync and tick to handle asynchronous operations
+  it('should call deleteInventory and remove row when confirmed', fakeAsync(() => {
+    const idToDelete = 'item-123';
+    const deleteSpy = spyOn(inventoryService, 'deleteInventory').and.returnValue(of(undefined));
+
+    //avoid browser confirm dialog side effect and simulate user clicking "OK"
+    spyOn(window, 'confirm').and.returnValue(true);
+
+    // Matrix row pre-seeding to ensure the item to delete is present in the table's data source before deletion.
+    inventoryTable.dataSource.data = [
+      { _id: idToDelete, item: 'Markers', description: 'test', brand: 'Crayola', color: 'Black', count: 1, size: 'Wide', type: 'Washable', material: 'Plastic', quantity: 0, notes: 'n/a' } as unknown as Inventory,
+    ];
+
+    inventoryTable.confirmDelete(idToDelete);
+    tick();
+
+    expect(deleteSpy).toHaveBeenCalledWith(idToDelete);
+    expect(inventoryTable.dataSource.data.length).toBe(0);
+  }));
+
+  // Test to verify that deleteInventory is not called and the item remains in the data source when the user cancels deletion, using fakeAsync and tick to handle asynchronous operations
+  it('should not call deleteInventory when user cancels confirmation', fakeAsync(() => {
+    const idToDelete = 'item-123';
+    const deleteSpy = spyOn(inventoryService, 'deleteInventory').and.returnValue(of(undefined));
+    spyOn(window, 'confirm').and.returnValue(false);
+
+    inventoryTable.dataSource.data = [
+      { _id: idToDelete, item: 'Markers', description: 'test', brand: 'Crayola', color: 'Black', count: 1, size: 'Wide', type: 'Washable', material: 'Plastic', quantity: 0, notes: 'n/a' } as unknown as Inventory,
+    ];
+
+    inventoryTable.confirmDelete(idToDelete);
+    tick();
+
+    expect(deleteSpy).not.toHaveBeenCalled();
+    expect(inventoryTable.dataSource.data.length).toBe(1);
+  }));
+
+  // Test to verify that an appropriate error message is set when deleteInventory fails, and that the item remains in the data source in this case, using fakeAsync and tick to handle asynchronous operations
+  it('should set error message when deleteInventory fails', fakeAsync(() => {
+    const idToDelete = 'item-123';
+    const deleteSpy = spyOn(inventoryService, 'deleteInventory').and.returnValue(throwError(() => ({ status: 500, message: 'Internal' })));
+    spyOn(window, 'confirm').and.returnValue(true);
+
+    inventoryTable.dataSource.data = [
+      { _id: idToDelete, item: 'Markers', description: 'test', brand: 'Crayola', color: 'Black', count: 1, size: 'Wide', type: 'Washable', material: 'Plastic', quantity: 0, notes: 'n/a' } as unknown as Inventory,
+    ];
+
+    inventoryTable.confirmDelete(idToDelete);
+    tick();
+
+    expect(deleteSpy).toHaveBeenCalledWith(idToDelete);
+    expect(inventoryTable.errMsg()).toContain('');
+    expect(inventoryTable.dataSource.data.length).toBe(1);
+  }));
+});
+
+// Tests for the InventoryTableComponent when the InventoryService is not set up properly, ensuring that appropriate error messages are shown and that the component handles the error gracefully
+describe('Misbehaving Inventory Table', () => {
+  let inventoryTable: InventoryTableComponent;
+  let fixture: ComponentFixture<InventoryTableComponent>;
+
+  let inventoryServiceStub: {
+    getInventory: () => Observable<Inventory[]>;
+  };
+
+  beforeEach(() => {
+    inventoryServiceStub = {
+      getInventory: () =>
+        new Observable((observer) => {
+          observer.error('getInventory() Observer generates an error');
+        })
+    };
+  });
+
+  // Set up the testing module and component before each test, providing the misbehaving InventoryService stub
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      imports: [
+        InventoryTableComponent
+      ],
+      providers: [{
+        provide: InventoryService,
+        useValue: inventoryServiceStub
+      }, provideRouter([])],
+    })
+      .compileComponents();
+  }));
+
+  // Compile the component and its template before running tests, and initialize the component instance
+  beforeEach(fakeAsync(() => {
+    fixture = TestBed.createComponent(InventoryTableComponent);
+    inventoryTable = fixture.componentInstance;
+    fixture.detectChanges();
+    tick(300);
+  }));
+
+  // Test to verify that an appropriate error message is set when the InventoryService fails to provide inventory data, and that the serverFilteredInventory method returns an empty array in this case
+  it("generates an error if we don't set up a InventoryService", () => {
+    expect(inventoryTable.serverFilteredInventory())
+      .withContext("service can't give values to the list if it's not there")
+      .toEqual([]);
+    expect(inventoryTable.errMsg())
+      .withContext('the error message will be')
+      .toContain('Problem contacting the server – Error Code:');
+  });
+});

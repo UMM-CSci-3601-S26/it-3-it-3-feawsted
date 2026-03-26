@@ -1,0 +1,120 @@
+/**
+ * SCSS styles for the InventoryTableComponent, which displays a table of inventory items with sorting, filtering, and action features.
+ * The styles include layout for the table, filter controls, action buttons, and responsive design elements.
+ */
+
+ // Styles for the inventory table component
+.demo-table {
+  width: 100%;
+}
+
+// Style for sorted column headers to make them visually distinct
+th.mat-sort-header-sorted {
+  color: black;
+}
+
+// Styles for the filter controls container, using CSS Grid for layout
+.filter-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  row-gap: 0.01rem;
+  column-gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+// Styles for the filter section, arranging filter inputs vertically
+.filter {
+  display: flex;
+  flex-direction: column;
+}
+
+// Styles for the clear button, giving it a distinct appearance and ensuring it is easily clickable
+.clear-button {
+  border: 1px solid gray;
+  border-radius: 4px;
+  padding: 0 16px;
+  min-height: 36px;
+  display: flex;
+}
+
+// Styles for the filter extra controls, arranging them in a grid layout
+.filter-extra {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+// Style for the count display, which shows the number of items in the inventory, with a distinct border and centered text
+.count-display {
+  border: 1px solid gray;
+  border-radius: 4px;
+  padding: 0 16px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Style for page description text to enhance readability and provide spacing from other elements
+.page-description {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+// Style for the filters description text, providing a smaller font size to differentiate it from the main page description
+.filters-description {
+  font-size: 0.9rem;
+}
+
+// Style for the inventory table title, making it larger and bolder to stand out as the main heading of the page
+.inventory-table-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+// Styles for the action buttons in the inventory table, giving them a consistent look and feel with hover effects for better user interaction
+.inventory-action {
+  min-height: 42px;
+  border-radius: 8px;
+  padding: 0 14px;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.2;
+  color: #212121;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+// Styles for the icons within the action buttons, ensuring they are properly sized and spaced from the text
+.inventory-action mat-icon {
+  margin-right: 10px;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: inherit;
+}
+
+// Hover effect for the action buttons, changing the background color to provide visual feedback when the user interacts with them
+.inventory-action:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+/**
+  * Styles for the delete action button, giving it a distinct red color to indicate its destructive nature,
+  * with a hover effect that provides additional visual feedback.
+  */
+.delete-action {
+  color: #e53e3e;
+}
+
+// Hover effect for the delete action button, changing the background color to a light red to indicate the potential consequences of the action
+.delete-action:hover {
+  background-color: rgba(198, 40, 40, 0.12);
+}
+
+// Styles for the "Add Inventory" button, positioning it fixed at the bottom right of the screen
+.add-inventory-button {
+  position: fixed;
+  bottom: 15px;
+  right: 30px;
+}

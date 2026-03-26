@@ -1,0 +1,60 @@
+
+/**
+  * Styles for the Operator Dashboard component.
+  */
+
+// Container for the entire dashboard
+.dashboard-title {
+  margin-bottom: 20px;
+}
+
+// Grid layout for the dashboard cards
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+// Individual statistic card styling
+.stat-card {
+  padding: 10px;
+}
+
+// Title of each statistic card
+.stat-number {
+  font-size: 42px;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 10px;
+}
+
+// Label for each statistic card
+.stat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+// Row for each statistic label and value
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 4px;
+}
+
+// Label for each statistic
+.stat-label {
+  font-weight: 500;
+}
+
+// Value for each statistic
+.stat-value {
+  font-weight: bold;
+}
+
+// Styling for loading state text
+.loading-text {
+  font-style: italic;
+}
