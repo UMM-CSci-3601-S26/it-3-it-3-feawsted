@@ -1,3 +1,4 @@
+// Angular Imports
 import { Component, computed, effect, inject, signal, viewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,12 +14,16 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
-import { catchError, combineLatest, debounceTime, of, switchMap } from 'rxjs';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { SupplyList } from './supplylist';
-import { SupplyListService } from './supplylist.service';
 import { MatTreeModule } from '@angular/material/tree';
 import { CommonModule } from '@angular/common';
+
+// RxJS Imports
+import { catchError, combineLatest, debounceTime, of, switchMap } from 'rxjs';
+
+// Supply List Imports
+import { SupplyList } from './supplylist';
+import { SupplyListService } from './supplylist.service';
 
 @Component({
   selector: 'app-supplylist-component',
@@ -46,21 +51,40 @@ import { CommonModule } from '@angular/common';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
+
 export class SupplyListComponent {
-  displayedColumns: string[] = ['school', 'grade', 'item', 'description', 'brand', 'color', 'size', 'type', 'material', 'count', 'quantity', 'notes'];
+  // Define the columns to be displayed in the table, including an 'actions' column for the menu
+  displayedColumns: string[] = [
+    'school',
+    'grade',
+    'item',
+    'description',
+    'brand',
+    'color',
+    'size',
+    'type',
+    'material',
+    'count',
+    'quantity',
+    'notes'
+  ];
+
+  // Initialize the data source for the table with an empty array, and set up view child references for sorting and pagination
   dataSource = new MatTableDataSource<SupplyList>([]);
   readonly sort = viewChild<MatSort>(MatSort);
 
-
+  // Inject the MatSnackBar for displaying error messages and the InventoryService for fetching inventory data
   private snackBar = inject(MatSnackBar);
   private supplylistService = inject(SupplyListService);
 
+  // Constructor sets up an effect to update the table data whenever the serverFilteredInventory signal changes, and assigns the sorting and pagination components to the data source
   constructor() {
     effect(() => {
       this.dataSource.data = this.serverFilteredSupplyList();
     });
   }
 
+  // Define signals for each filterable field in the inventory, and create observables from these signals to be used in the serverFilteredInventory effect
   school = signal<string | undefined>(undefined);
   grade = signal<string | undefined>(undefined);
   item = signal<string | undefined>(undefined);
@@ -74,6 +98,7 @@ export class SupplyListComponent {
 
   errMsg = signal<string | undefined>(undefined);
 
+  // Create observables from the filter signals to be used in the serverFilteredInventory effect, which combines the latest values of the filters and fetches the filtered inventory data from the server
   private school$ = toObservable(this.school);
   private grade$ = toObservable(this.grade);
   private item$ = toObservable(this.item);
@@ -159,5 +184,21 @@ export class SupplyListComponent {
       };
     });
   });
+
+  /**
+   * This was getting unwieldy in the HTML, so I moved it here.
+   * It just resets all the filter signals to undefined,
+   * which will trigger the effect to fetch unfiltered data from the server.
+   */
+  resetFilters() {
+    this.item.set(undefined);
+    this.brand.set(undefined);
+    this.color.set(undefined);
+    this.size.set(undefined);
+    this.type.set(undefined);
+    this.material.set(undefined);
+    this.school.set(undefined);
+    this.grade.set(undefined);
+  }
 }
 export { SupplyListService };

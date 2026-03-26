@@ -1,13 +1,15 @@
+// Packages
 package umm3601.supplylist;
 
+// Static Imports
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+// Org Imports
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import umm3601.supplylist.SupplyList;
 public class SupplyListSpec {
   private static final String FAKE_ID_STRING_1 = "fakeIdOne";
   private static final String FAKE_ID_STRING_2 = "fakeIdTwo";

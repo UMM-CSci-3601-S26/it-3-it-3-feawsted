@@ -1,7 +1,7 @@
-.mat-list-item {
-  border-bottom: 1px solid black;
-  padding: 12px;
-}
+// .mat-list-item {
+//   border-bottom: 1px solid black;
+//   padding: 12px;
+// }
 
 .list-style {
   border: 2px solid black;
@@ -11,10 +11,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 0.5rem 1rem;
-}
-
-.demo-table {
-  width: 100%;
 }
 
 th.mat-sort-header-sorted {

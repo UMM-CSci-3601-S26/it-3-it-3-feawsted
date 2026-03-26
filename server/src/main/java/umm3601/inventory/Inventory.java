@@ -13,7 +13,7 @@ public class Inventory {
   @SuppressWarnings({"MemberName"})
   public String _id; // MongoDB ObjectId stored as a string
 
-  // Inventory fields - all optional except item name
+  // Inventory fields
   public String item;
   public String brand;
   public int count;

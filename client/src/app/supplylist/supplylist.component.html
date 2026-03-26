@@ -111,8 +111,7 @@
             <button
             mat-stroked-button
             type="button"
-            (click)="item.set(undefined); brand.set(undefined); color.set(undefined); size.set(undefined);
-            type.set(undefined); material.set(undefined); school.set(undefined); grade.set(undefined)"
+            (click)="resetFilters()"
             data-cy="filter-clear"
             class="clear-button"
             >
