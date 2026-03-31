@@ -1,12 +1,12 @@
 // Packages
 package umm3601.inventory;
 
+import static com.mongodb.client.model.Filters.eq;
 // Static Imports
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static com.mongodb.client.model.Filters.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -141,7 +141,7 @@ public class InventoryControllerSpec {
             .append("brand", "Pink Pearl")
             .append("color", "pink")
             .append("count", 1)
-            .append("size", "N/A")
+            .append("size", "Small")
             .append("description", "A standard eraser")
             .append("quantity", 5)
             .append("notes", "N/A")
@@ -378,6 +378,112 @@ public class InventoryControllerSpec {
 
     assertEquals(1, inventoryArrayListCaptor.getValue().size());
     assertEquals("shoulder bag", inventoryArrayListCaptor.getValue().get(0).type);
+  }
+
+
+  //Makes sure that multiple filters can be applied at once
+  @Test
+  void canFilterInventoryByItemMultipleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("item", List.of("pEnCiL, NoTeBook")));
+    when(ctx.queryParam("item")).thenReturn("pEnCiL, NoTeBook");
+
+    inventoryController.getInventories(ctx);
+
+    verify(ctx).json(inventoryArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(2, inventoryArrayListCaptor.getValue().size());
+    assertEquals("Pencil", inventoryArrayListCaptor.getValue().get(0).item);
+    assertEquals("Notebook", inventoryArrayListCaptor.getValue().get(1).item);
+  }
+
+  @Test
+  void canFilterInventoryByBrandMultipleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("brand", List.of("tIcOnDeRoGa, Pink Pearl")));
+    when(ctx.queryParam("brand")).thenReturn("tIcOnDeRoGa, Pink Pearl");
+
+    inventoryController.getInventories(ctx);
+
+    verify(ctx).json(inventoryArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(2, inventoryArrayListCaptor.getValue().size());
+    assertEquals("Ticonderoga", inventoryArrayListCaptor.getValue().get(0).brand);
+    assertEquals("Pink Pearl", inventoryArrayListCaptor.getValue().get(1).brand);
+  }
+
+  @Test
+  void canFilterInventoryByColorMultipleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("color", List.of("yElLoW, black, Blue")));
+    when(ctx.queryParam("color")).thenReturn("yElLoW, black, BLue");
+
+    inventoryController.getInventories(ctx);
+
+    verify(ctx).json(inventoryArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(3, inventoryArrayListCaptor.getValue().size());
+    assertEquals("yellow", inventoryArrayListCaptor.getValue().get(0).color);
+    assertEquals("blue", inventoryArrayListCaptor.getValue().get(1).color);
+    assertEquals("black", inventoryArrayListCaptor.getValue().get(2).color);
+  }
+
+  @Test
+  void canFilterInventoryBySizeMultipleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("size", List.of("sTaNdArD, Small")));
+    when(ctx.queryParam("size")).thenReturn("sTaNdArD, Small");
+
+    inventoryController.getInventories(ctx);
+
+    verify(ctx).json(inventoryArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(2, inventoryArrayListCaptor.getValue().size());
+    assertEquals("Small", inventoryArrayListCaptor.getValue().get(0).size);
+    assertEquals("Standard", inventoryArrayListCaptor.getValue().get(1).size);
+  }
+
+  @Test
+  void canFilterInventoryByDescriptionMultipleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("description", List.of("backpack, pencil")));
+    when(ctx.queryParam("description")).thenReturn("backpack, pencil");
+
+    inventoryController.getInventories(ctx);
+
+    verify(ctx).json(inventoryArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(2, inventoryArrayListCaptor.getValue().size());
+    assertEquals("A standard pencil", inventoryArrayListCaptor.getValue().get(0).description);
+    assertEquals("A standard backpack", inventoryArrayListCaptor.getValue().get(1).description);
+  }
+
+  @Test
+  void canFilterInventoryByMaterialMultipleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("material", List.of("wood, paper")));
+    when(ctx.queryParam("material")).thenReturn("wood, paper");
+    inventoryController.getInventories(ctx);
+
+    verify(ctx).json(inventoryArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(2, inventoryArrayListCaptor.getValue().size());
+    assertEquals("wood", inventoryArrayListCaptor.getValue().get(0).material);
+    assertEquals("paper", inventoryArrayListCaptor.getValue().get(1).material);
+  }
+
+  @Test
+  void canFilterInventoryByTypeMultipleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("type", List.of("shoulder bag, spiral")));
+    when(ctx.queryParam("type")).thenReturn("shoulder bag, spiral");
+    inventoryController.getInventories(ctx);
+
+    verify(ctx).json(inventoryArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(2, inventoryArrayListCaptor.getValue().size());
+    assertEquals("spiral", inventoryArrayListCaptor.getValue().get(0).type);
+    assertEquals("shoulder bag", inventoryArrayListCaptor.getValue().get(1).type);
   }
 
   // Makes sure the controller actually registers its routes with Javalin.

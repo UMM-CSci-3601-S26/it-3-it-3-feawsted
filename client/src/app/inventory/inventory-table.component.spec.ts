@@ -149,6 +149,55 @@ describe('Inventory Table', () => {
     expect(spy).toHaveBeenCalledWith({ item: undefined, brand: 'Crayola', color: 'Black', size: undefined, type: undefined, material: undefined });
   }));
 
+  //Test to verify the use of multiple filter inputs in the same filter
+  it('should call getInventory() when item signal changes', fakeAsync(() => {
+    const spy = spyOn(inventoryService, 'getInventory').and.callThrough();
+    inventoryTable.item.set('Markers, Pencil');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ item: 'Markers, Pencil', brand: undefined, color: undefined, size: undefined, type: undefined, material: undefined });
+  }));
+
+  it('should call getInventory() when brand signal changes', fakeAsync(() => {
+    const spy = spyOn(inventoryService, 'getInventory').and.callThrough();
+    inventoryTable.brand.set('Crayola, Pink Pearl');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: 'Crayola, Pink Pearl', color: undefined, size: undefined, type: undefined, material: undefined });
+  }));
+
+  it('should call getInventory() when color signal changes', fakeAsync(() => {
+    const spy = spyOn(inventoryService, 'getInventory').and.callThrough();
+    inventoryTable.color.set('Red, Black');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: 'Red, Black', size: undefined, type: undefined, material: undefined });
+  }));
+
+  it('should call getInventory() when size signal changes', fakeAsync(() => {
+    const spy = spyOn(inventoryService, 'getInventory').and.callThrough();
+    inventoryTable.size.set('Wide Ruled, College Ruled');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: 'Wide Ruled, College Ruled', type: undefined, material: undefined });
+  }));
+
+  it('should call getInventory() when type signal changes', fakeAsync(() => {
+    const spy = spyOn(inventoryService, 'getInventory').and.callThrough();
+    inventoryTable.type.set('Spiral, Composition');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: undefined, type: 'Spiral, Composition', material: undefined });
+  }));
+
+  it('should call getInventory() when material signal changes', fakeAsync(() => {
+    const spy = spyOn(inventoryService, 'getInventory').and.callThrough();
+    inventoryTable.material.set('Plastic, Wood');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: 'Plastic, Wood' });
+  }));
+
   // Test to verify that getInventory is called with the correct parameters when item, brand, color, and type signals change
   it('should call getInventory() when item, brand, color, and material signals change', fakeAsync(() => {
     const spy = spyOn(inventoryService, 'getInventory').and.callThrough();
