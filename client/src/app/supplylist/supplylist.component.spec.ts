@@ -108,6 +108,73 @@ describe('SupplyList Table', () => {
     expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: 'Plastic' });
   }));
 
+  // Tests to verify the use of multiple filter inputs in the same filter
+  it('should call getSupplyList() when School signal changes', fakeAsync(() => {
+    const spy = spyOn(supplylistService, 'getSupplyList').and.callThrough();
+    supplylistTable.school.set('Herman, St. Mary\'s');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ school: 'Herman, St. Mary\'s', grade: undefined, item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: undefined });
+  }));
+
+  it('should call getSupplyList() when grade signal changes', fakeAsync(() => {
+    const spy = spyOn(supplylistService, 'getSupplyList').and.callThrough();
+    supplylistTable.grade.set('PreK, 12th grade');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: 'PreK, 12th grade', item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: undefined });
+  }));
+
+  it('should call getSupplyList() when item signal changes', fakeAsync(() => {
+    const spy = spyOn(supplylistService, 'getSupplyList').and.callThrough();
+    supplylistTable.item.set('Markers, Crayons');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: 'Markers, Crayons', brand: undefined, color: undefined, size: undefined, type: undefined, material: undefined });
+  }));
+
+  it('should call getSupplyList() when brand signal changes', fakeAsync(() => {
+    const spy = spyOn(supplylistService, 'getSupplyList').and.callThrough();
+    supplylistTable.brand.set('Crayola, Five Star');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: 'Crayola, Five Star', color: undefined, size: undefined, type: undefined, material: undefined });
+  }));
+
+  it('should call getSupplyList() when color signal changes', fakeAsync(() => {
+    const spy = spyOn(supplylistService, 'getSupplyList').and.callThrough();
+    supplylistTable.color.set('Red, Black');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: 'Red, Black', size: undefined, type: undefined, material: undefined });
+  }));
+
+  it('should call getSupplyList() when size signal changes', fakeAsync(() => {
+    const spy = spyOn(supplylistService, 'getSupplyList').and.callThrough();
+    supplylistTable.size.set('Wide Ruled, Standard');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: undefined, size: 'Wide Ruled, Standard', type: undefined, material: undefined });
+  }));
+
+  it('should call getSupplyList() when type signal changes', fakeAsync(() => {
+    const spy = spyOn(supplylistService, 'getSupplyList').and.callThrough();
+    supplylistTable.type.set('Spiral, Composition');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: undefined, size: undefined, type: 'Spiral, Composition', material: undefined });
+  }));
+
+  it('should call getSupplyList() when material signal changes', fakeAsync(() => {
+    const spy = spyOn(supplylistService, 'getSupplyList').and.callThrough();
+    supplylistTable.material.set('Plastic, Wood');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: 'Plastic, Wood' });
+  }));
+
+
+
   it('should call getSupplyList() when brand and color signals change', fakeAsync(() => {
     const spy = spyOn(supplylistService, 'getSupplyList').and.callThrough();
     supplylistTable.color.set('Black');

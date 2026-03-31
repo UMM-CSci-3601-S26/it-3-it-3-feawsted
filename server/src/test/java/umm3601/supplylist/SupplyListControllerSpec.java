@@ -137,7 +137,7 @@ public class SupplyListControllerSpec {
             .append("brand", "Pink Pearl")
             .append("color", "pink")
             .append("count", 1)
-            .append("size", "N/A")
+            .append("size", "Small")
             .append("description", "A standard eraser")
             .append("quantity", 5)
             .append("notes", "N/A")
@@ -389,6 +389,141 @@ public class SupplyListControllerSpec {
 
     assertEquals(3, supplylistArrayCaptor.getValue().size());
     assertEquals("PreK", supplylistArrayCaptor.getValue().get(0).grade);
+  }
+
+  // The following test checks that multiple tags can be inserted in a filter
+ @Test
+  void canFilterSupplyListByItemMultipleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("item", List.of("pEnCiL, Notebook")));
+    when(ctx.queryParam("item")).thenReturn("pEnCiL, Notebook");
+
+    supplylistController.getSupplyLists(ctx);
+
+    verify(ctx).json(supplylistArrayCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(2, supplylistArrayCaptor.getValue().size());
+    assertEquals("Pencil", supplylistArrayCaptor.getValue().get(0).item);
+    assertEquals("Notebook", supplylistArrayCaptor.getValue().get(1).item);
+  }
+
+  @Test
+  void canFilterSupplyListByBrandMultipleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("brand", List.of("tIcOnDeRoGa, Pink Pearl")));
+    when(ctx.queryParam("brand")).thenReturn("tIcOnDeRoGa, Pink Pearl");
+
+    supplylistController.getSupplyLists(ctx);
+
+    verify(ctx).json(supplylistArrayCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(2, supplylistArrayCaptor.getValue().size());
+    assertEquals("Ticonderoga", supplylistArrayCaptor.getValue().get(0).brand);
+    assertEquals("Pink Pearl", supplylistArrayCaptor.getValue().get(1).brand);
+  }
+
+  @Test
+  void canFilterSupplyListByColorMultipleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("color", List.of("yElLoW, Blue, Pink")));
+    when(ctx.queryParam("color")).thenReturn("yElLoW, Blue, Pink");
+
+    supplylistController.getSupplyLists(ctx);
+
+    verify(ctx).json(supplylistArrayCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(3, supplylistArrayCaptor.getValue().size());
+    assertEquals("yellow", supplylistArrayCaptor.getValue().get(0).color);
+    assertEquals("pink", supplylistArrayCaptor.getValue().get(1).color);
+    assertEquals("blue", supplylistArrayCaptor.getValue().get(2).color);
+  }
+
+  @Test
+  void canFilterSupplyListBySizeMultipleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("size", List.of("sTaNdArD, Small")));
+    when(ctx.queryParam("size")).thenReturn("sTaNdArD, Small");
+
+    supplylistController.getSupplyLists(ctx);
+
+    verify(ctx).json(supplylistArrayCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(2, supplylistArrayCaptor.getValue().size());
+    assertEquals("Small", supplylistArrayCaptor.getValue().get(0).size);
+    assertEquals("Standard", supplylistArrayCaptor.getValue().get(1).size);
+  }
+
+  @Test
+  void canFilterSupplyListByDescriptionMultipleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("description", List.of("backpack, pencil")));
+    when(ctx.queryParam("description")).thenReturn("backpack, pencil");
+
+    supplylistController.getSupplyLists(ctx);
+
+    verify(ctx).json(supplylistArrayCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(2, supplylistArrayCaptor.getValue().size());
+    assertEquals("A standard pencil", supplylistArrayCaptor.getValue().get(0).description);
+    assertEquals("A standard backpack", supplylistArrayCaptor.getValue().get(1).description);
+  }
+
+  @Test
+  void canFilterSupplyListByMaterialMultipleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("material", List.of("wood, paper")));
+    when(ctx.queryParam("material")).thenReturn("wood, paper");
+    supplylistController.getSupplyLists(ctx);
+
+    verify(ctx).json(supplylistArrayCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(2, supplylistArrayCaptor.getValue().size());
+    assertEquals("wood", supplylistArrayCaptor.getValue().get(0).material);
+    assertEquals("paper", supplylistArrayCaptor.getValue().get(1).material);
+  }
+
+  @Test
+  void canFilterSupplyListByTypeMultipleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("type", List.of("bag, 2")));
+    when(ctx.queryParam("type")).thenReturn("bag, 2");
+    supplylistController.getSupplyLists(ctx);
+
+    verify(ctx).json(supplylistArrayCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(2, supplylistArrayCaptor.getValue().size());
+    assertEquals("#2", supplylistArrayCaptor.getValue().get(0).type);
+    assertEquals("shoulder bag", supplylistArrayCaptor.getValue().get(1).type);
+  }
+
+
+  @Test
+  void canFilterSupplyListBySchoolMultipleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("school", List.of("MHS, CHS")));
+    when(ctx.queryParam("school")).thenReturn("MHS, CHS");
+    supplylistController.getSupplyLists(ctx);
+
+    verify(ctx).json(supplylistArrayCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(4, supplylistArrayCaptor.getValue().size());
+    assertEquals("MHS", supplylistArrayCaptor.getValue().get(0).school);
+    assertEquals("CHS", supplylistArrayCaptor.getValue().get(1).school);
+  }
+
+  @Test
+  void canFilterSupplyListByGradeMultipleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("grade", List.of("PreK, 12th grade")));
+    when(ctx.queryParam("grade")).thenReturn("PreK, 12th grade");
+    supplylistController.getSupplyLists(ctx);
+
+    verify(ctx).json(supplylistArrayCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(4, supplylistArrayCaptor.getValue().size());
+    assertEquals("PreK", supplylistArrayCaptor.getValue().get(0).grade);
+    assertEquals("12th grade", supplylistArrayCaptor.getValue().get(1).grade);
+
   }
 
   // Makes sure the controller actually registers its routes with Javalin.
