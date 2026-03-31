@@ -32,6 +32,7 @@ import io.javalin.http.NotFoundResponse;
 // Misc Imports
 import umm3601.Controller;
 import umm3601.family.Family;
+import umm3601.supplylist.SupplyList;
 
 /**
  * Controller for handling Checklist-related API routes.
@@ -64,21 +65,21 @@ public class ChecklistController implements Controller {
   static final String SORT_ORDER_KEY = "sortorder";
 
 
-  private final JacksonMongoCollection<Checklist> checklistCollection;
   private final JacksonMongoCollection<Family> familyCollection;
+  private final JacksonMongoCollection<SupplyList> supplyListCollection;
 
-  public ChecklistController(MongoDatabase supplyDB, MongoDatabase familyDB) {
+  public ChecklistController(MongoDatabase database) {
     // Connects to the "checklist" collection using Jackson for serialization
-    this.checklistCollection = JacksonMongoCollection.builder().build(
-      supplyDB,
-      "checklist",
-      Checklist.class,
-      UuidRepresentation.STANDARD
-    );
-     this.familyCollection = JacksonMongoCollection.builder().build(
-      familyDB,
+    this.familyCollection = JacksonMongoCollection.builder().build(
+      database,
       "families",
       Family.class,
+      UuidRepresentation.STANDARD
+    );
+     this.supplyListCollection = JacksonMongoCollection.builder().build(
+      database,
+      "supplylist",
+      SupplyList.class,
       UuidRepresentation.STANDARD
     );
   }
@@ -87,20 +88,46 @@ public class ChecklistController implements Controller {
    * GET /api/checklist/{id}
    * Retrieves a single supply list item by its MongoDB ObjectId.
    */
-  public void getList(Context ctx) {
+  public void getFamily(Context ctx) {
     String id = ctx.pathParam("id");
-    Checklist checklist;
+    Family family;
 
     try {
-      checklist = checklistCollection.find(eq("_id", new ObjectId(id))).first();
+      family = familyCollection.find(eq("_id", new ObjectId(id))).first();
+    } catch (IllegalArgumentException e) {
+      throw new BadRequestResponse("The requested family id wasn't a legal Mongo Object ID.");
+    }
+    if (family == null) {
+      throw new NotFoundResponse("The requested family was not found");
+    } else {
+      ctx.json(family);
+      ctx.status(HttpStatus.OK);
+    }
+  }
+
+  public void getFamilies(Context ctx) {
+    ArrayList<Family> matchingFamilies = familyCollection
+      .find()
+      .into(new ArrayList<>());
+
+    ctx.json(matchingFamilies);
+    ctx.status(HttpStatus.OK);
+  }
+
+  public void getList(Context ctx) {
+    String id = ctx.pathParam("id");
+    Family familyinv;
+
+    try {
+      familyinv = familyCollection.find(eq("_id", new ObjectId(id))).first();
     } catch (IllegalArgumentException e) {
       throw new BadRequestResponse("The requested checklist id wasn't a legal Mongo Object ID.");
     }
 
-    if (checklist == null) {
+    if (familyinv == null) {
       throw new NotFoundResponse("The requested checklist item was not found");
     } else {
-      ctx.json(checklist);
+      ctx.json(familyinv);
       ctx.status(HttpStatus.OK);
     }
   }
@@ -112,9 +139,9 @@ public class ChecklistController implements Controller {
   public void getChecklists(Context ctx) {
     Bson filter = constructFilter(ctx);
 
-    FindIterable<Checklist> results = checklistCollection.find(filter);
+    FindIterable<Family> results = familyCollection.find(filter);
 
-    ArrayList<Checklist> matching = results.into(new ArrayList<>());
+    ArrayList<Family> matching = results.into(new ArrayList<>());
 
     ctx.json(matching);
     ctx.status(HttpStatus.OK);

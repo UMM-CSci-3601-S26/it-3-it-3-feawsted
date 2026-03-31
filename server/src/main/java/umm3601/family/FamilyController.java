@@ -56,10 +56,10 @@ public class FamilyController implements Controller {
 
   private final JacksonMongoCollection<Family> familyCollection;
 
-  public FamilyController(MongoDatabase familyDB) {
+  public FamilyController(MongoDatabase database) {
     // Connects to the "families" collection using Jackson for serialization
     familyCollection = JacksonMongoCollection.builder().build(
-        familyDB,
+        database,
         "families",
         Family.class,
         UuidRepresentation.STANDARD);

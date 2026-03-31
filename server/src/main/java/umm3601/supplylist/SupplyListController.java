@@ -44,6 +44,7 @@ import umm3601.Controller;
  */
 
 public class SupplyListController implements Controller {
+  @SuppressWarnings("SpellCheckingInspection")
   private static final String API_SUPPLYLIST = "/api/supplylist";
   private static final String API_SUPPLYLIST_BY_ID = "/api/supplylist/{id}";
 
@@ -64,6 +65,7 @@ public class SupplyListController implements Controller {
 
   private final JacksonMongoCollection<SupplyList> supplyListCollection;
 
+  @SuppressWarnings("SpellCheckingInspection")
   public SupplyListController(MongoDatabase database) {
     // Connects to the "supplylist" collection using Jackson for serialization
     supplyListCollection = JacksonMongoCollection.builder().build(

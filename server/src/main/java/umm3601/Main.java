@@ -20,7 +20,7 @@ public class Main {
     MongoDatabase database = mongoClient.getDatabase(databaseName);
 
     // Controllers used by the server.
-    final Controller[] controllers = Main.getControllers(supplyDB, inventoryDB, familyDB);
+    final Controller[] controllers = Main.getControllers(database);
 
     // Start the server.
     Server server = new Server(mongoClient, controllers);
@@ -37,14 +37,14 @@ public class Main {
   /**
    * Returns the controllers used by the server.
    */
-  static Controller[] getControllers(MongoDatabase supplyDB, MongoDatabase inventoryDB, MongoDatabase familyDB) {
+  static Controller[] getControllers(MongoDatabase database) {
     Controller[] controllers = new Controller[] {
       // Add controllers here as you create them.
       // e.g., new UserController(database)
-      new FamilyController(familyDB),
-      new InventoryController(inventoryDB),
-      new SupplyListController(supplyDB),
-      new ChecklistController(supplyDB, familyDB)
+      new FamilyController(database),
+      new InventoryController(database),
+      new SupplyListController(database),
+      new ChecklistController(database)
     };
     return controllers;
   }
