@@ -9,6 +9,7 @@ import static com.mongodb.client.model.Filters.regex;
 // Java Imports
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 // Org Imports
@@ -22,6 +23,7 @@ import org.mongojack.JacksonMongoCollection;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Sorts;
 
 // IO Imports
 import io.javalin.Javalin;
@@ -49,8 +51,8 @@ public class ChecklistController implements Controller {
   private static final String API_CHECKLIST = "/api/checklist";
   private static final String API_CHECKLIST_BY_ID = "/api/checklist/{id}";
 
-  static final String SCHOOL_KEY = "school";
-  static final String GRADE_KEY = "grade";
+  static final String SCHOOL_KEY = "students.school";
+  static final String GRADE_KEY = "students.grade";
   static final String TEACHER_KEY = "teacher";
   static final String ITEM_KEY = "item";
   static final String BRAND_KEY = "brand";
@@ -137,7 +139,7 @@ public class ChecklistController implements Controller {
    * Retrieves all checklist items, with optional query parameters for filtering.
    */
   public void getChecklists(Context ctx) {
-    Bson filter = constructFilter(ctx);
+    Bson filter = constructFamilyFilter(ctx);
 
     FindIterable<Family> results = familyCollection.find(filter);
 
@@ -147,8 +149,8 @@ public class ChecklistController implements Controller {
     ctx.status(HttpStatus.OK);
   }
 
-  // Constructs a MongoDB filter based on query parameters in the request context.
-  private Bson constructFilter(Context ctx) {
+  // (Family - Students) Constructs a MongoDB filter based on query parameters in the request context.
+  private Bson constructFamilyFilter(Context ctx) {
     List<Bson> filters = new ArrayList<>();
 
     // For school
@@ -162,7 +164,12 @@ public class ChecklistController implements Controller {
       Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(GRADE_KEY)), Pattern.CASE_INSENSITIVE);
       filters.add(regex(GRADE_KEY, pattern));
     }
+  return filters.isEmpty() ? new Document() : and(filters);
+  }
 
+  // (Supply List) Constructs a MongoDB filter based on query parameters in the request context.
+  private Bson constructSupplyFilter(Context ctx) {
+    List<Bson> filters = new ArrayList<>();
     // For item
     if (ctx.queryParamMap().containsKey(ITEM_KEY)) {
       Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(ITEM_KEY)), Pattern.CASE_INSENSITIVE);
@@ -234,5 +241,64 @@ public class ChecklistController implements Controller {
     server.get(API_CHECKLIST, this::getChecklists);
     server.get(API_CHECKLIST_BY_ID, this::getList);
   }
+
+
+
+
+
+
+
+ /*public void getChecklists(Context ctx) {
+    // We'll support sorting the results either by company name (in either `asc` or `desc` order)
+    // or by the number of users in the company (`count`, also in either `asc` or `desc` order).
+    String sortBy = Objects.requireNonNullElse(ctx.queryParam("sortBy"), "_id");
+    if (sortBy.equals("family")) {
+      sortBy = "_id";
+    }
+    String sortOrder = Objects.requireNonNullElse(ctx.queryParam("sortOrder"), "asc");
+    Bson sortingOrder = sortOrder.equals("desc") ?  Sorts.descending(sortBy) : Sorts.ascending(sortBy);
+
+    // The `UserByCompany` class is a simple class that has fields for the company
+    // name, the number of users in that company, and a list of user names and IDs
+    // (using the `UserIdName` class to store the user names and IDs).
+    // We're going to use the aggregation pipeline to group users by company, and
+    // then count the number of users in each company. We'll also collect the user
+    // names and IDs for each user in each company. We'll then convert the results
+    // of the aggregation pipeline to `UserByCompany` objects.
+
+    ArrayList<ChecklistByFamily> matchingUsers = userCollection
+      // The following aggregation pipeline groups users by company, and
+      // then counts the number of users in each company. It also collects
+      // the user names and IDs for each user in each company.
+      .aggregate(
+        List.of(
+          // Project the fields we want to use in the next step, i.e., the _id, name, and company fields
+          new Document("$project", new Document("_id", 1).append("name", 1).append("company", 1)),
+          // Group the users by company, and count the number of users in each company
+          new Document("$group", new Document("_id", "$company")
+            // Count the number of users in each company
+            .append("count", new Document("$sum", 1))
+            // Collect the user names and IDs for each user in each company
+            .append("users", new Document("$push", new Document("_id", "$_id").append("name", "$name")))),
+          // Sort the results. Use the `sortby` query param (default "company")
+          // as the field to sort by, and the query param `sortorder` (default
+          // "asc") to specify the sort order.
+          new Document("$sort", sortingOrder)
+        ),
+        // Convert the results of the aggregation pipeline to UserGroupResult objects
+        // (i.e., a list of UserGroupResult objects). It is necessary to have a Java type
+        // to convert the results to, and the JacksonMongoCollection will do this for us.
+        ChecklistByFamily.class
+      )
+      .into(new ArrayList<>());
+
+    ctx.json(matchingUsers);
+    ctx.status(HttpStatus.OK);
+  }  */
+
+
+
+
+
 }
 
