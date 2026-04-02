@@ -168,6 +168,86 @@ describe('Inventory', () => {
     });
   });
 
+  it('Should show Edit option in the row actions menu', () => {
+    page.getInventoryRow().first()
+      .find('button[aria-label="Row actions menu"]').click();
+
+    page.getEditAction().should('exist').and('be.visible');
+  });
+
+  it('Should switch to edit mode when Edit is clicked', () => {
+    page.getInventoryRow().first()
+      .find('button[aria-label="Row actions menu"]').click();
+
+    page.getEditAction().click();
+
+    // The inline input for item should now be visible, the display span hidden
+    page.getInventoryRow().first().within(() => {
+      cy.get('[data-cy="inventory-item"] input.inline-edit-input').should('be.visible');
+      cy.get('[data-cy="inventory-item"] span').should('not.be.visible');
+    });
+  });
+
+  it('Should show Save and Cancel (not Edit) in the menu while editing', () => {
+    // Re-query the row fresh each time to avoid Cypress chain variable issues
+    page.getInventoryRow().first().find('button[aria-label="Row actions menu"]').click();
+    page.getEditAction().click();
+
+    // Re-open the menu on the same row
+    page.getInventoryRow().first().find('button[aria-label="Row actions menu"]').click();
+
+    page.getSaveAction().should('exist').and('be.visible');
+    page.getCancelAction().should('exist').and('be.visible');
+    page.getEditAction().should('not.exist');
+  });
+
+  it('Should save an edited item and show the new value in the table', () => {
+    cy.intercept('PUT', '/api/inventory/*').as('editInventory');
+
+    // Enter edit mode — re-query the row fresh each time to avoid Cypress chain variable issues
+    page.getInventoryRow().first().find('button[aria-label="Row actions menu"]').click();
+    page.getEditAction().click();
+
+    // Clear the item input and type a new value
+    page.getInventoryRow().first()
+      .find('[data-cy="inventory-item"] input.inline-edit-input')
+      .should('be.visible')
+      .clear()
+      .type('Edited Item Name');
+
+    // Open the menu again and click Save
+    page.getInventoryRow().first().find('button[aria-label="Row actions menu"]').click();
+    page.getSaveAction().click();
+
+    cy.wait('@editInventory').its('response.statusCode').should('eq', 200);
+
+    // The row should now display the updated value
+    page.getInventoryRow().first()
+      .find('[data-cy="inventory-item"] span').should('contain', 'Edited Item Name');
+  });
+
+  it('Should revert changes when Cancel is clicked', () => {
+    // Enter edit mode — re-query the row fresh each time to avoid Cypress chain variable issues
+    page.getInventoryRow().first().find('button[aria-label="Row actions menu"]').click();
+    page.getEditAction().click();
+
+    // Type a different value
+    page.getInventoryRow().first()
+      .find('[data-cy="inventory-item"] input.inline-edit-input')
+      .should('be.visible')
+      .clear()
+      .type('Should Not Be Saved');
+
+    // Open the menu again and click Cancel
+    page.getInventoryRow().first().find('button[aria-label="Row actions menu"]').click();
+    page.getCancelAction().click();
+
+    // The row should show the original value, not the typed one
+    page.getInventoryRow().first().find('[data-cy="inventory-item"] span')
+      .should('not.contain', 'Should Not Be Saved')
+      .and('be.visible');
+  });
+
   // Note: The below test should remain empty until a finalized inventory list JSON is used to seed the database.
 
   // it('should report all empty cells across all pages', () => {
