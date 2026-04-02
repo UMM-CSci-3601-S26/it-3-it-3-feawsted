@@ -713,8 +713,9 @@ public class InventoryControllerSpec {
     inventoryController.editInventory(ctx);
 
     verify(ctx).status(HttpStatus.OK);
+    // editInventory does not call ctx.json(), so query by the known inventoryId directly
     Document editedInventory = db.getCollection("inventory")
-        .find(eq("_id", new ObjectId(mapCaptor.getValue().get("id")))).first();
+        .find(eq("_id", inventoryId)).first();
 
     assertEquals("Crayons", editedInventory.get("item"));
     assertEquals("Crayola", editedInventory.get("brand"));
@@ -725,6 +726,180 @@ public class InventoryControllerSpec {
     assertEquals(6, editedInventory.get("quantity"));
     assertEquals("N/A", editedInventory.get("notes"));
     assertEquals("wax", editedInventory.get("type"));
+  }
+
+  // A well-formed request body but the ID in the URL is not a valid ObjectId.
+  // The controller should immediately reject it with a 400 Bad Request.
+  @Test
+  void editInventoryWithBadId() {
+    when(ctx.pathParam("id")).thenReturn("bad");
+
+    String body = """
+        {
+          "item": "Crayons",
+          "brand": "Crayola",
+          "color": "multicolor",
+          "count": 1,
+          "size": "N/A",
+          "description": "A box of crayons",
+          "quantity": 6,
+          "notes": "N/A",
+          "type": "wax",
+          "material": "wax"
+        }
+        """;
+
+    when(ctx.bodyValidator(Inventory.class))
+        .thenReturn(new BodyValidator<>(
+            body,
+            Inventory.class,
+            () -> javalinJackson.fromJsonString(body, Inventory.class)));
+
+    Throwable exception = assertThrows(BadRequestResponse.class, () -> {
+      inventoryController.editInventory(ctx);
+    });
+
+    assertEquals("The requested inventory id wasn't a legal Mongo Object ID.", exception.getMessage());
+  }
+
+  // A valid ObjectId format, but no document with that ID exists.
+  // The controller should respond with a 404 Not Found.
+  @Test
+  void editInventoryWithNonexistentId() {
+    when(ctx.pathParam("id")).thenReturn("588935f5c668650dc77df581");
+
+    String body = """
+        {
+          "item": "Crayons",
+          "brand": "Crayola",
+          "color": "multicolor",
+          "count": 1,
+          "size": "N/A",
+          "description": "A box of crayons",
+          "quantity": 6,
+          "notes": "N/A",
+          "type": "wax",
+          "material": "wax"
+        }
+        """;
+
+    when(ctx.bodyValidator(Inventory.class))
+        .thenReturn(new BodyValidator<>(
+            body,
+            Inventory.class,
+            () -> javalinJackson.fromJsonString(body, Inventory.class)));
+
+    Throwable exception = assertThrows(NotFoundResponse.class, () -> {
+      inventoryController.editInventory(ctx);
+    });
+
+    assertEquals("The requested inventory item was not found", exception.getMessage());
+  }
+
+  // Tries to edit with an empty item name. The controller should reject it
+  // before touching the database.
+  @Test
+  void editInventoryWithInvalidItem() {
+    String id = inventoryId.toHexString();
+    when(ctx.pathParam("id")).thenReturn(id);
+
+    String body = """
+        {
+          "item": "",
+          "brand": "Crayola",
+          "color": "multicolor",
+          "count": 1,
+          "size": "N/A",
+          "description": "A box of crayons",
+          "quantity": 6,
+          "notes": "N/A",
+          "type": "wax",
+          "material": "wax"
+        }
+        """;
+
+    when(ctx.bodyValidator(Inventory.class))
+        .thenReturn(new BodyValidator<>(
+            body,
+            Inventory.class,
+            () -> javalinJackson.fromJsonString(body, Inventory.class)));
+
+    ValidationException exception = assertThrows(ValidationException.class, () -> {
+      inventoryController.editInventory(ctx);
+    });
+
+    String exceptionMessage = exception.getErrors().get("REQUEST_BODY").get(0).toString();
+    assertTrue(exceptionMessage.contains("Inventory must have a non-empty item key"));
+  }
+
+  // Tries to edit with count = 0, which violates the "count must be >= 1" rule.
+  @Test
+  void editInventoryWithInvalidCount() {
+    String id = inventoryId.toHexString();
+    when(ctx.pathParam("id")).thenReturn(id);
+
+    String body = """
+        {
+          "item": "Crayons",
+          "brand": "Crayola",
+          "color": "multicolor",
+          "count": 0,
+          "size": "N/A",
+          "description": "A box of crayons",
+          "quantity": 6,
+          "notes": "N/A",
+          "type": "wax",
+          "material": "wax"
+        }
+        """;
+
+    when(ctx.bodyValidator(Inventory.class))
+        .thenReturn(new BodyValidator<>(
+            body,
+            Inventory.class,
+            () -> javalinJackson.fromJsonString(body, Inventory.class)));
+
+    ValidationException exception = assertThrows(ValidationException.class, () -> {
+      inventoryController.editInventory(ctx);
+    });
+
+    String exceptionMessage = exception.getErrors().get("REQUEST_BODY").get(0).toString();
+    assertTrue(exceptionMessage.contains("Count must be >= 1"));
+  }
+
+  // Tries to edit with a negative quantity. The controller should reject it.
+  @Test
+  void editInventoryWithInvalidQuantity() {
+    String id = inventoryId.toHexString();
+    when(ctx.pathParam("id")).thenReturn(id);
+
+    String body = """
+        {
+          "item": "Crayons",
+          "brand": "Crayola",
+          "color": "multicolor",
+          "count": 1,
+          "size": "N/A",
+          "description": "A box of crayons",
+          "quantity": -1,
+          "notes": "N/A",
+          "type": "wax",
+          "material": "wax"
+        }
+        """;
+
+    when(ctx.bodyValidator(Inventory.class))
+        .thenReturn(new BodyValidator<>(
+            body,
+            Inventory.class,
+            () -> javalinJackson.fromJsonString(body, Inventory.class)));
+
+    ValidationException exception = assertThrows(ValidationException.class, () -> {
+      inventoryController.editInventory(ctx);
+    });
+
+    String exceptionMessage = exception.getErrors().get("REQUEST_BODY").get(0).toString();
+    assertTrue(exceptionMessage.contains("Quantity must be >= 0"));
   }
 
 }
