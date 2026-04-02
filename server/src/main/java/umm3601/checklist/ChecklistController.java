@@ -1,29 +1,19 @@
-// Packages
+/ Packages
 package umm3601.checklist;
 
-// Static Imports
+// Static imports
 import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.regex;
-
-// Java Imports
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.regex.Pattern;
 
 // Org Imports
+import org.mongojack.JacksonMongoCollection;
 import org.bson.Document;
 import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
-import org.mongojack.JacksonMongoCollection;
 
 // Com Imports
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Sorts;
+import com.mongodb.client.MongoDatabase;
 
 // IO Imports
 import io.javalin.Javalin;
@@ -31,9 +21,16 @@ import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 import io.javalin.http.NotFoundResponse;
+
+// Java Imports
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 // Misc Imports
 import umm3601.Controller;
 import umm3601.family.Family;
+import umm3601.family.Family.StudentInfo;
 import umm3601.supplylist.SupplyList;
 
 /**
@@ -48,257 +45,197 @@ import umm3601.supplylist.SupplyList;
  */
 
 public class ChecklistController implements Controller {
+
   private static final String API_CHECKLIST = "/api/checklist";
+  private static final String API_CHECKLIST_PRINT = "/api/checklist/print";
+  private static final String API_CHECKLIST_BY_NAME = "/api/checklist/student/{name}";
+  private static final String API_CHECKLIST_FAMILY = "/api/checklist/family/{guardianName}";
   private static final String API_CHECKLIST_BY_ID = "/api/checklist/{id}";
+  private static final String API_CHECKLIST_ITEM = "/api/checklist/{id}/item/{index}";
 
-  static final String SCHOOL_KEY = "students.school";
-  static final String GRADE_KEY = "students.grade";
-  static final String TEACHER_KEY = "teacher";
-  static final String ITEM_KEY = "item";
-  static final String BRAND_KEY = "brand";
-  static final String COUNT_KEY = "count";
-  static final String SIZE_KEY = "size";
-  static final String COLOR_KEY = "color";
-  static final String DESCRIPTION_KEY = "description";
-  static final String QUANTITY_KEY = "quantity";
-  static final String NOTES_KEY = "notes";
-  static final String MATERIAL_KEY = "material";
-  static final String TYPE_KEY = "type";
-  static final String SORT_ORDER_KEY = "sortorder";
-
+  static final String SCHOOL_KEY = "school";
+  static final String GRADE_KEY = "grade";
+  static final String NAME_KEY = "studentName";
 
   private final JacksonMongoCollection<Family> familyCollection;
   private final JacksonMongoCollection<SupplyList> supplyListCollection;
+  private final JacksonMongoCollection<Checklist> checklistCollection;
 
-  public ChecklistController(MongoDatabase database) {
-    // Connects to the "checklist" collection using Jackson for serialization
-    this.familyCollection = JacksonMongoCollection.builder().build(
-      database,
-      "families",
-      Family.class,
-      UuidRepresentation.STANDARD
-    );
-     this.supplyListCollection = JacksonMongoCollection.builder().build(
-      database,
-      "supplylist",
-      SupplyList.class,
-      UuidRepresentation.STANDARD
-    );
+  public ChecklistController(MongoDatabase db) {
+    familyCollection = JacksonMongoCollection.builder().build(
+      db, "families", Family.class, UuidRepresentation.STANDARD);
+    supplyListCollection = JacksonMongoCollection.builder().build(
+      db, "supply-list", SupplyList.class, UuidRepresentation.STANDARD);
+    checklistCollection = JacksonMongoCollection.builder().build(
+      db, "checklists", Checklist.class, UuidRepresentation.STANDARD);
   }
 
-  /**
-   * GET /api/checklist/{id}
-   * Retrieves a single supply list item by its MongoDB ObjectId.
-   */
-  public void getFamily(Context ctx) {
-    String id = ctx.pathParam("id");
-    Family family;
+  // Builds a Checklist for a single student from the supply list (not persisted)
+  public Checklist createChecklist(StudentInfo student, List<SupplyList> allSupplies) {
+    List<Checklist.ChecklistItem> items = allSupplies.stream()
+      .filter(s -> s.school != null && s.school.equals(student.school)
+        && s.grade != null && s.grade.equals(student.grade))
+      .map(Checklist.ChecklistItem::new)
+      .collect(Collectors.toList());
 
-    try {
-      family = familyCollection.find(eq("_id", new ObjectId(id))).first();
-    } catch (IllegalArgumentException e) {
-      throw new BadRequestResponse("The requested family id wasn't a legal Mongo Object ID.");
-    }
-    if (family == null) {
-      throw new NotFoundResponse("The requested family was not found");
-    } else {
-      ctx.json(family);
-      ctx.status(HttpStatus.OK);
-    }
+    Checklist checklist = new Checklist();
+    checklist.studentName = student.name;   //can't display last name, so maybe guardian name instead?
+    checklist.school = student.school;
+    checklist.grade = student.grade;
+    checklist.checklist = items;
+    return checklist;
   }
 
-  public void getFamilies(Context ctx) {
-    ArrayList<Family> matchingFamilies = familyCollection
-      .find()
-      .into(new ArrayList<>());
+  // --- PRINT ROUTES (on-the-fly, not persisted) ---
 
-    ctx.json(matchingFamilies);
+  // GET /api/checklist/print — all students
+  public void printAllChecklists(Context ctx) {
+    List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
+    List<Checklist> checklists = familyCollection.find().into(new ArrayList<>()).stream()
+      .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
+      .collect(Collectors.toList());
+    ctx.json(checklists);
     ctx.status(HttpStatus.OK);
   }
 
-  public void getList(Context ctx) {
-    String id = ctx.pathParam("id");
-    Family familyinv;
-
-    try {
-      familyinv = familyCollection.find(eq("_id", new ObjectId(id))).first();
-    } catch (IllegalArgumentException e) {
-      throw new BadRequestResponse("The requested checklist id wasn't a legal Mongo Object ID.");
-    }
-
-    if (familyinv == null) {
-      throw new NotFoundResponse("The requested checklist item was not found");
-    } else {
-      ctx.json(familyinv);
-      ctx.status(HttpStatus.OK);
-    }
-  }
-
-  /**
-   * GET /api/checklist
-   * Retrieves all checklist items, with optional query parameters for filtering.
-   */
-  public void getChecklists(Context ctx) {
-    Bson filter = constructFamilyFilter(ctx);
-
-    FindIterable<Family> results = familyCollection.find(filter);
-
-    ArrayList<Family> matching = results.into(new ArrayList<>());
-
-    ctx.json(matching);
-    ctx.status(HttpStatus.OK);
-  }
-
-  // (Family - Students) Constructs a MongoDB filter based on query parameters in the request context.
-  private Bson constructFamilyFilter(Context ctx) {
-    List<Bson> filters = new ArrayList<>();
-
-    // For school
-    if (ctx.queryParamMap().containsKey(SCHOOL_KEY)) {
-      Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(SCHOOL_KEY)), Pattern.CASE_INSENSITIVE);
-      filters.add(regex(SCHOOL_KEY, pattern));
-    }
-
-    // For grade
-    if (ctx.queryParamMap().containsKey(GRADE_KEY)) {
-      Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(GRADE_KEY)), Pattern.CASE_INSENSITIVE);
-      filters.add(regex(GRADE_KEY, pattern));
-    }
-  return filters.isEmpty() ? new Document() : and(filters);
-  }
-
-  // (Supply List) Constructs a MongoDB filter based on query parameters in the request context.
-  private Bson constructSupplyFilter(Context ctx) {
-    List<Bson> filters = new ArrayList<>();
-    // For item
-    if (ctx.queryParamMap().containsKey(ITEM_KEY)) {
-      Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(ITEM_KEY)), Pattern.CASE_INSENSITIVE);
-      filters.add(regex(ITEM_KEY, pattern));
-    }
-
-    // For brand
-    if (ctx.queryParamMap().containsKey(BRAND_KEY)) {
-      Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(BRAND_KEY)), Pattern.CASE_INSENSITIVE);
-      filters.add(regex(BRAND_KEY, pattern));
-    }
-
-    // For color
-    if (ctx.queryParamMap().containsKey(COLOR_KEY)) {
-      Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(COLOR_KEY)), Pattern.CASE_INSENSITIVE);
-      filters.add(regex(COLOR_KEY, pattern));
-    }
-
-    // For size
-    if (ctx.queryParamMap().containsKey(SIZE_KEY)) {
-      Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(SIZE_KEY)), Pattern.CASE_INSENSITIVE);
-      filters.add(regex(SIZE_KEY, pattern));
-    }
-
-    // For description
-    if (ctx.queryParamMap().containsKey(DESCRIPTION_KEY)) {
-      Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(DESCRIPTION_KEY)), Pattern.CASE_INSENSITIVE);
-      filters.add(regex(DESCRIPTION_KEY, pattern));
-    }
-
-    // For quantity, which must be an integer
-    if (ctx.queryParamMap().containsKey(QUANTITY_KEY)) {
-      String qParam = ctx.queryParam(QUANTITY_KEY);
-      try {
-        int q = Integer.parseInt(qParam);
-        filters.add(Filters.eq(QUANTITY_KEY, q));
-      } catch (NumberFormatException e) {
-        throw new BadRequestResponse("quantity must be an integer.");
+  // GET /api/checklist/student/{name} — single student by full name
+  public void printChecklistByStudent(Context ctx) {
+    String name = ctx.pathParam("name");
+    List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
+    for (Family family : familyCollection.find().into(new ArrayList<>())) {
+      for (StudentInfo student : family.students) {
+        if ((student.name).equalsIgnoreCase(name)) {
+          ctx.json(createChecklist(student, allSupplies));
+          ctx.status(HttpStatus.OK);
+          return;
+        }
       }
     }
+    throw new NotFoundResponse("No student found with name: " + name);
+  }
 
-    // For notes
-    if (ctx.queryParamMap().containsKey(NOTES_KEY)) {
-      Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(NOTES_KEY)), Pattern.CASE_INSENSITIVE);
-      filters.add(regex(NOTES_KEY, pattern));
+  // GET /api/checklist/family/{guardianName} — all students in a family
+  public void printChecklistsByFamily(Context ctx) {
+    String guardianName = ctx.pathParam("guardianName");
+    List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
+    List<Family> families = familyCollection.find(
+      Filters.regex("guardianFirstName", guardianName, "i")).into(new ArrayList<>());
+    if (families.isEmpty()) {
+      throw new NotFoundResponse("No family found for guardian: " + guardianName);
+    }
+    List<Checklist> checklists = families.stream()
+      .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
+      .collect(Collectors.toList());
+    ctx.json(checklists);
+    ctx.status(HttpStatus.OK);
+  }
+
+  // --- DIGITAL DRIVE-DAY ROUTES (persisted to MongoDB) ---
+
+  // POST /api/checklist — snapshot all families into the checklists collection
+  public void generateDigitalChecklists(Context ctx) {
+    List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
+    List<Checklist> checklists = familyCollection.find().into(new ArrayList<>()).stream()
+      .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
+      .collect(Collectors.toList());
+    checklistCollection.insertMany(checklists);
+    ctx.json(checklists);
+    ctx.status(HttpStatus.CREATED);
+  }
+
+  // GET /api/checklist — query stored digital checklists (optional ?school= and ?grade= filters)
+  public void getStoredChecklists(Context ctx) {
+    Bson filter = constructFilter(ctx);
+    ctx.json(checklistCollection.find(filter).into(new ArrayList<>()));
+    ctx.status(HttpStatus.OK);
+  }
+
+  // Constructs a MongoDB filter from optional query params
+  private Bson constructFilter(Context ctx) {
+    List<Bson> filters = new ArrayList<>();
+
+    if (ctx.queryParamMap().containsKey(SCHOOL_KEY)) {
+      filters.add(Filters.eq(SCHOOL_KEY, ctx.queryParam(SCHOOL_KEY)));
+    }
+    if (ctx.queryParamMap().containsKey(GRADE_KEY)) {
+      filters.add(Filters.eq(GRADE_KEY, ctx.queryParam(GRADE_KEY)));
+    }
+    if (ctx.queryParamMap().containsKey(NAME_KEY)) {
+      filters.add(Filters.regex(NAME_KEY, ctx.queryParam(NAME_KEY), "i"));
     }
 
-    // For material
-    if (ctx.queryParamMap().containsKey(MATERIAL_KEY)) {
-      Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(MATERIAL_KEY)), Pattern.CASE_INSENSITIVE);
-      filters.add(regex(MATERIAL_KEY, pattern));
-    }
-
-    // // For type
-    // if (ctx.queryParamMapsupplylist().containsKey(TYPE_KEY)) {
-    //   Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(TYPE_KEY)), Pattern.CASE_INSENSITIVE);
-    //   filters.add(regex(TYPE_KEY, pattern));
-    // }
-
-    // If no filters, return an empty Document to match all; otherwise combine with $and
     return filters.isEmpty() ? new Document() : and(filters);
   }
 
-  /**
-   * Registers API routes for this controller.
-   */
-  @Override
-  public void addRoutes(Javalin server) {
-    server.get(API_CHECKLIST, this::getChecklists);
-    server.get(API_CHECKLIST_BY_ID, this::getList);
+  // GET /api/checklist/{id} — get a single stored checklist by id
+  public void getStoredChecklistById(Context ctx) {
+    String id = ctx.pathParam("id");
+    Checklist checklist;
+    try {
+      checklist = checklistCollection.find(Filters.eq("_id", new ObjectId(id))).first();
+    } catch (IllegalArgumentException e) {
+      throw new BadRequestResponse("Invalid checklist ID.");
+    }
+    if (checklist == null) {
+      throw new NotFoundResponse("Checklist not found.");
+    }
+    ctx.json(checklist);
+    ctx.status(HttpStatus.OK);
   }
 
-
-
-
-
-
-
- /*public void getChecklists(Context ctx) {
-    // We'll support sorting the results either by company name (in either `asc` or `desc` order)
-    // or by the number of users in the company (`count`, also in either `asc` or `desc` order).
-    String sortBy = Objects.requireNonNullElse(ctx.queryParam("sortBy"), "_id");
-    if (sortBy.equals("family")) {
-      sortBy = "_id";
+  // PATCH /api/checklist/{id}/item/{index} — update a single item (completed, unreceived, selectedOption)
+  public void updateChecklistItem(Context ctx) {
+    String id = ctx.pathParam("id");
+    int index;
+    try {
+      index = Integer.parseInt(ctx.pathParam("index"));
+    } catch (NumberFormatException e) {
+      throw new BadRequestResponse("Item index must be an integer.");
     }
-    String sortOrder = Objects.requireNonNullElse(ctx.queryParam("sortOrder"), "asc");
-    Bson sortingOrder = sortOrder.equals("desc") ?  Sorts.descending(sortBy) : Sorts.ascending(sortBy);
 
-    // The `UserByCompany` class is a simple class that has fields for the company
-    // name, the number of users in that company, and a list of user names and IDs
-    // (using the `UserIdName` class to store the user names and IDs).
-    // We're going to use the aggregation pipeline to group users by company, and
-    // then count the number of users in each company. We'll also collect the user
-    // names and IDs for each user in each company. We'll then convert the results
-    // of the aggregation pipeline to `UserByCompany` objects.
+    Checklist checklist;
+    try {
+      checklist = checklistCollection.find(Filters.eq("_id", new ObjectId(id))).first();
+    } catch (IllegalArgumentException e) {
+      throw new BadRequestResponse("Invalid checklist ID.");
+    }
+    if (checklist == null) {
+      throw new NotFoundResponse("Checklist not found.");
+    }
+    if (index < 0 || index >= checklist.checklist.size()) {
+      throw new BadRequestResponse("Item index out of range.");
+    }
 
-    ArrayList<ChecklistByFamily> matchingUsers = userCollection
-      // The following aggregation pipeline groups users by company, and
-      // then counts the number of users in each company. It also collects
-      // the user names and IDs for each user in each company.
-      .aggregate(
-        List.of(
-          // Project the fields we want to use in the next step, i.e., the _id, name, and company fields
-          new Document("$project", new Document("_id", 1).append("name", 1).append("company", 1)),
-          // Group the users by company, and count the number of users in each company
-          new Document("$group", new Document("_id", "$company")
-            // Count the number of users in each company
-            .append("count", new Document("$sum", 1))
-            // Collect the user names and IDs for each user in each company
-            .append("users", new Document("$push", new Document("_id", "$_id").append("name", "$name")))),
-          // Sort the results. Use the `sortby` query param (default "company")
-          // as the field to sort by, and the query param `sortorder` (default
-          // "asc") to specify the sort order.
-          new Document("$sort", sortingOrder)
-        ),
-        // Convert the results of the aggregation pipeline to UserGroupResult objects
-        // (i.e., a list of UserGroupResult objects). It is necessary to have a Java type
-        // to convert the results to, and the JacksonMongoCollection will do this for us.
-        ChecklistByFamily.class
-      )
-      .into(new ArrayList<>());
+    // Parse only the fields present in the request body
+    var body = ctx.bodyAsClass(ItemUpdateRequest.class);
+    Checklist.ChecklistItem item = checklist.checklist.get(index);
+    if (body.completed != null)       item.completed = body.completed;
+    if (body.unreceived != null)      item.unreceived = body.unreceived;
+    if (body.selectedOption != null)  item.selectedOption = body.selectedOption;
 
-    ctx.json(matchingUsers);
+    checklistCollection.save(checklist);
+    ctx.json(checklist);
     ctx.status(HttpStatus.OK);
-  }  */
+  }
 
+  // Request body for PATCH item update
+  public static class ItemUpdateRequest {
+    public Boolean completed;
+    public Boolean unreceived;
+    public String selectedOption;
+  }
 
+  @Override
+  public void addRoutes(Javalin server) {
+    // Print routes (on-the-fly, no persistence)
+    server.get(API_CHECKLIST_PRINT,   this::printAllChecklists);
+    server.get(API_CHECKLIST_BY_NAME, this::printChecklistByStudent);
+    server.get(API_CHECKLIST_FAMILY,  this::printChecklistsByFamily);
 
-
-
+    // Digital drive-day routes (persisted)
+    server.post(API_CHECKLIST,        this::generateDigitalChecklists);
+    server.get(API_CHECKLIST,         this::getStoredChecklists);
+    server.get(API_CHECKLIST_BY_ID,   this::getStoredChecklistById);
+    server.patch(API_CHECKLIST_ITEM,  this::updateChecklistItem);
+  }
 }
-
