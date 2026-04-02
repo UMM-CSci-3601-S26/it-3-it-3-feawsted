@@ -61,6 +61,7 @@ describe('Inventory', () => {
     cy.get('@headers').should('contain', 'Count');
     cy.get('@headers').should('contain', 'Quantity');
     cy.get('@headers').should('contain', 'Notes');
+    cy.get('@headers').should('contain', 'Actions');
   });
 
   // Cypress tests to ensure the filter boxes (including clear button) are there
@@ -166,6 +167,51 @@ describe('Inventory', () => {
       cy.get('[data-cy="inventory-type"]').should('not.contain', Filters_Test.Type);
       cy.get('[data-cy="inventory-size"]').should('not.contain', Filters_Test.Size);
     });
+
+    it('deletes an item when confirmed', () => {
+      // Intercept the delete API call
+      cy.intercept('DELETE', '/api/inventory*').as('deleteInventory');
+      // cy.intercept('DELETE', '/api/inventory*', {
+      //   statusCode: 200,
+      //   body: { success: true },
+      // }).as('deleteInventory');
+
+      // Simulate user confirming the deletion
+      cy.on('window:confirm', () => true); // Simulate user clicking "OK" on confirmation prompt
+
+      // Click the delete button for the first item
+      page.getInventoryRow().first().within(() => {
+        cy.get('[data-cy="delete-button"]').click();
+      });
+
+      cy.wait('@deleteInventory').its('request.body').should('contain', '/api/inventory');
+      // Optionally, check that the item is removed from the UI after deletion
+
+      page.getInventoryRow().should('have.length.lessThan', 1); // Assuming there were initially 1 item, adjust as needed
+
+    });
+
+    it('delete does not occur when user cancels confirmation prompt', () => {
+      // Intercept the delete API call
+      cy.intercept('DELETE', '/api/inventory*').as('deleteInventory');
+
+      // Simulate user cancelling the deletion
+      cy.on('window:confirm', () => false); // Simulate user clicking "Cancel" on confirmation prompt
+
+      // Click the delete button for the first item
+      page.getInventoryRow().first().within(() => {
+        cy.get('[data-cy="delete-button"]').click();
+      });
+
+      // Ensure the delete API call was not made
+      cy.wait(500); // Wait briefly to ensure any API calls would have been made
+      cy.get('@deleteInventory.all').should('have.length', 0); // Assert that no delete API calls were made
+
+      // Optionally, check that the item is still present in the UI after cancellation
+      page.getInventoryRow().first().within(() => {
+        cy.get('[data-cy="inventory-item"]').should('exist');
+      });
+    })
   });
 
   // Note: The below test should remain empty until a finalized inventory list JSON is used to seed the database.
