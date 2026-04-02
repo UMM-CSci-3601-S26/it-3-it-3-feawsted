@@ -187,7 +187,9 @@ export class InventoryTableComponent {
    * then exits edit mode.
    */
   saveEdit(row: Inventory) {
-    if (!row._id) { return; }
+    if (!row._id) {
+      return;
+    }
     this.inventoryService.editInventory(row._id, row).subscribe({
       next: () => {
         this.editingRowId = null;
