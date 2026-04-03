@@ -1,11 +1,8 @@
 // Packages
 package umm3601.checklist;
 
-import static com.mongodb.client.model.Filters.eq;
 // Static Imports
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.atLeastOnce;
@@ -34,7 +31,6 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mongojack.Id;
 import org.mongojack.JacksonMongoCollection;
 
 // Com Imports
@@ -48,16 +44,9 @@ import com.mongodb.client.MongoDatabase;
 
 // IO Imports
 import io.javalin.Javalin;
-import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
-import io.javalin.http.NotFoundResponse;
 import io.javalin.json.JavalinJackson;
-import io.javalin.validation.BodyValidator;
-import io.javalin.validation.ValidationException;
-import umm3601.family.Family;
-import umm3601.family.Family.StudentInfo;
-import umm3601.supplylist.SupplyList;
 import umm3601.family.Family;
 import umm3601.family.Family.StudentInfo;
 import umm3601.supplylist.SupplyList;
@@ -209,8 +198,8 @@ testChecklists.add(
 
 //checks that checklists were created and inserted
   @Test
-  void generateDigitalChecklists(){
-      Context ctx = mock(Context.class);
+  void generateDigitalChecklists() {
+      Context ctx1 = mock(Context.class);
       //mock three mongo collections
       JacksonMongoCollection<SupplyList> supplyListCollection = mock(JacksonMongoCollection.class);
       JacksonMongoCollection<Family> familyCollection = mock(JacksonMongoCollection.class);
@@ -271,9 +260,8 @@ testChecklists.add(
       verify(ctx).status(HttpStatus.CREATED);
   }
 
-
   @Test
-  void createChecklist_matchesExpectedDocument() {
+  void createChecklistMakesTheRightChecklist() {
     ChecklistController controller = new ChecklistController(null, null, null);
 
     // Arrange

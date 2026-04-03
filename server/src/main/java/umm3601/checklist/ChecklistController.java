@@ -9,7 +9,6 @@ import org.mongojack.JacksonMongoCollection;
 import org.bson.Document;
 import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
-import org.bson.types.ObjectId;
 
 // Com Imports
 import com.mongodb.client.model.Filters;
@@ -17,10 +16,8 @@ import com.mongodb.client.MongoDatabase;
 
 // IO Imports
 import io.javalin.Javalin;
-import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
-import io.javalin.http.NotFoundResponse;
 
 // Java Imports
 import java.util.ArrayList;

@@ -2,9 +2,6 @@ package umm3601.checklist;
 
 import java.util.List;
 
-import org.mongojack.Id;
-import org.mongojack.ObjectId;
-
 import umm3601.supplylist.SupplyList;
 
 
@@ -23,7 +20,7 @@ class Checklist {
     public Boolean unreceived = false; //needs coverage
     public String selectedOption;
 
-    public ChecklistItem(SupplyList supply) { //needs coverage
+     ChecklistItem(SupplyList supply) { //needs coverage
       this.itemName = supply.item;            //needs coverage
     }
   }
