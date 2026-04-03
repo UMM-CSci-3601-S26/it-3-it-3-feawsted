@@ -7,7 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -32,10 +35,12 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mongojack.Id;
+import org.mongojack.JacksonMongoCollection;
 
 // Com Imports
 import com.mongodb.MongoClientSettings;
 import com.mongodb.ServerAddress;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -50,6 +55,12 @@ import io.javalin.http.NotFoundResponse;
 import io.javalin.json.JavalinJackson;
 import io.javalin.validation.BodyValidator;
 import io.javalin.validation.ValidationException;
+import umm3601.family.Family;
+import umm3601.family.Family.StudentInfo;
+import umm3601.supplylist.SupplyList;
+import umm3601.family.Family;
+import umm3601.family.Family.StudentInfo;
+import umm3601.supplylist.SupplyList;
 
 /**
  * Tests for the ChecklistController using a real MongoDB "test" database.
@@ -134,21 +145,21 @@ class ChecklistControllerSpec {
         .append("school", "MAHS")
         .append("grade", "4")
         .append("studentName", "Elmo")
-        .append("requestedSupplies", "headphones")
+        .append("requestedSupplies", List.of("headphones"))
     );
     testChecklists.add(
       new Document()
         .append("school", "AHS")
         .append("grade", "8")
         .append("studentName", "johnny")
-        .append("requestedSupplies", "backpack")
+        .append("requestedSupplies", List.of("backpack"))
     );
 testChecklists.add(
       new Document()
         .append("school", "SSHS")
         .append("grade", "2")
         .append("studentName", "Rocco")
-        .append("requestedSupplies", "")
+        .append("requestedSupplies", List.of(""))
     );
 
     testChecklistId = new ObjectId();
@@ -158,7 +169,7 @@ testChecklists.add(
       .append("school", "Nowhere")
       .append("grade", "12")
       .append("studentName", "bart")
-      .append("requestedSupplies", "nothing");
+      .append("requestedSupplies", List.of("nothing"));
 
     checklistDocuments.insertMany(testChecklists);
     checklistDocuments.insertOne(specialChecklist);
@@ -174,9 +185,11 @@ testChecklists.add(
 
     checklistController.addRoutes(mockServer);
 
-    verify(mockServer, Mockito.atLeast(4)).get(any(), any());
-    verify(mockServer, Mockito.atLeastOnce()).post(any(), any());
-    verify(mockServer, Mockito.atLeastOnce()).patch(any(), any());
+    verify(mockServer, Mockito.atLeast(1)).get(any(), any());
+
+    verify(mockServer, atLeastOnce()).get(any(), any());
+    verify(mockServer, atLeastOnce()).post(any(), any());
+    verify(mockServer, never()).patch(any(), any()); //never use patch so we confirm this
   }
 
   // Makes sure that asking for all families returns everything in the database.
@@ -192,6 +205,108 @@ testChecklists.add(
     assertEquals(
       db.getCollection("checklists").countDocuments(),
       checklistArrayListCaptor.getValue().size());
+  }
+
+//checks that checklists were created and inserted
+  @Test
+  void generateDigitalChecklists(){
+      Context ctx = mock(Context.class);
+      //mock three mongo collections
+      JacksonMongoCollection<SupplyList> supplyListCollection = mock(JacksonMongoCollection.class);
+      JacksonMongoCollection<Family> familyCollection = mock(JacksonMongoCollection.class);
+      JacksonMongoCollection<Checklist> checklistCollection = mock(JacksonMongoCollection.class);
+
+      ChecklistController controller = new ChecklistController(
+          familyCollection,
+          supplyListCollection,
+          checklistCollection
+      );
+      // Mock supply list
+      SupplyList supply = new SupplyList();
+      supply.item = "Pencils";
+
+      FindIterable<SupplyList> supplyFind = mock(FindIterable.class);
+      when(supplyListCollection.find()).thenReturn(supplyFind);
+      when(supplyFind.into(anyList())).thenAnswer(inv -> {
+        List<SupplyList> list = inv.getArgument(0);
+        list.add(supply);
+        return list;
+      });
+
+      // Mock family + students
+      StudentInfo s1 = new StudentInfo();
+      s1.name = "Alice";
+      s1.school = "MAHS";
+      s1.grade = "4";
+
+      StudentInfo s2 = new StudentInfo();
+      s2.name = "Bob";
+      s2.school = "MAHS";
+      s2.grade = "4";
+
+      Family family = new Family();
+      family.students = List.of(s1, s2);
+
+      FindIterable<Family> familyFind = mock(FindIterable.class);
+      when(familyCollection.find()).thenReturn(familyFind);
+      when(familyFind.into(anyList())).thenAnswer(inv -> {
+        List<Family> list = inv.getArgument(0);
+        list.add(family);
+        return list;
+      });
+
+      // Capture inserted checklists
+      ArgumentCaptor<List<Checklist>> captor = ArgumentCaptor.forClass(List.class);
+
+      // Act
+      controller.generateDigitalChecklists(ctx);
+
+      // Assert: insertMany was called with 2 checklists (one per student)
+      verify(checklistCollection).insertMany(captor.capture());
+      List<Checklist> inserted = captor.getValue();
+      assertEquals(2, inserted.size());
+
+      // Assert: JSON response and status
+      verify(ctx).json(inserted);
+      verify(ctx).status(HttpStatus.CREATED);
+  }
+
+
+  @Test
+  void createChecklist_matchesExpectedDocument() {
+    ChecklistController controller = new ChecklistController(null, null, null);
+
+    // Arrange
+    StudentInfo student = new StudentInfo();
+    student.name = "Elmo";
+    student.school = "MAHS";
+    student.grade = "4";
+    student.requestedSupplies = List.of("headphones");
+
+    SupplyList supply = new SupplyList();
+    supply.school = "MAHS";
+    supply.grade = "4";
+    supply.item = "Notebook";
+
+    List<SupplyList> supplies = List.of(supply);
+
+    Document expected = new Document()
+        .append("school", "MAHS")
+        .append("grade", "4")
+        .append("studentName", "Elmo")
+        .append("requestedSupplies", List.of("headphones"));
+
+    // Act
+    Checklist result = controller.createChecklist(student, supplies);
+
+    Document actual = new Document()
+        .append("school", result.school)
+        .append("grade", result.grade)
+        .append("studentName", result.studentName)
+        .append("requestedSupplies", result.requestedSupplies);
+
+    // Assert
+    assertEquals(expected, actual);
   }
 
   // @Test

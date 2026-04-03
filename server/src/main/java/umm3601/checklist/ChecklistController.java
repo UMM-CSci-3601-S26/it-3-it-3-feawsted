@@ -65,6 +65,16 @@ public class ChecklistController implements Controller {
   private final JacksonMongoCollection<SupplyList> supplyListCollection;
   private final JacksonMongoCollection<Checklist> checklistCollection;
 
+//constructor used for testing:
+  public ChecklistController(JacksonMongoCollection<Family> familyCollection,
+                           JacksonMongoCollection<SupplyList> supplyListCollection,
+                           JacksonMongoCollection<Checklist> checklistCollection) {
+    this.familyCollection = familyCollection;
+    this.supplyListCollection = supplyListCollection;
+    this.checklistCollection = checklistCollection;
+  }
+
+//constructor used in server:
   public ChecklistController(MongoDatabase db) {
     familyCollection = JacksonMongoCollection.builder().build(
       db, "families", Family.class, UuidRepresentation.STANDARD);
@@ -94,46 +104,46 @@ public class ChecklistController implements Controller {
   // --- PRINT ROUTES (on-the-fly, not persisted) ---
 
   // GET /api/checklist/print — all students
-  public void printAllChecklists(Context ctx) {
-    List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
-    List<Checklist> checklists = familyCollection.find().into(new ArrayList<>()).stream()
-      .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
-      .collect(Collectors.toList());
-    ctx.json(checklists);
-    ctx.status(HttpStatus.OK);
-  }
+  // public void printAllChecklists(Context ctx) {
+  //   List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
+  //   List<Checklist> checklists = familyCollection.find().into(new ArrayList<>()).stream()
+  //     .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
+  //     .collect(Collectors.toList());
+  //   ctx.json(checklists);
+  //   ctx.status(HttpStatus.OK);
+  // }
 
   // GET /api/checklist/student/{name} — single student by full name
-  public void printChecklistByStudent(Context ctx) {
-    String name = ctx.pathParam("name");
-    List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
-    for (Family family : familyCollection.find().into(new ArrayList<>())) {
-      for (StudentInfo student : family.students) {
-        if ((student.name).equalsIgnoreCase(name)) {
-          ctx.json(createChecklist(student, allSupplies));
-          ctx.status(HttpStatus.OK);
-          return;
-        }
-      }
-    }
-    throw new NotFoundResponse("No student found with name: " + name);
-  }
+  // public void printChecklistByStudent(Context ctx) {
+  //   String name = ctx.pathParam("name");
+  //   List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
+  //   for (Family family : familyCollection.find().into(new ArrayList<>())) {
+  //     for (StudentInfo student : family.students) {
+  //       if ((student.name).equalsIgnoreCase(name)) {
+  //         ctx.json(createChecklist(student, allSupplies));
+  //         ctx.status(HttpStatus.OK);
+  //         return;
+  //       }
+  //     }
+  //   }
+  //   throw new NotFoundResponse("No student found with name: " + name);
+  // }
 
   // GET /api/checklist/family/{guardianName} — all students in a family
-  public void printChecklistsByFamily(Context ctx) {
-    String guardianName = ctx.pathParam("guardianName");
-    List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
-    List<Family> families = familyCollection.find(
-      Filters.regex("guardianFirstName", guardianName, "i")).into(new ArrayList<>());
-    if (families.isEmpty()) {
-      throw new NotFoundResponse("No family found for guardian: " + guardianName);
-    }
-    List<Checklist> checklists = families.stream()
-      .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
-      .collect(Collectors.toList());
-    ctx.json(checklists);
-    ctx.status(HttpStatus.OK);
-  }
+  // public void printChecklistsByFamily(Context ctx) {
+  //   String guardianName = ctx.pathParam("guardianName");
+  //   List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
+  //   List<Family> families = familyCollection.find(
+  //     Filters.regex("guardianFirstName", guardianName, "i")).into(new ArrayList<>());
+  //   if (families.isEmpty()) {
+  //     throw new NotFoundResponse("No family found for guardian: " + guardianName);
+  //   }
+  //   List<Checklist> checklists = families.stream()
+  //     .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
+  //     .collect(Collectors.toList());
+  //   ctx.json(checklists);
+  //   ctx.status(HttpStatus.OK);
+  // }
 
   // --- DIGITAL DRIVE-DAY ROUTES (persisted to MongoDB) ---
 
@@ -173,74 +183,74 @@ public class ChecklistController implements Controller {
   }
 
   // GET /api/checklist/{id} — get a single stored checklist by id
-  public void getStoredChecklistById(Context ctx) {
-    String id = ctx.pathParam("id");
-    Checklist checklist;
-    try {
-      checklist = checklistCollection.find(Filters.eq("_id", new ObjectId(id))).first();
-    } catch (IllegalArgumentException e) {
-      throw new BadRequestResponse("Invalid checklist ID.");
-    }
-    if (checklist == null) {
-      throw new NotFoundResponse("Checklist not found.");
-    }
-    ctx.json(checklist);
-    ctx.status(HttpStatus.OK);
-  }
+  // public void getStoredChecklistById(Context ctx) {
+  //   String id = ctx.pathParam("id");
+  //   Checklist checklist;
+  //   try {
+  //     checklist = checklistCollection.find(Filters.eq("_id", new ObjectId(id))).first();
+  //   } catch (IllegalArgumentException e) {
+  //     throw new BadRequestResponse("Invalid checklist ID.");
+  //   }
+  //   if (checklist == null) {
+  //     throw new NotFoundResponse("Checklist not found.");
+  //   }
+  //   ctx.json(checklist);
+  //   ctx.status(HttpStatus.OK);
+  // }
 
   // PATCH /api/checklist/{id}/item/{index} — update a single item (completed, unreceived, selectedOption)
-  public void updateChecklistItem(Context ctx) {
-    String id = ctx.pathParam("id");
-    int index;
-    try {
-      index = Integer.parseInt(ctx.pathParam("index"));
-    } catch (NumberFormatException e) {
-      throw new BadRequestResponse("Item index must be an integer.");
-    }
+  // public void updateChecklistItem(Context ctx) {
+  //   String id = ctx.pathParam("id");
+  //   int index;
+  //   try {
+  //     index = Integer.parseInt(ctx.pathParam("index"));
+  //   } catch (NumberFormatException e) {
+  //     throw new BadRequestResponse("Item index must be an integer.");
+  //   }
 
-    Checklist checklist;
-    try {
-      checklist = checklistCollection.find(Filters.eq("_id", new ObjectId(id))).first();
-    } catch (IllegalArgumentException e) {
-      throw new BadRequestResponse("Invalid checklist ID.");
-    }
-    if (checklist == null) {
-      throw new NotFoundResponse("Checklist not found.");
-    }
-    if (index < 0 || index >= checklist.checklist.size()) {
-      throw new BadRequestResponse("Item index out of range.");
-    }
+  //   Checklist checklist;
+  //   try {
+  //     checklist = checklistCollection.find(Filters.eq("_id", new ObjectId(id))).first();
+  //   } catch (IllegalArgumentException e) {
+  //     throw new BadRequestResponse("Invalid checklist ID.");
+  //   }
+  //   if (checklist == null) {
+  //     throw new NotFoundResponse("Checklist not found.");
+  //   }
+  //   if (index < 0 || index >= checklist.checklist.size()) {
+  //     throw new BadRequestResponse("Item index out of range.");
+  //   }
 
-    // Parse only the fields present in the request body
-    var body = ctx.bodyAsClass(ItemUpdateRequest.class);
-    Checklist.ChecklistItem item = checklist.checklist.get(index);
-    if (body.completed != null)       item.completed = body.completed;
-    if (body.unreceived != null)      item.unreceived = body.unreceived;
-    if (body.selectedOption != null)  item.selectedOption = body.selectedOption;
+  //   // Parse only the fields present in the request body
+  //   var body = ctx.bodyAsClass(ItemUpdateRequest.class);
+  //   Checklist.ChecklistItem item = checklist.checklist.get(index);
+  //   if (body.completed != null)       item.completed = body.completed;
+  //   if (body.unreceived != null)      item.unreceived = body.unreceived;
+  //   if (body.selectedOption != null)  item.selectedOption = body.selectedOption;
 
-    checklistCollection.save(checklist);
-    ctx.json(checklist);
-    ctx.status(HttpStatus.OK);
-  }
+  //   checklistCollection.save(checklist);
+  //   ctx.json(checklist);
+  //   ctx.status(HttpStatus.OK);
+  // }
 
   // Request body for PATCH item update
-  public static class ItemUpdateRequest {
-    public Boolean completed;
-    public Boolean unreceived;
-    public String selectedOption;
-  }
+  // public static class ItemUpdateRequest {
+  //   public Boolean completed;
+  //   public Boolean unreceived;
+  //   public String selectedOption;
+  // }
 
   @Override
   public void addRoutes(Javalin server) {
     // Print routes (on-the-fly, no persistence)
-    server.get(API_CHECKLIST_PRINT,   this::printAllChecklists);
-    server.get(API_CHECKLIST_BY_NAME, this::printChecklistByStudent);
-    server.get(API_CHECKLIST_FAMILY,  this::printChecklistsByFamily);
+    // server.get(API_CHECKLIST_PRINT,   this::printAllChecklists);
+    // server.get(API_CHECKLIST_BY_NAME, this::printChecklistByStudent);
+    // server.get(API_CHECKLIST_FAMILY,  this::printChecklistsByFamily);
 
     // Digital drive-day routes (persisted)
     server.post(API_CHECKLIST,        this::generateDigitalChecklists);
     server.get(API_CHECKLIST,         this::getStoredChecklists);
-    server.get(API_CHECKLIST_BY_ID,   this::getStoredChecklistById);
-    server.patch(API_CHECKLIST_ITEM,  this::updateChecklistItem);
+    // server.get(API_CHECKLIST_BY_ID,   this::getStoredChecklistById);
+    // server.patch(API_CHECKLIST_ITEM,  this::updateChecklistItem);
   }
 }
