@@ -29,26 +29,28 @@
       </mat-list-item>
 
       <mat-divider [inset]="true"></mat-divider>
+    </mat-list>
 
-      <!-- Requested Supplies List -->
-      <mat-list dense class="student-list">
-        @for (student of checklist().requestedSupplies ?? []; track student.requestedSupplies) {
-          <mat-list-item class="student-item">
-            <mat-icon matListItemIcon class="student-icon">person</mat-icon>
-            <p matListItemTitle>{{ student.requestedSupplies }}</p>
-          </mat-list-item>
-        }
-      </mat-list>
+    <!-- Requested Supplies List -->
+    <mat-list dense class="student-list">
+      @for (item of checklist().requestedSupplies ?? []; track item) {
+        <mat-list-item class="student-item">
+          <mat-icon matListItemIcon class="student-icon">requestedSupplies</mat-icon>
+          <p matListItemTitle>{{ item }}</p>
+        </mat-list-item>
+      }
+    </mat-list>
 
-      <mat-divider inset></mat-divider>
+    <mat-divider inset></mat-divider>
 
-      <!-- Checklist -->
-      <mat-list-item>
-        <a href="mailto:{{checklist().email}}" matListItemIcon><mat-icon>mail</mat-icon></a>
-        <p matListItemTitle>Email</p>
-        <a matListItemLine class="checklist-card-email" href="mailto:{{checklist().email}}">{{checklist().email}}</a>
-        <a href="mailto:{{checklist().email}}" matListItemMeta mat-icon-button><mat-icon>open_in_new</mat-icon></a>
-      </mat-list-item>
+    <!-- Checklist -->
+    <mat-list dense class="student-checklist">
+      @for (item of checklist().checklist ?? []; track item) {
+        <mat-list-item class="student-checklist">
+          <mat-icon matListItemIcon class="student-icon">checklist</mat-icon>
+          <p matListItemTitle>{{ item }}</p>
+        </mat-list-item>
+      }
     </mat-list>
   </mat-card-content>
 </mat-card>

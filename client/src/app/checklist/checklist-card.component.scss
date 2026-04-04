@@ -12,15 +12,6 @@
   text-transform: capitalize;
 }
 
-.checklist-card-email {
-  display: block; /* Make it a block-level element */
-  color: inherit; /* Inherit the text color from the parent element */
-  text-decoration: none; /* Remove default underline */
-  padding: 0; /* Reset padding */
-  margin: 0; /* Reset margin */
-  cursor: pointer; /* Change cursor to pointer on hover */
-}
-
 .student-list {
   margin-left: 32px; /* aligns with Material icon spacing */
   padding-bottom: 8px;
@@ -35,4 +26,21 @@
   font-size: 20px;
   opacity: 0.75;
 }
+
+.student-checklist {
+  margin-left: 32px;
+  padding-bottom: 8px;
+}
+
+.student-checklist .mat-mdc-list-item {
+  padding: 0;
+  min-height: 32px;
+}
+
+.student-checklist .student-icon {
+  font-size: 20px;
+  opacity: 0.75;
+}
+
+
 
