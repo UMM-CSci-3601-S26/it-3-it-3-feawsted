@@ -48,7 +48,7 @@
       @for (item of checklist().checklist ?? []; track item) {
         <mat-list-item class="student-checklist">
           <mat-icon matListItemIcon class="student-icon">checklist</mat-icon>
-          <p matListItemTitle>{{ item }}</p>
+          <p matListItemTitle>{{ item.supply.item }}</p>
         </mat-list-item>
       }
     </mat-list>

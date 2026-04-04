@@ -8,13 +8,13 @@
       {
         "name": "Tim",
         "grade": "3",
-        "school": "MAHS",
+        "school": "St. Mary's",
         "requestedSupplies": ["Headphones"]
       },
       {
         "name": "Sara",
         "grade": "5",
-        "school": "MAHS",
+        "school": "St. Mary's",
         "requestedSupplies": ["Backpack"]
       }
     ]
@@ -28,19 +28,19 @@
       {
         "name": "Johnny Jr.",
         "grade": "8",
-        "school": "HHS",
+        "school": "Herman",
         "requestedSupplies": ["Headphones, Backpack"]
       },
       {
         "name": "Burtrum",
         "grade": "6",
-        "school": "HHS",
+        "school": "St. Mary's",
         "requestedSupplies": ["Backpack"]
       },
       {
         "name": "Harold",
         "grade": "4",
-        "school": "HHS",
+        "school": "St. Mary's",
         "requestedSupplies": ["Backpack"]
       }
     ]
@@ -54,13 +54,13 @@
       {
         "name": "Timothy",
         "grade": "3",
-        "school": "MAHS",
+        "school": "Herman",
         "requestedSupplies": ["Headphones"]
       },
       {
         "name": "Sarah",
         "grade": "5",
-        "school": "MAHS",
+        "school": "Herman",
         "requestedSupplies": []
       }
     ]

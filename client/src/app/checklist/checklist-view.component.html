@@ -32,9 +32,9 @@
         </div>
 
         <div class="filter-extra">
-          <!-- Clear Filters Button
-           Note: One could use the inventory example but its best to make
-           clear a function in the component for easier maintenance -->
+          <button mat-raised-button color="primary" (click)="generateChecklists()" data-cy="generate-checklists-button">
+            <mat-icon>refresh</mat-icon> Generate Checklists
+          </button>
         </div>
       </mat-card-content>
     </mat-card>
@@ -43,11 +43,14 @@
 
 <!-- Showing Checklists (Cards) -->
 <div class="flex-row">
-  @if (checklists()) {
+  @if (!errored()) {
   <div class="flex-1">
     <div class="checklist-cards-container flex-row gap-8 flex-wrap">
       @for (checklist of checklists(); track checklist._id) {
       <app-checklist-card class="checklist-card" [checklist]="checklist"></app-checklist-card>
+      }
+      @if (checklists().length === 0) {
+        <p>No checklists found. Click "Generate Checklists" to create them from current family data.</p>
       }
     </div>
   </div>

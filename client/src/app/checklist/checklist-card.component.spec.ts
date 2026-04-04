@@ -6,10 +6,10 @@ import { ChecklistCardComponent } from './checklist-card.component';
 import { Checklist } from './checklist';
 
 // Test suite for the FamilyCardComponent, which displays information about a family and their requested supplies
-describe('FamilyCardComponent', () => {
+describe('ChecklistCardComponent', () => {
   let component: ChecklistCardComponent;
   let fixture: ComponentFixture<ChecklistCardComponent>;
-  let expectedFamily: Checklist;
+  let expectedChecklist: Checklist;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -25,17 +25,17 @@ describe('FamilyCardComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(ChecklistCardComponent);
     component = fixture.componentInstance;
-    expectedFamily = {
+    expectedChecklist = {
       // Example Family with Two Kids
       _id: 'chris_id',
       studentName: 'Chris',
       grade: '123 Street',
       school: 'chris@email.com',
       requestedSupplies: List.of("backpack"),
-
+      //checklist:
     };
 
-    fixture.componentRef.setInput('family', expectedFamily);
+    fixture.componentRef.setInput('family', expectedChecklist);
     fixture.detectChanges();
   });
 
@@ -46,11 +46,11 @@ describe('FamilyCardComponent', () => {
 
   // Test to verify that the component's family input is correctly associated with the expected family data
   it('should be associated with the correct family', () => {
-    expect(component.checklist()).toEqual(expectedFamily);
+    expect(component.checklist()).toEqual(expectedChecklist);
   });
 
   // Test to check that the guardian's name in the family data is correctly displayed as "Chris"
   it('should be the family named Chris', () => {
-    expect(component.checklist().guardianName).toEqual('Chris');
+    expect(component.checklist().studentName).toEqual('Chris');
   });
 });

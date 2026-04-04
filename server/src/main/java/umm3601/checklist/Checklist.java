@@ -15,13 +15,13 @@ class Checklist {
   public List<Checklist.ChecklistItem> checklist;
 
   public static class ChecklistItem {
-    public String itemName;
+    public SupplyList supply;
     public Boolean completed = false; //needs coverage
     public Boolean unreceived = false; //needs coverage
     public String selectedOption;
 
      ChecklistItem(SupplyList supply) { //needs coverage
-      this.itemName = supply.item;            //needs coverage
+      this.supply = supply;
     }
   }
 }

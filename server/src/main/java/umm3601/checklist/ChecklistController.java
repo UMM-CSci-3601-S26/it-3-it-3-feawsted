@@ -46,12 +46,12 @@ import umm3601.supplylist.SupplyList;
 
 public class ChecklistController implements Controller {
 
-  private static final String API_CHECKLIST = "/api/checklist";
-  private static final String API_CHECKLIST_PRINT = "/api/checklist/print";
-  private static final String API_CHECKLIST_BY_NAME = "/api/checklist/student/{name}";
-  private static final String API_CHECKLIST_FAMILY = "/api/checklist/family/{guardianName}";
-  private static final String API_CHECKLIST_BY_ID = "/api/checklist/{id}";
-  private static final String API_CHECKLIST_ITEM = "/api/checklist/{id}/item/{index}";
+  private static final String API_CHECKLIST = "/api/checklists";
+  private static final String API_CHECKLIST_PRINT = "/api/checklists/print";
+  private static final String API_CHECKLIST_BY_NAME = "/api/checklists/student/{name}";
+  private static final String API_CHECKLIST_FAMILY = "/api/checklists/family/{guardianName}";
+  private static final String API_CHECKLIST_BY_ID = "/api/checklists/{id}";
+  private static final String API_CHECKLIST_ITEM = "/api/checklists/{id}/item/{index}";
 
   static final String SCHOOL_KEY = "school";
   static final String GRADE_KEY = "grade";

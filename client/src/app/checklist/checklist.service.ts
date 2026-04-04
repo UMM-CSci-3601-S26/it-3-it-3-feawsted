@@ -34,6 +34,10 @@ export class ChecklistService {
     });
   }
 
+  generateChecklists(): Observable<Checklist[]> {
+    return this.httpClient.post<Checklist[]>(this.checklistUrl, {});
+  }
+
   // Method to fetch the details of a specific checklist by its ID from the API. It constructs the appropriate HTTP request and returns an Observable of a Checklist object.
   getChecklistById(id: string): Observable<Checklist> {
     return this.httpClient.get<Checklist>(`${this.checklistUrl}/${id}`);
