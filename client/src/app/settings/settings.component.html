@@ -1,0 +1,107 @@
+<div class="settings-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Settings</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <mat-tab-group dynamicHeight>
+
+        <!-- ── Schools Tab ── -->
+        <mat-tab label="Schools">
+          <div class="tab-content">
+
+            <!-- Add School Form -->
+            <form [formGroup]="addSchoolForm" (ngSubmit)="addSchool()">
+              <div class="add-school-row">
+                <mat-form-field>
+                  <mat-label>School Name</mat-label>
+                  <input matInput formControlName="name" required>
+                  <mat-error *ngIf="addSchoolForm.get('name')?.hasError('required')">Name is required</mat-error>
+                  <mat-error *ngIf="addSchoolForm.get('name')?.hasError('minlength')">Name must be at least 2 characters</mat-error>
+                </mat-form-field>
+
+                <mat-form-field class="abbreviation-field">
+                  <mat-label>Abbreviation</mat-label>
+                  <input matInput formControlName="abbreviation" required>
+                  <mat-error *ngIf="addSchoolForm.get('abbreviation')?.hasError('required')">Abbreviation is required</mat-error>
+                </mat-form-field>
+
+                <button mat-raised-button color="primary" type="submit" [disabled]="!addSchoolForm.valid">
+                  Add School
+                </button>
+              </div>
+            </form>
+
+            <!-- Current Schools List -->
+            <mat-list>
+              @for (school of schools; track $index; let i = $index) {
+                <mat-list-item>
+                  <span matListItemTitle>{{ school.name }}</span>
+                  <span matListItemLine>{{ school.abbreviation }}</span>
+                  <button matListItemMeta mat-icon-button color="warn"
+                          (click)="removeSchool(i)"
+                          [attr.aria-label]="'Remove ' + school.name">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </mat-list-item>
+              } @empty {
+                <mat-list-item>
+                  <span matListItemTitle>No schools added yet.</span>
+                </mat-list-item>
+              }
+            </mat-list>
+
+          </div>
+        </mat-tab>
+
+        <!-- ── Time Availability Tab ── -->
+        <mat-tab label="Time Availability">
+          <div class="tab-content">
+            <p class="tab-description">
+              Set the clock-time range for each availability slot. These labels are shown on the family
+              registration form so families know what time they are selecting.
+            </p>
+
+            <form [formGroup]="timeAvailabilityForm" (ngSubmit)="saveTimeAvailability()">
+              <div class="flex-col">
+
+                <mat-form-field>
+                  <mat-label>Early Morning</mat-label>
+                  <input matInput formControlName="earlyMorning" placeholder="e.g. 8:00–9:00 AM">
+                  <mat-error *ngIf="timeAvailabilityForm.get('earlyMorning')?.hasError('required')">Required</mat-error>
+                </mat-form-field>
+
+                <mat-form-field>
+                  <mat-label>Late Morning</mat-label>
+                  <input matInput formControlName="lateMorning" placeholder="e.g. 9:00–10:00 AM">
+                  <mat-error *ngIf="timeAvailabilityForm.get('lateMorning')?.hasError('required')">Required</mat-error>
+                </mat-form-field>
+
+                <mat-form-field>
+                  <mat-label>Early Afternoon</mat-label>
+                  <input matInput formControlName="earlyAfternoon" placeholder="e.g. 12:00–1:00 PM">
+                  <mat-error *ngIf="timeAvailabilityForm.get('earlyAfternoon')?.hasError('required')">Required</mat-error>
+                </mat-form-field>
+
+                <mat-form-field>
+                  <mat-label>Late Afternoon</mat-label>
+                  <input matInput formControlName="lateAfternoon" placeholder="e.g. 1:00–2:00 PM">
+                  <mat-error *ngIf="timeAvailabilityForm.get('lateAfternoon')?.hasError('required')">Required</mat-error>
+                </mat-form-field>
+
+                <div class="save-button">
+                  <button mat-raised-button color="primary" type="submit" [disabled]="!timeAvailabilityForm.valid">
+                    Save Time Availability
+                  </button>
+                </div>
+
+              </div>
+            </form>
+          </div>
+        </mat-tab>
+
+      </mat-tab-group>
+    </mat-card-content>
+  </mat-card>
+</div>
