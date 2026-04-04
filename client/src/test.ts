@@ -1,5 +1,7 @@
 // This file is required by karma.conf.js and loads recursively all the .spec and framework files
 
+/// <reference types="jasmine" />
+
 // This `zone.js` import statement *must* be first, before any other imports.
 // It actually patches (modifies) the async APIs in the browser to make them
 // "test friendly". If we import it after other modules, those modules won't

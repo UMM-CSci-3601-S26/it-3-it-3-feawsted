@@ -62,18 +62,24 @@
                                  *ngIf="formControlHasError('students')">{{ getErrorMessage('students') }}</mat-error>
                 </mat-form-field>
 
-                <!-- Student Grade Input Field -->
+                <!-- Student Grade Dropdown -->
                 <mat-form-field>
                   <mat-label>Grade</mat-label>
-                  <input matInput formControlName="grade" form ControlName="grade" required>
-                      <mat-error data-test="gradeError"
-                                 *ngIf="formControlHasError('students')">{{ getErrorMessage('students') }}</mat-error>
+                  <mat-select formControlName="grade" required>
+                    <mat-option *ngFor="let g of grades" [value]="g">{{ g }}</mat-option>
+                  </mat-select>
+                  <mat-error data-test="gradeError"
+                             *ngIf="formControlHasError('students')">{{ getErrorMessage('students') }}</mat-error>
                 </mat-form-field>
 
-                <!-- Student School Input Field -->
+                <!-- Student School Dropdown (populated from Settings) -->
                 <mat-form-field>
                   <mat-label>School</mat-label>
-                  <input matInput formControlName="school" form ControlName="school" required>
+                  <mat-select formControlName="school" required>
+                    <mat-option *ngFor="let s of schools" [value]="s.abbreviation">
+                      {{ s.name }} ({{ s.abbreviation }})
+                    </mat-option>
+                  </mat-select>
                       <mat-error data-test="schoolError"
                                  *ngIf="formControlHasError('students')">{{ getErrorMessage('students') }}</mat-error>
                 </mat-form-field>

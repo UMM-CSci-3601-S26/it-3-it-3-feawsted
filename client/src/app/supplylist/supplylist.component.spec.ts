@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed, waitForAsync, tick, fakeAsync } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { Observable} from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { MockSupplyListService } from 'src/testing/supplylist.service.mock'
 import { SupplyList } from './supplylist';
 import { SupplyListComponent } from './supplylist.component';
@@ -211,6 +211,23 @@ describe('SupplyList Table', () => {
   it('should not show error message on successful load', () => {
     expect(supplylistTable.errMsg()).toBeUndefined();
   });
+
+  it('should group supplies with missing school/grade under fallback labels', fakeAsync(() => {
+    spyOn(supplylistService, 'getSupplyList').and.returnValue(of([
+      {
+        school: '', grade: '', item: 'Pencil', description: '', brand: '', color: '',
+        count: 1, size: '', type: '', material: '', quantity: 0, notes: ''
+      } as SupplyList
+    ]));
+
+    supplylistTable.item.set('Pencil'); // trigger signal re-evaluation
+    fixture.detectChanges();
+    tick(300);
+
+    const groups = supplylistTable.groupedSupplyList();
+    expect(groups[0].school).toBe('Unknown School');
+    expect(groups[0].grades[0].grade).toBe('Unknown Grade');
+  }));
 });
 
 describe('Misbehaving SupplyList Table', () => {

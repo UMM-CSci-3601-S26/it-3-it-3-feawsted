@@ -1,5 +1,5 @@
 // Angular and Material Imports
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormArray, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -13,6 +13,8 @@ import { CommonModule } from '@angular/common';
 
 // Family Service Import
 import { FamilyService } from './family.service';
+import { SettingsService } from '../settings/settings.service';
+import { SchoolInfo } from '../settings/settings';
 
 @Component({
   selector: 'app-add-family',
@@ -33,10 +35,26 @@ import { FamilyService } from './family.service';
 })
 
 // Component for adding a new family, including form validation and submission logic
-export class AddFamilyComponent {
+export class AddFamilyComponent implements OnInit {
   private familyService = inject(FamilyService);
+  private settingsService = inject(SettingsService);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
+
+  // Schools loaded from settings — used to populate the school dropdown
+  schools: SchoolInfo[] = [];
+
+  ngOnInit(): void {
+    this.settingsService.getSettings().subscribe(settings => {
+      this.schools = settings.schools ?? [];
+    });
+  }
+
+  // For grade dropdown
+  grades: string[] = [
+    'Pre-K', 'K', '1', '2', '3', '4', '5',
+    '6', '7', '8', '9', '10', '11', '12'
+  ];
 
   // Add Family Form with validation rules
   addFamilyForm = new FormGroup({
