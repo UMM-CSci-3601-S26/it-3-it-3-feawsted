@@ -7,6 +7,7 @@ import { AddFamilyComponent } from './family/add-family.component';
 import { InventoryTableComponent } from './inventory/inventory-table.component';
 import { SupplyListComponent } from './supplylist/supplylist.component';
 import { SettingsComponent } from './settings/settings.component';
+import { AddSupplyListComponent } from './supplylist/add-supplylist.component';
 
 // Routing configuration for the application
 const routes: Routes = [
@@ -16,7 +17,8 @@ const routes: Routes = [
   {path: 'families/new', component: AddFamilyComponent, title: 'Add Family'},
   {path: 'inventory', component: InventoryTableComponent, title: 'Inventory'},
   {path: 'supplylist', component: SupplyListComponent, title: 'Supply List'},
-  {path: 'settings', component: SettingsComponent, title: 'Settings'}
+  {path: 'settings', component: SettingsComponent, title: 'Settings'},
+  {path: 'supplylist/new', component: AddSupplyListComponent, title: 'Add Supply List Item'}
 ];
 
 @NgModule({

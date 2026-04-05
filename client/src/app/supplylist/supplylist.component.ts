@@ -16,7 +16,9 @@ import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatTreeModule } from '@angular/material/tree';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 // RxJS Imports
 import { catchError, combineLatest, debounceTime, of, switchMap } from 'rxjs';
@@ -45,9 +47,11 @@ import { SupplyListService } from './supplylist.service';
     MatTooltipModule,
     MatIconModule,
     MatTreeModule,
+    MatExpansionModule,
     MatIconModule,
     MatButtonModule,
-    CommonModule
+    CommonModule,
+    RouterLink
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -199,6 +203,74 @@ export class SupplyListComponent {
     this.material.set(undefined);
     this.school.set(undefined);
     this.grade.set(undefined);
+  }
+
+  /** Builds a compact human-readable label for an item, mirroring the server-side toString(). */
+  toLabel(s: SupplyList): string {
+    const parts: string[] = [];
+    parts.push(`${s.quantity}x`);
+    if (s.count > 0) parts.push(`${s.count}ct.`);
+    if (s.size && s.size !== 'N/A') {
+      parts.push(`${s.size}${s.quantity > 1 ? 's' : ''} of`);
+    }
+    if (s.item) {
+      parts.push(s.quantity > 1 && !s.item.endsWith('s') ? `${s.item}s` : s.item);
+    }
+    if (s.brand) parts.push(s.brand);
+    if (s.color) parts.push(s.color);
+    if (s.type) parts.push(s.type);
+    if (s.material) parts.push(s.material);
+    if (s.notes && s.notes !== 'N/A') parts.push(`(${s.notes})`);
+    return parts.join(' ');
+  }
+
+  /** Prompts confirmation then deletes an item, removing it from the local grouped data. */
+  confirmDelete(id: string | undefined) {
+    if (!id) return;
+    if (!confirm('Are you sure you want to delete this item?')) return;
+    this.supplylistService.deleteSupplyList(id).subscribe({
+      next: () => {
+        // Remove from the data source — the computed groupedSupplyList will recalculate
+        this.dataSource.data = this.dataSource.data.filter(item => item._id !== id);
+      },
+      error: (err) => {
+        this.errMsg.set(`Problem deleting item – Error Code: ${err.status}\nMessage: ${err.message}`);
+        this.snackBar.open(this.errMsg() ?? '', 'OK', { duration: 6000 });
+      }
+    });
+  }
+
+  // Track which item is currently being edited
+  editingItemId: string | null = null;
+  private editingBackup: SupplyList | null = null;
+
+  startEdit(item: SupplyList) {
+    this.editingItemId = item._id ?? null;
+    this.editingBackup = JSON.parse(JSON.stringify(item));
+  }
+
+  cancelEdit() {
+    if (this.editingBackup) {
+      const idx = this.dataSource.data.findIndex(i => i._id === this.editingBackup!._id);
+      if (idx !== -1) this.dataSource.data[idx] = this.editingBackup;
+    }
+    this.editingItemId = null;
+    this.editingBackup = null;
+  }
+
+  saveEdit(item: SupplyList) {
+    if (!item._id) return;
+    this.supplylistService.editSupplyList(item._id, item).subscribe({
+      next: () => {
+        this.editingItemId = null;
+        this.editingBackup = null;
+        this.snackBar.open('Item updated', undefined, { duration: 2000 });
+      },
+      error: (err) => {
+        this.errMsg.set(`Problem saving item – Error Code: ${err.status}\nMessage: ${err.message}`);
+        this.snackBar.open(this.errMsg() ?? '', 'OK', { duration: 6000 });
+      }
+    });
   }
 }
 export { SupplyListService };

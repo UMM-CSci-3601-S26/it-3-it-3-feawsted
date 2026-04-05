@@ -1,4 +1,5 @@
 export interface SupplyList {
+  _id?: string,
   school: string,
   grade: string,
   teacher?: string,
