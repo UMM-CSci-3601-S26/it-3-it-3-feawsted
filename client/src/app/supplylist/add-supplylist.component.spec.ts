@@ -3,9 +3,11 @@ import { MockSupplyListService } from 'src/testing/supplylist.service.mock'
 import { AddSupplyListComponent } from './add-supplylist.component';
 import { SupplyListService } from './supplylist.service';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { throwError } from 'rxjs'; //of
+import { throwError } from 'rxjs';
+import { AbstractControl, FormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
 
 describe('AddSupplyListComponent', () => {
   let addSupplyListComponent: AddSupplyListComponent;
@@ -50,7 +52,7 @@ describe('AddSupplyListComponent', () => {
     let itemKeyControl: AbstractControl;
 
     beforeEach(() => {
-      itemKeyControl = addSupplyListComponent.addSupplyListForm.controls.itemKey;
+      itemKeyControl = addSupplyListComponent.addSupplyListForm.controls.item;
     });
 
     it('should not allow empty item keys', () => {
@@ -74,7 +76,7 @@ describe('AddSupplyListComponent', () => {
     let itemNameControl: AbstractControl;
 
     beforeEach(() => {
-      itemNameControl = addSupplyListComponent.addSupplyListForm.controls.itemName;
+      itemNameControl = addSupplyListComponent.addSupplyListForm.controls.item;
     });
 
     it('should not allow empty name keys', () => {
@@ -93,7 +95,7 @@ describe('AddSupplyListComponent', () => {
     let quantityAvailableControl: AbstractControl;
 
     beforeEach(() => {
-      quantityAvailableControl = addSupplyListComponent.addSupplyListForm.controls.quantityAvailable;
+      quantityAvailableControl = addSupplyListComponent.addSupplyListForm.controls.quantity;
     });
 
     it('should not allow empty quantities', () => {
@@ -106,7 +108,7 @@ describe('AddSupplyListComponent', () => {
       expect(quantityAvailableControl.valid).toBeTruthy();
     });
 
-    it('shouldnt allow only strings to input', () => {
+    it('should not allow only strings to input', () => {
       quantityAvailableControl.setValue('x');
       expect(quantityAvailableControl.valid).toBeFalsy();
       expect(quantityAvailableControl.hasError('pattern')).toBeTruthy();
@@ -122,9 +124,9 @@ describe('AddSupplyListComponent', () => {
 
   describe('getErrorMessage()', () => {
     it('should return the correct error message', () => {
-      let controlName: keyof typeof addSupplyListComponent.addSupplyListValidationMessages = 'itemKey';
+      let controlName: keyof typeof addSupplyListComponent.addSupplyListValidationMessages = 'item';
       addSupplyListComponent.addSupplyListForm.get(controlName).setErrors({'required': true});
-      expect(addSupplyListComponent.getErrorMessage(controlName)).toEqual('Item key is required');
+      expect(addSupplyListComponent.getErrorMessage(controlName)).toEqual('Item is required');
 
       controlName = 'itemName';
       addSupplyListComponent.addSupplyListForm.get(controlName).setErrors({'required': true});
@@ -196,7 +198,7 @@ describe('AddSupplyListComponent#submitForm()', () => {
   beforeEach(() => {
     component.addSupplyListForm.controls.item.setValue('red_folder');
     component.addSupplyListForm.controls.item.setValue('Folder');
-    component.addSupplyListForm.controls.quantityAvailable.setValue(6);
+    component.addSupplyListForm.controls.quantity.setValue("6");
   });
 
   // it('should call addSupplyList() and handle success response', fakeAsync(() => {

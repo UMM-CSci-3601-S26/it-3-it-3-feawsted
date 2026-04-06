@@ -229,11 +229,11 @@ class ChecklistControllerSpec {
   @Test
   void generateDigitalChecklists() {
     // mock three mongo collections
-    @SuppressWarnings("unchecked")
+    // @SuppressWarnings("unchecked")
     JacksonMongoCollection<SupplyList> supplyListCollection = mock(JacksonMongoCollection.class);
-    @SuppressWarnings("unchecked")
+    // @SuppressWarnings("unchecked")
     JacksonMongoCollection<Family> familyCollection = mock(JacksonMongoCollection.class);
-    @SuppressWarnings("unchecked")
+    // @SuppressWarnings("unchecked")
     JacksonMongoCollection<Checklist> checklistCollection = mock(JacksonMongoCollection.class);
 
     ChecklistController controller = new ChecklistController(

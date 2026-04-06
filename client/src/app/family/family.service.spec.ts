@@ -152,7 +152,7 @@ describe('FamilyService', () => {
   describe('When getFamilyById() is given an ID', () => {
     it('calls api/families/id with the correct ID', waitForAsync(() => {
       const targetFamily: Family = testFamilies[1];
-      const targetId: string = targetFamily._id;
+      const targetId: string = targetFamily._id!;
 
       const mockedMethod = spyOn(httpClient, 'get').and.returnValue(of(targetFamily));
       familyService.getFamilyById(targetId).subscribe(() => {
@@ -212,7 +212,7 @@ describe('FamilyService', () => {
       familyService.getDashboardStats().subscribe(() => {
 
         const [url, options] = mockedMethod.calls.argsFor(0);
-        const calledHttpParams: HttpParams = (options.params) as HttpParams;
+        const calledHttpParams: HttpParams = (options?.params) as HttpParams;
         expect(mockedMethod)
           .withContext('one call')
           .toHaveBeenCalledTimes(1);

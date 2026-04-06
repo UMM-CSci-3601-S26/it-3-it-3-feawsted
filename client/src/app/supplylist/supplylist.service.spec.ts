@@ -203,7 +203,7 @@ describe('SupplyListService', () => {
 
         const [url, options] = mockedMethod.calls.argsFor(0);
 
-        const calledHttpParams: HttpParams = (options.params) as HttpParams;
+        const calledHttpParams: HttpParams = (options?.params) as HttpParams;
         expect(mockedMethod)
           .withContext('one call')
           .toHaveBeenCalledTimes(1);
@@ -229,7 +229,7 @@ describe('SupplyListService', () => {
 
         const [url, options] = mockedMethod.calls.argsFor(0);
 
-        const calledHttpParams: HttpParams = (options.params) as HttpParams;
+        const calledHttpParams: HttpParams = (options?.params) as HttpParams;
         expect(mockedMethod)
           .withContext('one call')
           .toHaveBeenCalledTimes(1);
@@ -255,7 +255,7 @@ describe('SupplyListService', () => {
 
         const [url, options] = mockedMethod.calls.argsFor(0);
 
-        const calledHttpParams: HttpParams = (options.params) as HttpParams;
+        const calledHttpParams: HttpParams = (options?.params) as HttpParams;
         expect(mockedMethod)
           .withContext('one call')
           .toHaveBeenCalledTimes(1);
