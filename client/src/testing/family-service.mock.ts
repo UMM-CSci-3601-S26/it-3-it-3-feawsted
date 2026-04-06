@@ -92,13 +92,13 @@ export class MockFamilyService implements Pick<FamilyService, 'getFamilyById' | 
       });
     });
 
-    return of([
+    return of(
       {
         studentsPerSchool,
         studentsPerGrade,
         totalFamilies: MockFamilyService.testFamilies.length
       }
-    ]);
+    );
   }
 
   getFamilies(): Observable<Family[]> {
