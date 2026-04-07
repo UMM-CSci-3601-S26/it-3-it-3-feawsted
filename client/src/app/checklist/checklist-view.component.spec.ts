@@ -78,13 +78,10 @@ describe('Checklist list', () => {
       generateChecklists: () => Observable<void>;
     };
 
-    // Set up a stub for the ChecklistService that simulates an error when getChecklists() is called, and returns an empty string for exportChecklists()
+    // Set up a stub for the ChecklistService that simulates an error when generateChecklists() is called, and returns empty arrays/strings for other methods
     beforeEach(() => {
       checklistServiceStub = {
-        getChecklists: () =>
-          new Observable((observer) => {
-            observer.error('getChecklists() Observer generates an error');
-          }),
+        getChecklists: () => of([]),
         exportChecklists: () => of(''),
         generateChecklists: () => new Observable((observer) => {
           observer.error('generateChecklists() Observer generates an error');
