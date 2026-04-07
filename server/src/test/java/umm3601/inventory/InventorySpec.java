@@ -73,4 +73,6 @@ public class InventorySpec {
   void inventoryToString() {
     assertEquals(inv1.toString(), "0x Pencil Ticonderoga");
   }
+
+
 }

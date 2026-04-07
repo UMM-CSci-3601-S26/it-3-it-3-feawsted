@@ -53,6 +53,14 @@ class ChecklistSpec {
   }
 
   @Test
+  void checklistDoesNotEqualNonChecklist() {
+    Checklist checklist = new Checklist();
+    Object nonChecklist = "abc123";
+
+    assertFalse(checklist.equals(nonChecklist));
+  }
+
+  @Test
   void checklistsWithNullIdAreNotEqual() {
     checklist1._id = null;
     checklist2._id = FAKE_ID_STRING_1;

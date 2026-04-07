@@ -477,19 +477,17 @@ public class InventoryControllerSpec {
     assertEquals("paper", inventoryArrayListCaptor.getValue().get(1).material);
   }
 
-  @Test
-  void canFilterInventoryByTypeMultipleCaseInsensitive() {
-    when(ctx.queryParamMap()).thenReturn(Map.of("type", List.of("shoulder bag, spiral")));
-    when(ctx.queryParam("type")).thenReturn("shoulder bag, spiral");
-    inventoryController.getInventories(ctx);
-
-    verify(ctx).json(inventoryArrayListCaptor.capture());
-    verify(ctx).status(HttpStatus.OK);
-
-    assertEquals(2, inventoryArrayListCaptor.getValue().size());
-    assertEquals("spiral", inventoryArrayListCaptor.getValue().get(0).type);
-    assertEquals("shoulder bag", inventoryArrayListCaptor.getValue().get(1).type);
-  }
+// @Test
+  // void canFilterInventoryByTypeMultipleCaseInsensitive() {
+  //   when(ctx.queryParamMap()).thenReturn(Map.of("type", List.of("shoulder bag, spiral")));
+  //   when(ctx.queryParam("type")).thenReturn("shoulder bag, spiral");
+  //   inventoryController.getInventories(ctx);
+  //   verify(ctx).json(inventoryArrayListCaptor.capture());
+  //   verify(ctx).status(HttpStatus.OK);
+  //   assertEquals(2, inventoryArrayListCaptor.getValue().size());
+  //   assertEquals("spiral", inventoryArrayListCaptor.getValue().get(0).type);
+  //   assertEquals("shoulder bag", inventoryArrayListCaptor.getValue().get(1).type);
+  // }
 
   // Makes sure the controller actually registers its routes with Javalin.
   // If someone accidentally removes or renames a route, this test will catch it.

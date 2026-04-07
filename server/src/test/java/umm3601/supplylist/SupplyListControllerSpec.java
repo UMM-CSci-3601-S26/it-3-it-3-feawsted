@@ -566,6 +566,42 @@ public class SupplyListControllerSpec {
   }
 
   @Test
+  void addSupplyWithEmptyString() {
+    String invalidSupplyList = """
+    {
+      "school": "",
+      "grade": "PreK",
+      "item": "Marker",
+      "brand": "Crayola",
+      "color": "red",
+      "count": 1,
+      "size": "N/A",
+      "description": "A standard marker",
+      "quantity": 5,
+      "notes": "N/A",
+      "type": "dry erase",
+      "material": "plastic"
+    }
+    """;
+
+    when(ctx.body()).thenReturn(invalidSupplyList);
+    when(ctx.bodyValidator(SupplyList.class))
+        .thenReturn(new BodyValidator<SupplyList>(
+            invalidSupplyList,
+            SupplyList.class,
+              () -> javalinJackson.fromJsonString(invalidSupplyList, SupplyList.class)
+          ));
+
+    ValidationException exception = assertThrows(ValidationException.class, () -> {
+      supplylistController.addSupplyList(ctx);
+    });
+
+    assertTrue(exception.getErrors().get("REQUEST_BODY").get(0).toString().contains("school must be a non-empty string"));
+  }
+
+
+
+  @Test
   void addSupplyItemWithInvalidQuantity() {
     String invalidSupplyList = """
         {

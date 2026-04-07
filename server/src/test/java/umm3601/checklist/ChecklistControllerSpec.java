@@ -412,6 +412,24 @@ class ChecklistControllerSpec {
     assertEquals("Elmo", result.get(0).studentName);
   }
 
+  @Test
+  void filterChecklistsByNameAndGrade() throws IOException {
+    when(ctx.queryParamMap()).thenReturn(Map.of(
+        "name", List.of("Elmo"),
+        "grade", List.of("4")));
+    when(ctx.queryParam("name")).thenReturn("Elmo");
+    when(ctx.queryParam("grade")).thenReturn("4");
+
+    checklistController.getStoredChecklists(ctx);
+
+    verify(ctx).json(checklistArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    List<Checklist> result = checklistArrayListCaptor.getValue();
+    assertEquals(1, result.size());
+    assertEquals("Elmo", result.get(0).studentName);
+  }
+
   // This test checks that the getStoredChecklists method returns an empty list
   // when there are no checklists matching the specified school and grade. It sets
   // up query parameters for a nonexistent school and grade, calls the method, and
@@ -454,6 +472,18 @@ class ChecklistControllerSpec {
     assertEquals("Elmo", result.get(0).studentName);
   }
 
+  @Test
+  void constructFilterAddsNameRegex() {
+    when(ctx.queryParamMap()).thenReturn(Map.of(
+        "name", List.of("Elmo")));
+    when(ctx.queryParam("name")).thenReturn("Elmo");
+    checklistController.getStoredChecklists(ctx);
+
+    verify(ctx).json(checklistArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    verify(ctx).queryParam("name");
+  }
   // @Test
   // void canCreateChecklist() throws IOException {
   // when(ctx.queryParamMap()).thenReturn(Collections.emptyMap());
