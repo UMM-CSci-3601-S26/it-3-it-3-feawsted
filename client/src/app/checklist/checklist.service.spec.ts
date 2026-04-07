@@ -11,8 +11,9 @@ import { Checklist } from './checklist';
 import { ChecklistService } from './checklist.service';
 
 import { SupplyList } from '../supplylist/supplylist';
-describe('ChecklistService', () => {
+import { MockChecklistService } from 'src/testing/checklist-service.mock';
 
+describe('ChecklistService', () => {
   const mockSupply1: SupplyList = {
     school: "Herman",
     grade: "7",
@@ -42,7 +43,6 @@ describe('ChecklistService', () => {
     quantity: 1,
     notes: ""
   };
-
 
   const testChecklists: Checklist[] = [
     {
@@ -77,7 +77,6 @@ describe('ChecklistService', () => {
     }
   ];
 
-
   let checklistService: ChecklistService;
   let httpClient: HttpClient;
   let httpTestingController: HttpTestingController;
@@ -96,8 +95,6 @@ describe('ChecklistService', () => {
   afterEach(() => {
     httpTestingController.verify();
   });
-
-  /**Tests based off inventory spec */
 
   // Test to ensure getChecklists() calls the correct API endpoint when called with no parameters, and that it is called exactly once
   describe('When getChecklists() is called with no parameters', () => {
@@ -143,15 +140,15 @@ describe('ChecklistService', () => {
     });
 
   });
-  /** */
+
   it('should fetch all checklists', () => {
     checklistService.getChecklists().subscribe(result => {
       expect(result).toEqual(testChecklists);
       expect(result.length).toBe(2);
     });
 
-    const req = httpMock.expectOne(req =>
-      req.method === 'GET' && req.url === checklistUrl
+    const req = httpTestingController.expectOne(req =>
+      req.method === 'GET' && req.url === checklistService.checklistUrl
     );
 
     expect(req.request.method).toBe('GET');
@@ -162,7 +159,15 @@ describe('ChecklistService', () => {
     const testChecklist: Checklist = {
       _id: '123',
       studentName: 'Test Checklist',
-      requestedSupplies: []
+      requestedSupplies: ['backpack'],
+      school: 'AHS',
+      grade: '6th',
+      checklist: [{
+        supply: MockChecklistService.mockSupply1,
+        completed: false,
+        unreceived: false,
+        selectedOption: ''
+      }]
     };
 
     checklistService.getChecklistById('123').subscribe(result => {
@@ -170,7 +175,7 @@ describe('ChecklistService', () => {
       expect(result._id).toBe('123');
     });
 
-    const req = httpMock.expectOne(`${checklistUrl}/123`);
+    const req = httpTestingController.expectOne(`${checklistService.checklistUrl}/123`);
     expect(req.request.method).toBe('GET');
 
     req.flush(testChecklist);

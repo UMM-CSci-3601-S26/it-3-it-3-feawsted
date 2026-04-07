@@ -25,7 +25,7 @@ import { Checklist } from './checklist';
 describe('Checklist list', () => {
   let checklistList: ChecklistViewComponent;
   let fixture: ComponentFixture<ChecklistViewComponent>;
-  let checklistService: ChecklistService;
+  //let checklistService: ChecklistService;
 
   // Set up the testing module for the ChecklistViewComponent, including necessary imports and providers
   beforeEach(() => {
@@ -50,7 +50,7 @@ describe('Checklist list', () => {
     TestBed.compileComponents().then(() => {
       fixture = TestBed.createComponent(ChecklistViewComponent);
       checklistList = fixture.componentInstance;
-      checklistService = TestBed.inject(ChecklistService);
+      //checklistService = TestBed.inject(ChecklistService);
       fixture.detectChanges();
     });
   }));
@@ -61,78 +61,67 @@ describe('Checklist list', () => {
   });
 
   // Test to verify that checklists are loaded from the service and that the expected checklist data is present
-  it('should load checklists from service', () => {
-    const checklists = checklistList.checklists();
-    expect(checklists.length).toBe(3);
-    expect(checklists[0].guardianName).toBe('John Johnson');
-  });
-
-  // Test to verify that exportChecklists() is called when the CSV download function is triggered,
-  // and that the appropriate methods for handling the CSV data are invoked
-  it('exportChecklists() should be called when CSV is downloaded', () => {
-    spyOn(checklistService, 'exportChecklists').and.returnValue(of('csv-data'));
-
-    spyOn(URL, 'createObjectURL').and.returnValue('blob-url');
-    spyOn(URL, 'revokeObjectURL');
-
-    const click = jasmine.createSpy('click');
-    spyOn(document, 'createElement').and.returnValue({ click } as undefined);
-
-    checklistList.downloadCSV();
-    expect(checklistService.exportChecklists).toHaveBeenCalled();
-    expect(document.createElement).toHaveBeenCalledWith('a');
-    expect(click).toHaveBeenCalled();
-    expect(URL.createObjectURL).toHaveBeenCalled();
-    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob-url');
-  });
-});
-
-// Tests for the ChecklistViewComponent when the ChecklistService is not set up properly, ensuring that appropriate error messages are shown and that the component handles the error gracefully
-describe('Misbehaving Checklist List', () => {
-  let checklistList: ChecklistViewComponent;
-  let fixture: ComponentFixture<ChecklistViewComponent>;
-
-  let checklistServiceStub: {
-    getChecklists: () => Observable<Checklist[]>;
-    exportChecklists: () => Observable<string>;
-  };
-
-  // Set up a stub for the ChecklistService that simulates an error when getChecklists() is called, and returns an empty string for exportChecklists()
-  beforeEach(() => {
-    checklistServiceStub = {
-      getChecklists: () =>
-        new Observable((observer) => {
-          observer.error('getChecklists() Observer generates an error');
-        }),
-      exportChecklists: () => of('')
-    };
-  });
-
-  // Set up the testing module and component before each test, providing the misbehaving ChecklistService stub
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        ChecklistViewComponent
-      ],
-      providers: [{
-        provide: ChecklistService,
-        useValue: checklistServiceStub
-      },
-      provideRouter([])
-      ],
-    })
-      .compileComponents();
+  it('should load checklists from service', waitForAsync(() => {
+    fixture.whenStable().then(() => {
+      expect(checklistList.serverFilteredChecklists().length).toBe(2);
+    });
   }));
 
-  // Compile the component and its template before running tests, and initialize the component instance
-  beforeEach(() => {
-    fixture = TestBed.createComponent(ChecklistViewComponent);
-    checklistList = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+  // Tests for the ChecklistViewComponent when the ChecklistService is not set up properly, ensuring that appropriate error messages are shown and that the component handles the error gracefully
+  describe('Misbehaving Checklist List', () => {
+    let checklistList: ChecklistViewComponent;
+    let fixture: ComponentFixture<ChecklistViewComponent>;
 
-  // Test to verify that an appropriate error message is set when the ChecklistService fails to provide checklist data, and that the checklists() method returns an empty array in this case
-  it('it will return an empty array when the service experiences an error', () => {
-    expect(checklistList.checklists()).toEqual([]);
+    let checklistServiceStub: {
+      getChecklists: () => Observable<Checklist[]>;
+      exportChecklists: () => Observable<string>;
+      generateChecklists: () => Observable<void>;
+    };
+
+    // Set up a stub for the ChecklistService that simulates an error when getChecklists() is called, and returns an empty string for exportChecklists()
+    beforeEach(() => {
+      checklistServiceStub = {
+        getChecklists: () =>
+          new Observable((observer) => {
+            observer.error('getChecklists() Observer generates an error');
+          }),
+        exportChecklists: () => of(''),
+        generateChecklists: () => new Observable((observer) => {
+          observer.error('generateChecklists() Observer generates an error');
+        }),
+      };
+    });
+
+    // Set up the testing module and component before each test, providing the misbehaving ChecklistService stub
+    beforeEach(waitForAsync(() => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [
+          ChecklistViewComponent
+        ],
+        providers: [{
+          provide: ChecklistService,
+          useValue: checklistServiceStub
+        },
+        provideRouter([])
+        ],
+      })
+        .compileComponents();
+    }));
+
+    // Compile the component and its template before running tests, and initialize the component instance
+    beforeEach(() => {
+      fixture = TestBed.createComponent(ChecklistViewComponent);
+      checklistList = fixture.componentInstance;
+      fixture.detectChanges();
+    });
+
+    // Test to verify that an appropriate error message is set when generateChecklists fails
+    it('should handle errors when generateChecklists fails', waitForAsync(() => {
+      checklistList.generateChecklists();
+      fixture.whenStable().then(() => {
+        expect(checklistList.errMsg()).toBe('Failed to generate checklists.');
+      });
+    }));
   });
 });

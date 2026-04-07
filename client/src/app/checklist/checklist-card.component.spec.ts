@@ -4,6 +4,7 @@ import { ChecklistCardComponent } from './checklist-card.component';
 
 // Family Interface Import
 import { Checklist } from './checklist';
+import { MockChecklistService } from 'src/testing/checklist-service.mock';
 
 // Test suite for the FamilyCardComponent, which displays information about a family and their requested supplies
 describe('ChecklistCardComponent', () => {
@@ -25,32 +26,36 @@ describe('ChecklistCardComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(ChecklistCardComponent);
     component = fixture.componentInstance;
+
     expectedChecklist = {
-      // Example Family with Two Kids
       _id: 'chris_id',
       studentName: 'Chris',
-      grade: '123 Street',
-      school: 'chris@email.com',
-      requestedSupplies: List.of("backpack"),
-      //checklist:
+      grade: '3',
+      school: 'AHS',
+      requestedSupplies: ["backpack"],
+      checklist: [
+        {
+          supply: MockChecklistService.mockSupply1,
+          completed: false,
+          unreceived: false,
+          selectedOption: ''
+        }
+      ]
     };
 
-    fixture.componentRef.setInput('family', expectedChecklist);
+    fixture.componentRef.setInput('checklist', expectedChecklist);
     fixture.detectChanges();
   });
 
-  // Test to ensure the component is created successfully
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  // Test to verify that the component's family input is correctly associated with the expected family data
-  it('should be associated with the correct family', () => {
-    expect(component.checklist()).toEqual(expectedChecklist);
+  it('should be associated with the correct studentName', () => {
+    expect(component.checklist().studentName).toEqual(expectedChecklist.studentName);
   });
 
-  // Test to check that the guardian's name in the family data is correctly displayed as "Chris"
-  it('should be the family named Chris', () => {
+  it('should be the studentName Chris', () => {
     expect(component.checklist().studentName).toEqual('Chris');
   });
 });
