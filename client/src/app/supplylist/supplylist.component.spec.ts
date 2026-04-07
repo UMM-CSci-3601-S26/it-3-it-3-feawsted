@@ -228,6 +228,179 @@ describe('SupplyList Table', () => {
     expect(groups[0].school).toBe('Unknown School');
     expect(groups[0].grades[0].grade).toBe('Unknown Grade');
   }));
+
+  // ── confirmDelete() tests ──────────────────────────────────────────────────
+
+  describe('confirmDelete()', () => {
+    it('calls deleteSupplyList() and removes the item from dataSource on success', fakeAsync(() => {
+      const itemWithId: SupplyList = {
+        _id: 'delete-me',
+        school: 'MHS', grade: 'PreK', item: 'Eraser', description: '', brand: '',
+        color: '', size: '', type: '', material: '', count: 1, quantity: 1, notes: ''
+      };
+      supplylistTable.dataSource.data = [itemWithId];
+
+      spyOn(window, 'confirm').and.returnValue(true);
+      const deleteSpy = spyOn(supplylistService, 'deleteSupplyList').and.returnValue(of(undefined));
+
+      supplylistTable.confirmDelete('delete-me');
+      tick();
+
+      expect(deleteSpy).toHaveBeenCalledWith('delete-me');
+      expect(supplylistTable.dataSource.data.find(i => i._id === 'delete-me')).toBeUndefined();
+    }));
+
+    it('does nothing when the user cancels the confirm dialog', fakeAsync(() => {
+      const itemWithId: SupplyList = {
+        _id: 'keep-me',
+        school: 'MHS', grade: 'PreK', item: 'Ruler', description: '', brand: '',
+        color: '', size: '', type: '', material: '', count: 1, quantity: 1, notes: ''
+      };
+      supplylistTable.dataSource.data = [itemWithId];
+
+      spyOn(window, 'confirm').and.returnValue(false);
+      const deleteSpy = spyOn(supplylistService, 'deleteSupplyList').and.returnValue(of(undefined));
+
+      supplylistTable.confirmDelete('keep-me');
+      tick();
+
+      expect(deleteSpy).not.toHaveBeenCalled();
+      expect(supplylistTable.dataSource.data).toContain(itemWithId);
+    }));
+
+    it('does nothing when id is undefined', fakeAsync(() => {
+      spyOn(window, 'confirm').and.returnValue(true);
+      const deleteSpy = spyOn(supplylistService, 'deleteSupplyList').and.returnValue(of(undefined));
+
+      supplylistTable.confirmDelete(undefined);
+      tick();
+
+      expect(deleteSpy).not.toHaveBeenCalled();
+    }));
+
+    it('sets errMsg when deleteSupplyList() returns an error', fakeAsync(() => {
+      const itemWithId: SupplyList = {
+        _id: 'fail-delete',
+        school: 'MHS', grade: 'PreK', item: 'Tape', description: '', brand: '',
+        color: '', size: '', type: '', material: '', count: 1, quantity: 1, notes: ''
+      };
+      supplylistTable.dataSource.data = [itemWithId];
+
+      spyOn(window, 'confirm').and.returnValue(true);
+      spyOn(supplylistService, 'deleteSupplyList').and.returnValue(
+        new Observable(o => o.error({ status: 500, message: 'Server error' }))
+      );
+
+      supplylistTable.confirmDelete('fail-delete');
+      tick();
+
+      expect(supplylistTable.errMsg()).toContain('Problem deleting item – Error Code: 500');
+    }));
+  });
+
+  // ── startEdit() / cancelEdit() / saveEdit() tests ─────────────────────────
+
+  describe('startEdit()', () => {
+    it('sets editingItemId to the item\'s _id', () => {
+      const item: SupplyList = {
+        _id: 'edit-id',
+        school: 'MHS', grade: 'PreK', item: 'Marker', description: '', brand: '',
+        color: '', size: '', type: '', material: '', count: 1, quantity: 1, notes: ''
+      };
+      supplylistTable.startEdit(item);
+      expect(supplylistTable.editingItemId).toBe('edit-id');
+    });
+
+    it('stores a deep copy as backup, separate from the original object', () => {
+      const item: SupplyList = {
+        _id: 'backup-id',
+        school: 'Herman', grade: '3rd grade', item: 'Glue', description: '', brand: '',
+        color: '', size: '', type: '', material: '', count: 1, quantity: 2, notes: ''
+      };
+      supplylistTable.startEdit(item);
+      // Mutating the original should not affect the backup
+      item.item = 'Changed';
+      // Access backup via cancelEdit restoring from it
+      supplylistTable.dataSource.data = [item];
+      supplylistTable.cancelEdit();
+      expect(supplylistTable.dataSource.data[0].item).toBe('Glue');
+    });
+  });
+
+  describe('cancelEdit()', () => {
+    it('clears editingItemId after cancelling', () => {
+      const item: SupplyList = {
+        _id: 'cancel-id',
+        school: 'MHS', grade: 'PreK', item: 'Pen', description: '', brand: '',
+        color: '', size: '', type: '', material: '', count: 1, quantity: 1, notes: ''
+      };
+      supplylistTable.dataSource.data = [item];
+      supplylistTable.startEdit(item);
+      supplylistTable.cancelEdit();
+      expect(supplylistTable.editingItemId).toBeNull();
+    });
+
+    it('restores the original item values in dataSource', () => {
+      const item: SupplyList = {
+        _id: 'restore-id',
+        school: 'MHS', grade: '1st grade', item: 'Crayon', description: '', brand: 'Crayola',
+        color: 'Red', size: '', type: '', material: '', count: 1, quantity: 3, notes: ''
+      };
+      supplylistTable.dataSource.data = [{ ...item }];
+      supplylistTable.startEdit(supplylistTable.dataSource.data[0]);
+      supplylistTable.dataSource.data[0].item = 'Pencil'; // simulate in-progress edit
+      supplylistTable.cancelEdit();
+      expect(supplylistTable.dataSource.data[0].item).toBe('Crayon');
+    });
+  });
+
+  describe('saveEdit()', () => {
+    it('calls editSupplyList() and clears editing state on success', fakeAsync(() => {
+      const item: SupplyList = {
+        _id: 'save-id',
+        school: 'MHS', grade: 'PreK', item: 'Notebook', description: '', brand: 'Five Star',
+        color: 'Blue', size: 'Wide Ruled', type: 'Spiral', material: 'N/A', count: 1, quantity: 2, notes: ''
+      };
+      const saveSpy = spyOn(supplylistService, 'editSupplyList').and.returnValue(of(undefined));
+
+      supplylistTable.startEdit(item);
+      supplylistTable.saveEdit(item);
+      tick();
+
+      expect(saveSpy).toHaveBeenCalledWith('save-id', item);
+      expect(supplylistTable.editingItemId).toBeNull();
+    }));
+
+    it('does nothing when item has no _id', fakeAsync(() => {
+      const item: SupplyList = {
+        school: 'MHS', grade: 'PreK', item: 'Notebook', description: '', brand: '',
+        color: '', size: '', type: '', material: '', count: 1, quantity: 1, notes: ''
+      };
+      const saveSpy = spyOn(supplylistService, 'editSupplyList').and.returnValue(of(undefined));
+
+      supplylistTable.saveEdit(item);
+      tick();
+
+      expect(saveSpy).not.toHaveBeenCalled();
+    }));
+
+    it('sets errMsg when editSupplyList() returns an error', fakeAsync(() => {
+      const item: SupplyList = {
+        _id: 'err-save-id',
+        school: 'MHS', grade: 'PreK', item: 'Folder', description: '', brand: '',
+        color: '', size: '', type: '', material: '', count: 1, quantity: 1, notes: ''
+      };
+      spyOn(supplylistService, 'editSupplyList').and.returnValue(
+        new Observable(o => o.error({ status: 422, message: 'Unprocessable' }))
+      );
+
+      supplylistTable.startEdit(item);
+      supplylistTable.saveEdit(item);
+      tick();
+
+      expect(supplylistTable.errMsg()).toContain('Problem saving item – Error Code: 422');
+    }));
+  });
 });
 
 describe('Misbehaving SupplyList Table', () => {

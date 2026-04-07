@@ -8,7 +8,7 @@ import { SupplyListService } from 'src/app/supplylist/supplylist.service';
   providedIn: AppComponent
 })
 
-export class MockSupplyListService implements Pick<SupplyListService, 'getSupplyList'> {
+export class MockSupplyListService implements Pick<SupplyListService, 'getSupplyList' | 'addSupplyList' | 'deleteSupplyList' | 'editSupplyList'> {
   static testSupplyList: SupplyList[] = [
     {
       school: "MHS",
@@ -57,5 +57,17 @@ export class MockSupplyListService implements Pick<SupplyListService, 'getSupply
   /* eslint-disable @typescript-eslint/no-unused-vars */
   getSupplyList(_filters: { school?: string, grade?: string, item?: string, brand?: string, color?: string, size?: string, type?: string, material?: string }): Observable<SupplyList[]> {
     return of(MockSupplyListService.testSupplyList);
+  }
+
+  addSupplyList(_newItem: Partial<SupplyList>): Observable<string> {
+    return of('test-id');
+  }
+
+  deleteSupplyList(_id: string): Observable<unknown> {
+    return of(undefined);
+  }
+
+  editSupplyList(_id: string, _updatedItem: Partial<SupplyList>): Observable<void> {
+    return of(undefined);
   }
 }

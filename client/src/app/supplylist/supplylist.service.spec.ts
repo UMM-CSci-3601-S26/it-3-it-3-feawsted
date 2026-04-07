@@ -280,4 +280,104 @@ describe('SupplyListService', () => {
       });
     });
   });
+
+  describe('When deleteSupplyList() is called', () => {
+
+    it('calls DELETE on the correct URL with the given id', () => {
+      const testId = 'abc123';
+      supplylistService.deleteSupplyList(testId).subscribe();
+
+      const req = httpTestingController.expectOne(`${supplylistService.supplylistUrl}/${testId}`);
+      expect(req.request.method).toEqual('DELETE');
+      req.flush(null);
+    });
+
+    it('calls DELETE with a different id', () => {
+      const testId = 'xyz789';
+      supplylistService.deleteSupplyList(testId).subscribe();
+
+      const req = httpTestingController.expectOne(`${supplylistService.supplylistUrl}/${testId}`);
+      expect(req.request.method).toEqual('DELETE');
+      req.flush(null);
+    });
+  });
+
+  describe('When addSupplyList() is called', () => {
+
+    it('calls POST on the correct URL with the new item body', () => {
+      const newItem: Partial<SupplyList> = {
+        school: 'MHS',
+        grade: 'PreK',
+        item: 'Scissors',
+        brand: 'Fiskars',
+        color: 'Orange',
+        size: 'Kids',
+        type: 'Blunt',
+        material: 'Metal',
+        description: 'Kids blunt scissors',
+        count: 1,
+        quantity: 5,
+        notes: 'N/A'
+      };
+      supplylistService.addSupplyList(newItem).subscribe();
+
+      const req = httpTestingController.expectOne(supplylistService.supplylistUrl);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body).toEqual(newItem);
+      req.flush({ id: 'new-id' });
+    });
+
+    it('returns the id from the server response', () => {
+      const newItem: Partial<SupplyList> = { item: 'Glue Stick', school: 'Herman', grade: '2nd grade',
+        brand: 'Elmer\'s', color: 'White', size: 'Regular', type: 'Stick', material: 'N/A',
+        description: 'Washable glue stick', count: 1, quantity: 3, notes: '' };
+      let returnedId: string | undefined;
+
+      supplylistService.addSupplyList(newItem).subscribe(id => {
+        returnedId = id;
+      });
+
+      const req = httpTestingController.expectOne(supplylistService.supplylistUrl);
+      req.flush({ id: 'returned-id' });
+      expect(returnedId).toEqual('returned-id');
+    });
+  });
+
+  describe('When editSupplyList() is called', () => {
+
+    it('calls PUT on the correct URL with the updated item body', () => {
+      const testId = 'item42';
+      const updatedItem: Partial<SupplyList> = {
+        school: 'MHS',
+        grade: '4th grade',
+        item: 'Notebook',
+        brand: 'Five Star',
+        color: 'Blue',
+        size: 'Wide Ruled',
+        type: 'Spiral',
+        material: 'N/A',
+        description: 'Blue wide ruled spiral notebook',
+        count: 1,
+        quantity: 2,
+        notes: 'N/A'
+      };
+      supplylistService.editSupplyList(testId, updatedItem).subscribe();
+
+      const req = httpTestingController.expectOne(`${supplylistService.supplylistUrl}/${testId}`);
+      expect(req.request.method).toEqual('PUT');
+      expect(req.request.body).toEqual(updatedItem);
+      req.flush(null);
+    });
+
+    it('calls PUT with a different id and partial body', () => {
+      const testId = 'item99';
+      const updatedItem: Partial<SupplyList> = { quantity: 10, notes: 'Replenished' };
+      supplylistService.editSupplyList(testId, updatedItem).subscribe();
+
+      const req = httpTestingController.expectOne(`${supplylistService.supplylistUrl}/${testId}`);
+      expect(req.request.method).toEqual('PUT');
+      expect(req.request.body).toEqual(updatedItem);
+      req.flush(null);
+    });
+  });
 })
