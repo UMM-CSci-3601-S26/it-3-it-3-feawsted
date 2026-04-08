@@ -212,7 +212,6 @@ public class ChecklistController implements Controller {
   //   } catch (NumberFormatException e) {
   //     throw new BadRequestResponse("Item index must be an integer.");
   //   }
-
   //   Checklist checklist;
   //   try {
   //     checklist = checklistCollection.find(Filters.eq("_id", new ObjectId(id))).first();
@@ -225,7 +224,6 @@ public class ChecklistController implements Controller {
   //   if (index < 0 || index >= checklist.checklist.size()) {
   //     throw new BadRequestResponse("Item index out of range.");
   //   }
-
   //   // Parse only the fields present in the request body
   //   var body = ctx.bodyAsClass(ItemUpdateRequest.class);
   //   Checklist.ChecklistItem item = checklist.checklist.get(index);
@@ -235,12 +233,10 @@ public class ChecklistController implements Controller {
   //     item.unreceived = body.unreceived;
   //   if (body.selectedOption != null)
   //     item.selectedOption = body.selectedOption;
-
   //   checklistCollection.save(checklist);
   //   ctx.json(checklist);
   //   ctx.status(HttpStatus.OK);
   // }
-
   // // Request body for PATCH item update
   // public static class ItemUpdateRequest {
   //   public Boolean completed;

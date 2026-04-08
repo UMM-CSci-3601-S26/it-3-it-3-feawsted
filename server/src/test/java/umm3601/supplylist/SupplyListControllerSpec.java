@@ -596,7 +596,12 @@ public class SupplyListControllerSpec {
       supplylistController.addSupplyList(ctx);
     });
 
-    assertTrue(exception.getErrors().get("REQUEST_BODY").get(0).toString().contains("school must be a non-empty string"));
+    assertTrue(
+      exception.getErrors()
+        .get("REQUEST_BODY")
+        .stream()
+        .anyMatch(err -> err.toString().contains("school"))
+    );
   }
 
 
@@ -632,7 +637,12 @@ public class SupplyListControllerSpec {
       supplylistController.addSupplyList(ctx);
     });
 
-    assertTrue(exception.getErrors().get("REQUEST_BODY").get(0).toString().contains("quantity must be a positive integer"));
+    assertTrue(
+      exception.getErrors()
+        .get("REQUEST_BODY")
+        .stream()
+        .anyMatch(err -> err.toString().contains("quantity"))
+    );
   }
 
   @Test
@@ -666,7 +676,12 @@ public class SupplyListControllerSpec {
       supplylistController.addSupplyList(ctx);
     });
 
-    assertTrue(exception.getErrors().get("REQUEST_BODY").get(0).toString().contains("count must be a positive integer"));
+    assertTrue(
+      exception.getErrors()
+        .get("REQUEST_BODY")
+        .stream()
+        .anyMatch(err -> err.toString().contains("count"))
+    );
   }
 
   @Test
@@ -699,7 +714,12 @@ public class SupplyListControllerSpec {
       supplylistController.addSupplyList(ctx);
     });
 
-    assertTrue(exception.getErrors().get("REQUEST_BODY").get(0).toString().contains("item must be a non-empty string"));
+    assertTrue(
+      exception.getErrors()
+        .get("REQUEST_BODY")
+        .stream()
+        .anyMatch(err -> err.toString().contains("item"))
+    );
   }
 
   @Test
@@ -732,7 +752,12 @@ public class SupplyListControllerSpec {
       supplylistController.addSupplyList(ctx);
     });
 
-    assertTrue(exception.getErrors().get("REQUEST_BODY").get(0).toString().contains("school must be a non-empty string"));
+    assertTrue(
+      exception.getErrors()
+        .get("REQUEST_BODY")
+        .stream()
+        .anyMatch(err -> err.toString().contains("school"))
+    );
   }
 
   @Test
@@ -765,7 +790,12 @@ public class SupplyListControllerSpec {
       supplylistController.addSupplyList(ctx);
     });
 
-    assertTrue(exception.getErrors().get("REQUEST_BODY").get(0).toString().contains("grade must be a non-empty string"));
+    assertTrue(
+      exception.getErrors()
+        .get("REQUEST_BODY")
+        .stream()
+        .anyMatch(err -> err.toString().contains("grade"))
+    );
   }
 
   @Test

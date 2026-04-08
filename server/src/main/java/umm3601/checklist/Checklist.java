@@ -10,7 +10,7 @@ import org.mongojack.ObjectId;
 import umm3601.supplylist.SupplyList;
 
 @SuppressWarnings({"VisibilityModifier"})
-class Checklist {
+public class Checklist {
   @ObjectId @Id
   @SuppressWarnings({"MemberName"})
   public String _id;
@@ -21,13 +21,19 @@ class Checklist {
   public List<String> requestedSupplies;
   public List<ChecklistItem> checklist;
 
+  // Default constructor for Jackson serialization
+  public Checklist() {
+  }
+
   public static class ChecklistItem {
     public SupplyList supply;
     public Boolean completed = false;
     public Boolean unreceived = false;
     public String selectedOption;
 
-    public ChecklistItem() {}
+    // Default constructor for Jackson serialization
+    public ChecklistItem() {
+    }
 
     ChecklistItem(SupplyList supply) {
       this.supply = supply;

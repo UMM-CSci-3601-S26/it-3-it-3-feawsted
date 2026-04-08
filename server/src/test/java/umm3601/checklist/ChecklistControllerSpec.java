@@ -3,6 +3,7 @@ package umm3601.checklist;
 
 // Static Imports
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.atLeastOnce;
@@ -482,7 +483,10 @@ class ChecklistControllerSpec {
     verify(ctx).json(checklistArrayListCaptor.capture());
     verify(ctx).status(HttpStatus.OK);
 
-    verify(ctx).queryParam("name");
+    List<Checklist> result = checklistArrayListCaptor.getValue();
+    // Verify that the filter is applied and returns results with name filter
+    assertTrue(result.size() > 0);
+    assertTrue(result.get(0).studentName.equals("Elmo"));
   }
   // @Test
   // void canCreateChecklist() throws IOException {

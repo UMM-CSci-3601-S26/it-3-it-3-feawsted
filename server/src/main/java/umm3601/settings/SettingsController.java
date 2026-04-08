@@ -47,7 +47,7 @@ public class SettingsController implements Controller {
   private static final String API_SETTINGS_SCHOOLS = "/api/settings/schools";
   private static final String API_SETTINGS_TIME = "/api/settings/timeAvailability";
 
-  private final JacksonMongoCollection<Settings> settingsCollection;
+  public final JacksonMongoCollection<Settings> settingsCollection;
 
   public SettingsController(MongoDatabase database) {
     settingsCollection = JacksonMongoCollection.builder().build(

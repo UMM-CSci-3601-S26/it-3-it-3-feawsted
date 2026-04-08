@@ -11,10 +11,10 @@ import { Router } from '@angular/router';
 import { provideRouter } from '@angular/router';
 import { Location } from '@angular/common';
 
- describe('AddSupplyListComponent', () => {
-   let addSupplyListComponent: AddSupplyListComponent;
-   let addSupplyListForm: FormGroup;
-   let fixture: ComponentFixture<AddSupplyListComponent>;
+describe('AddSupplyListComponent', () => {
+  let addSupplyListComponent: AddSupplyListComponent;
+  let addSupplyListForm: FormGroup;
+  let fixture: ComponentFixture<AddSupplyListComponent>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -33,23 +33,23 @@ import { Location } from '@angular/common';
     });
   }));
 
-   beforeEach(() => {
-     fixture = TestBed.createComponent(AddSupplyListComponent);
-     addSupplyListComponent = fixture.componentInstance;
-     fixture.detectChanges();
-     addSupplyListForm = addSupplyListComponent.addSupplyListForm;
-     expect(addSupplyListForm).toBeDefined();
-     expect(addSupplyListForm.controls).toBeDefined();
-   });
+  beforeEach(() => {
+    fixture = TestBed.createComponent(AddSupplyListComponent);
+    addSupplyListComponent = fixture.componentInstance;
+    fixture.detectChanges();
+    addSupplyListForm = addSupplyListComponent.addSupplyListForm;
+    expect(addSupplyListForm).toBeDefined();
+    expect(addSupplyListForm.controls).toBeDefined();
+  });
 
-   it('should create the component and form', () => {
-     expect(addSupplyListComponent).toBeTruthy();
-     expect(addSupplyListForm).toBeTruthy();
-   });
+  it('should create the component and form', () => {
+    expect(addSupplyListComponent).toBeTruthy();
+    expect(addSupplyListForm).toBeTruthy();
+  });
 
-   it('form should be invalid when empty', () => {
-     expect(addSupplyListForm.valid).toBeFalsy();
-   });
+  it('form should be invalid when empty', () => {
+    expect(addSupplyListForm.valid).toBeFalsy();
+  });
 
   describe('The school field', () => {
     let schoolControl: AbstractControl;

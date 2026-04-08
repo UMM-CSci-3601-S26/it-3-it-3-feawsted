@@ -3,8 +3,11 @@ package umm3601.settings;
 
 // Static Imports
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static com.mongodb.client.model.Filters.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -21,6 +24,7 @@ import java.util.Map;
 
 // Org Imports
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -41,6 +45,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.UpdateOptions;
 
 // IO Imports
 import io.javalin.Javalin;
@@ -80,6 +85,9 @@ class SettingsControllerSpec {
 
   @Mock
   private Context ctx;
+
+  @Mock
+  private JacksonMongoCollection<Settings> mockCollection;
 
   @Captor
   private ArgumentCaptor<ArrayList<Settings>> settingsArrayListCaptor;
@@ -189,6 +197,31 @@ class SettingsControllerSpec {
     settingsDocuments.insertOne(specialSettings);
 
     settingsController = new SettingsController(db);
+
+    SettingsController mockController = new SettingsController(db);
+
+    mockController = Mockito.spy(mockController);
+    //Mockito.doReturn(mockCollection).when(mockController).getSettings();
+  }
+
+  @Test
+  void getSettingsReturnsDefaultWhenNoneExists() {
+    FindIterable<Settings> mockFind = mock(FindIterable.class);
+
+    when(mockCollection.find(eq("_id", SettingsController.SETTINGS_ID)))
+        .thenReturn(mockFind);
+    when(mockFind.first()).thenReturn(null);
+
+    settingsController.getSettings(ctx);
+
+    ArgumentCaptor<Settings> settingsCaptor = ArgumentCaptor.forClass(Settings.class);
+    verify(ctx).json(settingsCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    Settings returned = settingsCaptor.getValue();
+    assertEquals(SettingsController.SETTINGS_ID, returned._id);
+    assertNotNull(returned.schools);
+    assertNotNull(returned.timeAvailability);
   }
 
   // Checks that the controller actually registers all its routes with Javalin.
@@ -199,8 +232,7 @@ class SettingsControllerSpec {
     settingsController.addRoutes(mockServer);
 
     verify(mockServer, Mockito.atLeast(1)).get(any(), any());
-    verify(mockServer, atLeastOnce()).get(any(), any());
-    verify(mockServer, atLeastOnce()).post(any(), any());
-    verify(mockServer, never()).patch(any(), any()); // never use patch so we confirm this
+    verify(mockServer, atLeastOnce()).patch(any(), any());
+    verify(mockServer, never()).post(any(), any()); // never use post so we confirm this
   }
 }
