@@ -20,7 +20,7 @@ export class MockChecklistService implements Pick<ChecklistService, 'getChecklis
     type: "Standard",
     material: "Wood",
     description: "A standard pencil for school use",
-    quantity: 1,
+    quantity: 2,
     notes: ""
   };
 
@@ -37,6 +37,21 @@ export class MockChecklistService implements Pick<ChecklistService, 'getChecklis
     description: "A standard notebook for school use",
     quantity: 1,
     notes: ""
+  };
+
+  static mockSupply3: SupplyList = {
+    school: "Herman",
+    grade: "7",
+    item: "Pencil",
+    brand: "Generic",
+    color: "Yellow",
+    count: 1,
+    size: "Medium",
+    type: "Standard",
+    material: "Wood",
+    description: "A standard pencil for school use",
+    quantity: 1,
+    notes: "a good pencil?"
   };
 
 

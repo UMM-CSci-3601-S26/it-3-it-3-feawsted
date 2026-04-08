@@ -58,4 +58,17 @@ describe('ChecklistCardComponent', () => {
   it('should be the studentName Chris', () => {
     expect(component.checklist().studentName).toEqual('Chris');
   });
+
+  it('should correctly format a supply label without "?"', () => {
+    const supply = MockChecklistService.mockSupply3;
+
+    const label = component.toLabel(supply);
+
+    // The label should start with quantity
+    expect(label.startsWith(`${supply.quantity}x`)).toBeTrue();
+
+    // Notes cleaned of placeholders
+    expect(label).not.toContain('?');
+  });
+
 });
