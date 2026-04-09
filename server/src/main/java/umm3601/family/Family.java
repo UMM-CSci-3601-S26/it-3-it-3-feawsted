@@ -37,6 +37,17 @@ public class Family {
   // Students are embedded inside the Family document.
   public List<StudentInfo> students;
 
+  // Availability options for the family
+  public AvailabilityOptions timeAvailability;
+
+  // Helper class for availability options
+  public static class AvailabilityOptions {
+    public boolean earlyMorning;
+    public boolean lateMorning;
+    public boolean earlyAfternoon;
+    public boolean lateAfternoon;
+  }
+
   // Represents a single student within a family.
   public static class StudentInfo {
     public String name;

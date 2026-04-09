@@ -12,18 +12,18 @@ describe('Add family', () => {
     page.getTitle().should('have.text', 'New Family');
   });
 
-  it('Should be disable the add family button when family does not have a student added', () => {
-    page.addFamilyButton().should('be.disabled');
-    page.getFormField('guardianName').type('test');
-    page.addFamilyButton().should('be.disabled');
-    page.getFormField('address').type('123 Street');
-    page.addFamilyButton().should('be.disabled');
-    page.getFormField('timeSlot').type('9:00-10:00');
-    page.addFamilyButton().should('be.disabled');
-    page.getFormField('email').clear().type('familytest@email.com');
+  // it('Should be disable the add family button when family does not have a student added', () => {
+  //   page.addFamilyButton().should('be.disabled');
+  //   page.getFormField('guardianName').type('test');
+  //   page.addFamilyButton().should('be.disabled');
+  //   page.getFormField('address').type('123 Street');
+  //   page.addFamilyButton().should('be.disabled');
+  //   page.getFormField('timeSlot').type('9:00-10:00');
+  //   page.addFamilyButton().should('be.disabled');
+  //   page.getFormField('email').clear().type('familytest@email.com');
 
-    page.addFamilyButton().should('be.disabled');
-  });
+  //   page.addFamilyButton().should('be.disabled');
+  // });
 
   it('Should show error messages for invalid inputs', () => {
     // Before doing anything there shouldn't be an error

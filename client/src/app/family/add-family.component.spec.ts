@@ -1,7 +1,7 @@
 // Angular and Material Imports
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { AbstractControl, FormGroup, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { provideHttpClient } from '@angular/common/http';
@@ -16,6 +16,7 @@ import { AddFamilyComponent } from './add-family.component';
 import { FamilyService } from './family.service';
 import { SettingsService } from '../settings/settings.service';
 import { AppSettings } from '../settings/settings';
+
 
 // Tests for the AddFamilyComponent
 describe('AddFamilyComponent', () => {
@@ -176,8 +177,8 @@ describe('AddFamilyComponent', () => {
     it('when all required fields are valid, the the whole form should be valid', () => {
       addFamilyForm.controls.guardianName.setValue('Chris Smith');
       addFamilyForm.controls.address.setValue('123 Avenue');
-      addFamilyForm.controls.timeSlot.setValue('9:00-10:00');
       addFamilyForm.controls.email.setValue('csmith@email.com');
+      addFamilyForm.controls.timeAvailability.setValue({ earlyMorning: false, lateMorning: true, earlyAfternoon: false, lateAfternoon: false });
 
       addFamilyComponent.addStudent();
       const student = addFamilyComponent.students.at(0);
@@ -271,8 +272,8 @@ describe('AddFamilyComponent', () => {
     it('should be valid when all required fields are filled out', () => {
       addFamilyForm.controls.guardianName.setValue('Chris Smith');
       addFamilyForm.controls.address.setValue('123 Avenue');
-      addFamilyForm.controls.timeSlot.setValue('9:00-10:00');
       addFamilyForm.controls.email.setValue('csmith@email.com');
+      addFamilyForm.controls.timeAvailability.setValue({ earlyMorning: false, lateMorning: true, earlyAfternoon: false, lateAfternoon: false });
       addFamilyComponent.addStudent();
       const student = addFamilyComponent.students.at(0);
       student.get('name')!.setValue('Jimmy');
@@ -285,8 +286,8 @@ describe('AddFamilyComponent', () => {
     it('should be invalid when required fields are missing', () => {
       addFamilyForm.controls.guardianName.setValue('');
       addFamilyForm.controls.address.setValue('123 Avenue');
-      addFamilyForm.controls.timeSlot.setValue('9:00-10:00');
       addFamilyForm.controls.email.setValue('csmith@email.com');
+      addFamilyForm.controls.timeAvailability.setValue({ earlyMorning: false, lateMorning: true, earlyAfternoon: false, lateAfternoon: false });
       addFamilyComponent.addStudent();
       const student = addFamilyComponent.students.at(0);
       student.get('name')!.setValue('Jimmy');
@@ -299,8 +300,8 @@ describe('AddFamilyComponent', () => {
     it('should be invalid when student fields are missing', () => {
       addFamilyForm.controls.guardianName.setValue('Chris Smith');
       addFamilyForm.controls.address.setValue('123 Avenue');
-      addFamilyForm.controls.timeSlot.setValue('9:00-10:00');
       addFamilyForm.controls.email.setValue('csmith@email.com');
+      addFamilyForm.controls.timeAvailability.setValue({ earlyMorning: false, lateMorning: true, earlyAfternoon: false, lateAfternoon: false });
       addFamilyComponent.addStudent();
       const student = addFamilyComponent.students.at(0);
       student.get('name')!.setValue('');
@@ -368,20 +369,20 @@ describe('AddFamilyComponent', () => {
       const router = TestBed.inject(Router);
       const navigateSpy = spyOn(router, 'navigate');
 
-      addFamilyComponent.addStudent(); // <-- creates students[0], errors without this because submitForm() expects at least one student to be in the form
-      addFamilyComponent.addFamilyForm.setValue({
+      addFamilyComponent.addStudent();
+      (addFamilyComponent.addFamilyForm as unknown as UntypedFormGroup).setValue({
         guardianName: 'Chris Smith',
         address: '123 Avenue',
-        timeSlot: '9:00-10:00',
         email: 'csmith@email.com',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        students: [{ name: 'Jimmy', grade: '3', school: 'Morris Elementary', requestedSupplies: ['pencil', 'eraser', 'notebook'] }] as any
+        students: [{ name: 'Jimmy', grade: '3', school: 'Morris Elementary', requestedSupplies: ['pencil', 'eraser', 'notebook'] }],
+        timeAvailability: { earlyMorning: false, lateMorning: true, earlyAfternoon: false, lateAfternoon: false },
+        timeSlot: null
       });
 
       addFamilyComponent.submitForm();
 
       expect(addFamilySpy).toHaveBeenCalled();
-      expect(navigateSpy).toHaveBeenCalledWith(['/families', '1']);
+      expect(navigateSpy).toHaveBeenCalledWith(['/families']);
     });
 
     it('should show snackBar on 400 error', () => {
@@ -418,14 +419,14 @@ describe('AddFamilyComponent', () => {
       const familyService = TestBed.inject(FamilyService);
       const addFamilySpy = spyOn(familyService, 'addFamily').and.returnValue(of('1'));
 
-      addFamilyComponent.addStudent(); // <-- creates students[0], errors without this because submitForm() expects at least one student to be in the form
-      addFamilyComponent.addFamilyForm.setValue({
+      addFamilyComponent.addStudent();
+      (addFamilyComponent.addFamilyForm as unknown as UntypedFormGroup).setValue({
         guardianName: 'Chris Smith',
         address: '123 Avenue',
-        timeSlot: '9:00-10:00',
         email: 'csmith@email.com',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        students: [{ name: 'Jimmy', grade: '3', school: 'Morris Elementary', requestedSupplies: 'pencil, eraser , notebook ' }] as any
+        students: [{ name: 'Jimmy', grade: '3', school: 'Morris Elementary', requestedSupplies: 'pencil, eraser , notebook ' }],
+        timeAvailability: { earlyMorning: false, lateMorning: true, earlyAfternoon: false, lateAfternoon: false },
+        timeSlot: null
       });
 
       addFamilyComponent.submitForm();
@@ -461,13 +462,12 @@ describe('AddFamilyComponent', () => {
       const addFamilySpy = spyOn(familyService, 'addFamily').and.returnValue(of('1'));
 
       addFamilyComponent.addStudent();
-      addFamilyComponent.addFamilyForm.patchValue({
+      (addFamilyComponent.addFamilyForm as unknown as UntypedFormGroup).patchValue({
         guardianName: 'Chris Smith',
         address: '123 Avenue',
-        timeSlot: '9:00-10:00',
         email: 'csmith@email.com',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        students: [{ name: 'Jimmy', grade: '3', school: 'Morris Elementary', requestedSupplies: null }] as any
+        students: [{ name: 'Jimmy', grade: '3', school: 'Morris Elementary', requestedSupplies: null }],
+        timeAvailability: { earlyMorning: false, lateMorning: true, earlyAfternoon: false, lateAfternoon: false }
       });
 
       addFamilyComponent.submitForm();
@@ -489,7 +489,6 @@ describe('AddFamilyComponent', () => {
       setNull('guardianName');
       setNull('email');
       setNull('address');
-      setNull('timeSlot');
       setNull('students.0.name');
       setNull('students.0.grade');
       setNull('students.0.school');
@@ -500,7 +499,6 @@ describe('AddFamilyComponent', () => {
       expect(call.guardianName).toBeUndefined();
       expect(call.email).toBeUndefined();
       expect(call.address).toBeUndefined();
-      expect(call.timeSlot).toBeUndefined();
     });
   });
 

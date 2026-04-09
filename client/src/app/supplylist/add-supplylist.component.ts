@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -13,6 +14,8 @@ import { Observable, of } from 'rxjs';
 import { SupplyListService } from './supplylist.service';
 import { TermsService } from '../terms/terms.service';
 import { Terms } from '../terms/terms';
+import { SettingsService } from '../settings/settings.service';
+import { GRADES } from './supplylist';
 
 @Component({
   selector: 'app-add-supplylist',
@@ -26,6 +29,7 @@ import { Terms } from '../terms/terms';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
+    MatSelectModule,
     MatAutocompleteModule,
     RouterLink,
     CommonModule
@@ -34,9 +38,18 @@ import { Terms } from '../terms/terms';
 export class AddSupplyListComponent implements OnInit {
   private supplyListService = inject(SupplyListService);
   private termsService = inject(TermsService);
+  private settingsService = inject(SettingsService);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+
+  // Schools loaded from settings for the dropdown
+  availableSchools$ = this.settingsService.getSettings().pipe(
+    map(settings => settings.schools.map(s => s.name))
+  );
+
+  // Grades list shared with add-family
+  readonly grades = GRADES;
 
   // All terms loaded from the server
   private terms: Terms = { item: [], brand: [], color: [], size: [], type: [], material: [], style: [] };

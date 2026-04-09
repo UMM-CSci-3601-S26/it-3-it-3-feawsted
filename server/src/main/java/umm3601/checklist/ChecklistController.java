@@ -3,6 +3,7 @@ package umm3601.checklist;
 
 // Static imports
 import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.regex;
 
 // Org Imports
@@ -22,7 +23,12 @@ import io.javalin.http.HttpStatus;
 
 // Java Imports
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.regex.Pattern;
 
@@ -31,6 +37,8 @@ import umm3601.Controller;
 import umm3601.checklist.Checklist.ChecklistItem;
 import umm3601.family.Family;
 import umm3601.family.Family.StudentInfo;
+import umm3601.settings.Settings;
+import umm3601.settings.SettingsController;
 import umm3601.supplylist.SupplyList;
 
 // Define the Checklist class if it doesn't exist elsewhere
@@ -64,6 +72,7 @@ public class ChecklistController implements Controller {
   private final JacksonMongoCollection<Family> familyCollection;
   private final JacksonMongoCollection<SupplyList> supplyListCollection;
   private final JacksonMongoCollection<Checklist> checklistCollection;
+  private final JacksonMongoCollection<Settings> settingsCollection;
 
   // constructor used for testing:
   public ChecklistController(JacksonMongoCollection<Family> familyCollection,
@@ -72,6 +81,7 @@ public class ChecklistController implements Controller {
     this.familyCollection = familyCollection;
     this.supplyListCollection = supplyListCollection;
     this.checklistCollection = checklistCollection;
+    this.settingsCollection = null;
   }
 
   // constructor used in server:
@@ -82,6 +92,8 @@ public class ChecklistController implements Controller {
       db, "supplylist", SupplyList.class, UuidRepresentation.STANDARD);
     checklistCollection = JacksonMongoCollection.builder().build(
         db, "checklists", Checklist.class, UuidRepresentation.STANDARD);
+    settingsCollection = JacksonMongoCollection.builder().build(
+        db, "settings", Settings.class, UuidRepresentation.STANDARD);
   }
 
   // Normalizes a school name for matching: lowercase, strip trailing " school"
@@ -98,6 +110,69 @@ public class ChecklistController implements Controller {
       return "";
     }
     return g.trim().toLowerCase().replaceAll("[\\s\\-]", "");
+  }
+
+  // Grades considered "high school" for expansion purposes
+  static final String[] HS_GRADES = {"9", "10", "11", "12"};
+
+  /**
+   * Expands any supply list entry whose grade normalizes to "highschool" into
+   * individual copies — one per HS grade (9–12) — but only for grades that do
+   * not already have a specific entry at the same school.  The original
+   * "High School" entry is consumed (not kept) once expanded.
+   *
+   * This lets operators enter a single "High School" row that automatically
+   * covers whichever HS grades a school lacks explicit entries for, without
+   * needing to know where each district's high school starts.
+   */
+  static List<SupplyList> expandHighSchoolSupplies(List<SupplyList> supplies) {
+    // Collect (normalizedSchool|normalizedGrade) keys that already have specific entries
+    Set<String> existingKeys = new HashSet<>();
+    for (SupplyList s : supplies) {
+      if (s.school != null && s.grade != null
+          && !normalizeGrade(s.grade).equals("highschool")) {
+        existingKeys.add(normalizeSchool(s.school) + "|" + normalizeGrade(s.grade));
+      }
+    }
+
+    List<SupplyList> result = new ArrayList<>();
+    for (SupplyList s : supplies) {
+      if (s.school != null && s.grade != null
+          && normalizeGrade(s.grade).equals("highschool")) {
+        // Replace this entry with grade-specific copies for each missing HS grade
+        for (String grade : HS_GRADES) {
+          String key = normalizeSchool(s.school) + "|" + normalizeGrade(grade);
+          if (!existingKeys.contains(key)) {
+            result.add(copyWithGrade(s, grade));
+          }
+        }
+      } else {
+        result.add(s);
+      }
+    }
+    return result;
+  }
+
+  // Shallow-copies a SupplyList, replacing only the grade field.
+  // _id is intentionally omitted — the copies are transient (in-memory only).
+  static SupplyList copyWithGrade(SupplyList source, String newGrade) {
+    SupplyList copy = new SupplyList();
+    copy.district = source.district;
+    copy.school = source.school;
+    copy.grade = newGrade;
+    copy.teacher = source.teacher;
+    copy.academicYear = source.academicYear;
+    copy.item = source.item;
+    copy.brand = source.brand;
+    copy.size = source.size;
+    copy.color = source.color;
+    copy.type = source.type;
+    copy.style = source.style;
+    copy.material = source.material;
+    copy.count = source.count;
+    copy.quantity = source.quantity;
+    copy.notes = source.notes;
+    return copy;
   }
 
   // Builds a Checklist for a single student from the supply list (not persisted)
@@ -123,11 +198,12 @@ public class ChecklistController implements Controller {
   // --- PRINT ROUTES (on-the-fly, not persisted) ---
   public void exportChecklistsPdf(Context ctx) {
     // Fetch your checklist data
+    List<SupplyList> pdfSupplies = expandHighSchoolSupplies(
+        supplyListCollection.find().into(new ArrayList<>()));
     List<Checklist> checklists = familyCollection.find()
         .into(new ArrayList<>())
         .stream()
-        .flatMap(f -> f.students.stream().map(s -> createChecklist(s, supplyListCollection
-          .find().into(new ArrayList<>()))))
+        .flatMap(f -> f.students.stream().map(s -> createChecklist(s, pdfSupplies)))
         .collect(Collectors.toList());
 
     // Build PDF content manually
@@ -277,13 +353,65 @@ public class ChecklistController implements Controller {
   // POST /api/checklist — snapshot all families into the checklists collection
   public void generateDigitalChecklists(Context ctx) {
     checklistCollection.deleteMany(new Document());
-    List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
+    List<SupplyList> rawSupplies = supplyListCollection.find().into(new ArrayList<>());
+
+    // Apply the operator-configured drive order from settings
+    List<SupplyList> orderedSupplies = rawSupplies;
+    if (settingsCollection != null) {
+      Settings settings = settingsCollection.find(eq("_id", SettingsController.SETTINGS_ID)).first();
+      if (settings != null && settings.supplyOrder != null && !settings.supplyOrder.isEmpty()) {
+        orderedSupplies = applySupplyOrder(rawSupplies, settings.supplyOrder);
+      }
+    }
+
+    final List<SupplyList> allSupplies = expandHighSchoolSupplies(orderedSupplies);
     List<Checklist> checklists = familyCollection.find().into(new ArrayList<>()).stream()
         .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
         .collect(Collectors.toList());
     checklistCollection.insertMany(checklists);
     ctx.json(checklists);
     ctx.status(HttpStatus.CREATED);
+  }
+
+  /**
+   * Orders and filters the supply list according to the saved drive-day order.
+   * - "staged"   items come first, in their saved order
+   * - "unstaged" items come after all staged items (original fetch order preserved)
+   * - "notGiven" items are excluded entirely
+   */
+  static List<SupplyList> applySupplyOrder(List<SupplyList> supplies,
+      List<Settings.SupplyItemOrder> supplyOrder) {
+    // Build a map of itemTerm -> staged position
+    Map<String, Integer> stagedIndex = new HashMap<>();
+    Set<String> notGivenTerms = new HashSet<>();
+    // Set the index of staged items to their position in the supplyOrder list; unstaged items will default to MAX_VALUE
+    int pos = 0;
+    // Iterate in order and record the index of each staged term, and collect notGiven terms
+    for (Settings.SupplyItemOrder entry : supplyOrder) {
+      if ("staged".equals(entry.status)) {
+        stagedIndex.put(entry.itemTerm, pos++);
+      } else if ("notGiven".equals(entry.status)) {
+        notGivenTerms.add(entry.itemTerm);
+      }
+    }
+
+    // Exclude supplies whose item list contains any notGiven term.
+    // Sort remaining: staged supplies (by lowest matching term index) before unstaged.
+    return supplies.stream()
+        // Exclude supplies that have any notGiven terms in their item list; if item is null,
+        // keep it (could be a non-standard supply that doesn't match any terms)
+        .filter(s -> s.item == null || s.item.stream().noneMatch(notGivenTerms::contains))
+        // Supplies with a staged term get their lowest index; unstaged supplies default to MAX_VALUE, so come last
+        .sorted(Comparator.comparingInt(s -> {
+          if (s.item == null) {
+            return Integer.MAX_VALUE;
+          }
+          return s.item.stream()
+              .mapToInt(t -> stagedIndex.getOrDefault(t, Integer.MAX_VALUE))
+              .min()
+              .orElse(Integer.MAX_VALUE);
+        }))
+        .collect(Collectors.toList());
   }
 
   // GET /api/checklist — query stored digital checklists (optional ?school= and

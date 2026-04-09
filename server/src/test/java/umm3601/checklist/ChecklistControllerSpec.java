@@ -50,6 +50,7 @@ import io.javalin.http.HttpStatus;
 import io.javalin.json.JavalinJackson;
 import umm3601.family.Family;
 import umm3601.family.Family.StudentInfo;
+import umm3601.settings.Settings;
 import umm3601.supplylist.SupplyList;
 
 /**
@@ -626,5 +627,278 @@ class ChecklistControllerSpec {
     Checklist c = new Checklist();
     c._id = null;
     assertEquals(0, c.hashCode());
+  }
+
+  // ---- expandHighSchoolSupplies unit tests ----
+
+  // Helper: build a minimal SupplyList with school + grade + one item
+  private SupplyList makeSchoolSupply(String school, String grade, String item) {
+    SupplyList s = new SupplyList();
+    s.school = school;
+    s.grade = grade;
+    s.item = Arrays.asList(item);
+    s.brand = new SupplyList.AttributeOptions();
+    s.brand.allOf = new ArrayList<>();
+    s.brand.anyOf = new ArrayList<>();
+    s.color = new SupplyList.AttributeOptions();
+    s.color.allOf = new ArrayList<>();
+    s.color.anyOf = new ArrayList<>();
+    s.type = new SupplyList.AttributeOptions();
+    s.type.allOf = new ArrayList<>();
+    s.type.anyOf = new ArrayList<>();
+    s.style = new SupplyList.AttributeOptions();
+    s.style.allOf = new ArrayList<>();
+    s.style.anyOf = new ArrayList<>();
+    s.material = new SupplyList.AttributeOptions();
+    s.material.allOf = new ArrayList<>();
+    s.material.anyOf = new ArrayList<>();
+    s.size = "";
+    s.quantity = 1;
+    s.count = 1;
+    s.notes = "";
+    return s;
+  }
+
+  // A "High School" entry expands into separate copies for grades 9–12
+  @Test
+  void expandHighSchoolExpandsToFourGrades() {
+    SupplyList hs = makeSchoolSupply("MAHS", "High School", "Notebook");
+    List<SupplyList> result = ChecklistController.expandHighSchoolSupplies(List.of(hs));
+
+    assertEquals(4, result.size());
+    List<String> grades = result.stream().map(s -> s.grade).toList();
+    assertTrue(grades.contains("9"));
+    assertTrue(grades.contains("10"));
+    assertTrue(grades.contains("11"));
+    assertTrue(grades.contains("12"));
+    // The original "High School" entry must not appear in the output
+    assertTrue(result.stream().noneMatch(s -> "High School".equalsIgnoreCase(s.grade)));
+  }
+
+  // If a specific grade already exists at the same school, that grade is skipped during expansion
+  @Test
+  void expandHighSchoolSkipsGradeWithExistingEntry() {
+    SupplyList existing10 = makeSchoolSupply("MAHS", "10", "Pencils");
+    SupplyList hs = makeSchoolSupply("MAHS", "High School", "Notebook");
+
+    List<SupplyList> result = ChecklistController.expandHighSchoolSupplies(List.of(existing10, hs));
+
+    // Grade 10 already had an entry, so expansion should only add 9, 11, 12 (not a duplicate 10)
+    long hsExpanded = result.stream()
+        .filter(s -> "MAHS".equals(s.school) && List.of("9", "10", "11", "12").contains(s.grade))
+        .count();
+    assertEquals(4, hsExpanded); // existing 10 + new 9, 11, 12
+    long grade10Count = result.stream()
+        .filter(s -> "MAHS".equals(s.school) && "10".equals(s.grade))
+        .count();
+    assertEquals(1, grade10Count); // only the original, not a duplicate
+  }
+
+  // Supply entries for non-HS grades are left completely untouched
+  @Test
+  void expandHighSchoolLeavesOtherGradesAlone() {
+    SupplyList grade8 = makeSchoolSupply("MAHS", "8", "Scissors");
+    SupplyList preK = makeSchoolSupply("MAHS", "Pre-K", "Crayons");
+
+    List<SupplyList> result = ChecklistController.expandHighSchoolSupplies(List.of(grade8, preK));
+
+    assertEquals(2, result.size());
+    assertEquals("8", result.get(0).grade);
+    assertEquals("Pre-K", result.get(1).grade);
+  }
+
+  // copyWithGrade preserves all fields and only changes the grade
+  @Test
+  void copyWithGradePreservesFieldsAndChangesGrade() {
+    SupplyList source = makeSchoolSupply("MAHS", "High School", "Ruler");
+    source.teacher = "Smith";
+    source.academicYear = "2025-2026";
+    source.quantity = 3;
+    source.count = 2;
+    source.notes = "Brand new";
+
+    SupplyList copy = ChecklistController.copyWithGrade(source, "11");
+
+    assertEquals("11", copy.grade);
+    assertEquals("MAHS", copy.school);
+    assertTrue(copy.item.contains("Ruler"));
+    assertEquals("Smith", copy.teacher);
+    assertEquals("2025-2026", copy.academicYear);
+    assertEquals(3, copy.quantity);
+    assertEquals(2, copy.count);
+    assertEquals("Brand new", copy.notes);
+    // _id must NOT be copied — copies are transient
+    assertEquals(null, copy._id);
+  }
+
+  // "HIGH SCHOOL" and "high school" normalize the same way and also expand
+  @Test
+  void expandHighSchoolIsCaseInsensitive() {
+    SupplyList upperCase = makeSchoolSupply("MAHS", "HIGH SCHOOL", "Notebook");
+    SupplyList lowerCase = makeSchoolSupply("MHS", "high school", "Folder");
+
+    List<SupplyList> result = ChecklistController.expandHighSchoolSupplies(
+        List.of(upperCase, lowerCase));
+
+    // 4 copies for MAHS + 4 copies for MHS = 8
+    assertEquals(8, result.size());
+    assertTrue(result.stream().noneMatch(s -> "HIGH SCHOOL".equalsIgnoreCase(s.grade)));
+  }
+
+  // Entries with null school or null grade are passed through without expansion or crashing
+  @Test
+  void expandHighSchoolNullSchoolOrGradePassesThrough() {
+    SupplyList nullSchool = new SupplyList();
+    nullSchool.school = null;
+    nullSchool.grade = "High School";
+    nullSchool.item = Arrays.asList("Pencils");
+
+    SupplyList nullGrade = new SupplyList();
+    nullGrade.school = "MAHS";
+    nullGrade.grade = null;
+    nullGrade.item = Arrays.asList("Erasers");
+
+    // Should not throw; null-school/null-grade entries are kept as-is
+    List<SupplyList> result = ChecklistController.expandHighSchoolSupplies(
+        List.of(nullSchool, nullGrade));
+
+    assertEquals(2, result.size());
+  }
+
+  // ---- applySupplyOrder unit tests ----
+
+  // Helper: build a SupplyItemOrder entry
+  private Settings.SupplyItemOrder orderEntry(String term, String status) {
+    Settings.SupplyItemOrder e = new Settings.SupplyItemOrder();
+    e.itemTerm = term;
+    e.status = status;
+    return e;
+  }
+
+  // Helper: build a SupplyList with optional item terms
+  private SupplyList makeSupply(String... items) {
+    SupplyList s = new SupplyList();
+    s.item = (items.length > 0) ? Arrays.asList(items) : null;
+    return s;
+  }
+
+  // Empty order list → all supplies returned, original order preserved
+  @Test
+  void applySupplyOrderEmptyOrderReturnsAllSupplies() {
+    SupplyList a = makeSupply("notebook");
+    SupplyList b = makeSupply("folder");
+    List<SupplyList> supplies = List.of(a, b);
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(supplies, List.of());
+
+    assertEquals(2, result.size());
+  }
+
+  // Staged terms dictate order: notebook before folder regardless of input order
+  @Test
+  void applySupplyOrderStagedTermsPreserveDefinedOrder() {
+    SupplyList folderSupply = makeSupply("folder");
+    SupplyList notebookSupply = makeSupply("notebook");
+    List<SupplyList> supplies = List.of(folderSupply, notebookSupply);
+
+    List<Settings.SupplyItemOrder> order = List.of(
+        orderEntry("notebook", "staged"),
+        orderEntry("folder", "staged"));
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(supplies, order);
+
+    assertEquals(2, result.size());
+    assertTrue(result.get(0).item.contains("notebook"));
+    assertTrue(result.get(1).item.contains("folder"));
+  }
+
+  // notGiven supplies are excluded entirely
+  @Test
+  void applySupplyOrderNotGivenTermsAreExcluded() {
+    SupplyList pencilSupply = makeSupply("pencil");
+    SupplyList notebookSupply = makeSupply("notebook");
+    List<SupplyList> supplies = List.of(pencilSupply, notebookSupply);
+
+    List<Settings.SupplyItemOrder> order = List.of(
+        orderEntry("pencil", "notGiven"),
+        orderEntry("notebook", "staged"));
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(supplies, order);
+
+    assertEquals(1, result.size());
+    assertTrue(result.get(0).item.contains("notebook"));
+  }
+
+  // Unstaged supplies appear after all staged supplies
+  @Test
+  void applySupplyOrderUnstagedComesAfterStaged() {
+    SupplyList folderSupply = makeSupply("folder");  // unstaged
+    SupplyList notebookSupply = makeSupply("notebook");  // staged
+
+    List<Settings.SupplyItemOrder> order = List.of(
+        orderEntry("notebook", "staged"),
+        orderEntry("folder", "unstaged"));
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(
+        List.of(folderSupply, notebookSupply), order);
+
+    assertEquals(2, result.size());
+    assertTrue(result.get(0).item.contains("notebook"));
+    assertTrue(result.get(1).item.contains("folder"));
+  }
+
+  // Multiple supplies sharing same term both sort together before another term
+  @Test
+  void applySupplyOrderMultipleSuppliesWithSameTermAllOrdered() {
+    SupplyList spiralNotebook = makeSupply("notebook");
+    SupplyList compositionNotebook = makeSupply("notebook");
+    SupplyList folderSupply = makeSupply("folder");
+
+    List<Settings.SupplyItemOrder> order = List.of(
+        orderEntry("notebook", "staged"),
+        orderEntry("folder", "staged"));
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(
+        List.of(folderSupply, spiralNotebook, compositionNotebook), order);
+
+    assertEquals(3, result.size());
+    // folder (index=1) comes after both notebooks (index=0)
+    assertTrue(result.get(0).item.contains("notebook"));
+    assertTrue(result.get(1).item.contains("notebook"));
+    assertTrue(result.get(2).item.contains("folder"));
+  }
+
+  // Supply with null item list is kept (not excluded) and sorted to end
+  @Test
+  void applySupplyOrderNullItemListKeptAndSortedLast() {
+    SupplyList notebookSupply = makeSupply("notebook");
+    SupplyList nullItemSupply = makeSupply(); // item will be null
+
+    List<Settings.SupplyItemOrder> order = List.of(
+        orderEntry("notebook", "staged"));
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(
+        List.of(nullItemSupply, notebookSupply), order);
+
+    assertEquals(2, result.size());
+    assertTrue(result.get(0).item.contains("notebook"));
+    assertEquals(null, result.get(1).item);
+  }
+
+  // Supply whose item list contains one notGiven term is excluded
+  // even if the item list also contains other non-notGiven terms
+  @Test
+  void applySupplyOrderExcludesSupplyWithAnyNotGivenTerm() {
+    // This supply has both "notebook" (staged) and "pencil" (notGiven)
+    SupplyList mixedSupply = makeSupply("notebook", "pencil");
+
+    List<Settings.SupplyItemOrder> order = List.of(
+        orderEntry("notebook", "staged"),
+        orderEntry("pencil", "notGiven"));
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(
+        List.of(mixedSupply), order);
+
+    assertEquals(0, result.size());
   }
 }

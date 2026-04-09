@@ -30,6 +30,24 @@
   gap: 16px;
 }
 
+.student-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+
+  mat-form-field {
+    flex: 1;
+    min-width: 160px;
+  }
+
+  button {
+    align-self: center;
+    margin-top: 8px;
+  }
+}
+
 // Form field styles
 mat-form-field {
   width: 100%;

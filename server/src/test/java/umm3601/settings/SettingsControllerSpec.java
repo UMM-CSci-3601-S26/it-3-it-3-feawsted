@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static com.mongodb.client.model.Filters.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -198,6 +197,7 @@ class SettingsControllerSpec {
     //Mockito.doReturn(mockCollection).when(mockController).getSettings();
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   void getSettingsReturnsDefaultWhenNoneExists() {
     FindIterable<Settings> mockFind = mock(FindIterable.class);
@@ -315,5 +315,101 @@ class SettingsControllerSpec {
     verify(ctx).json(settingsCaptor.capture());
     verify(ctx).status(HttpStatus.OK);
     assertEquals(SettingsController.SETTINGS_ID, settingsCaptor.getValue()._id);
+  }
+
+  // ---- updateSupplyOrder tests ----
+
+  @Test
+  void updateSupplyOrderWithValidBodyReturnsOK() {
+    Settings.SupplyItemOrder entry = new Settings.SupplyItemOrder();
+    entry.itemTerm = "notebook";
+    entry.status = "staged";
+
+    Settings body = new Settings();
+    body.supplyOrder = List.of(entry);
+    when(ctx.bodyAsClass(Settings.class)).thenReturn(body);
+
+    settingsController.updateSupplyOrder(ctx);
+
+    verify(ctx).status(HttpStatus.OK);
+  }
+
+  @Test
+  void updateSupplyOrderWithNullSupplyOrderThrowsBadRequest() {
+    Settings body = new Settings();
+    body.supplyOrder = null;
+    when(ctx.bodyAsClass(Settings.class)).thenReturn(body);
+
+    boolean threw = false;
+    try {
+      settingsController.updateSupplyOrder(ctx);
+    } catch (io.javalin.http.BadRequestResponse e) {
+      threw = true;
+      assertEquals("Request body must include a 'supplyOrder' array.", e.getMessage());
+    }
+    assertTrue(threw);
+  }
+
+  @Test
+  void updateSupplyOrderWithEmptyArrayReturnsOK() {
+    Settings body = new Settings();
+    body.supplyOrder = List.of();
+    when(ctx.bodyAsClass(Settings.class)).thenReturn(body);
+
+    settingsController.updateSupplyOrder(ctx);
+
+    verify(ctx).status(HttpStatus.OK);
+  }
+
+  @Test
+  void updateSupplyOrderPersistsAndIsRetrievable() {
+    // Drop and seed the real settings document
+    db.getCollection("settings").drop();
+    db.getCollection("settings").insertOne(
+        new Document("_id", SettingsController.SETTINGS_ID)
+            .append("schools", List.of())
+            .append("timeAvailability", new Document()));
+    settingsController = new SettingsController(db);
+
+    Settings.SupplyItemOrder entry = new Settings.SupplyItemOrder();
+    entry.itemTerm = "folder";
+    entry.status = "unstaged";
+
+    Settings body = new Settings();
+    body.supplyOrder = List.of(entry);
+    when(ctx.bodyAsClass(Settings.class)).thenReturn(body);
+
+    settingsController.updateSupplyOrder(ctx);
+    verify(ctx).status(HttpStatus.OK);
+
+    // Now GET settings and confirm the order is persisted
+    settingsController.getSettings(ctx);
+    settingsCaptor = ArgumentCaptor.forClass(Settings.class);
+    verify(ctx).json(settingsCaptor.capture());
+
+    Settings saved = settingsCaptor.getValue();
+    assertEquals(1, saved.supplyOrder.size());
+    assertEquals("folder", saved.supplyOrder.get(0).itemTerm);
+    assertEquals("unstaged", saved.supplyOrder.get(0).status);
+  }
+
+  @Test
+  void getSettingsMissingSupplyOrderDefaultsToEmpty() {
+    // Insert a document without supplyOrder
+    db.getCollection("settings").drop();
+    db.getCollection("settings").insertOne(
+        new Document("_id", SettingsController.SETTINGS_ID)
+            .append("schools", List.of())
+            .append("timeAvailability", new Document()));
+    settingsController = new SettingsController(db);
+
+    settingsController.getSettings(ctx);
+
+    settingsCaptor = ArgumentCaptor.forClass(Settings.class);
+    verify(ctx).json(settingsCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertNotNull(settingsCaptor.getValue().supplyOrder);
+    assertEquals(0, settingsCaptor.getValue().supplyOrder.size());
   }
 }

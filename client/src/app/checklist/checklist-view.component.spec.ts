@@ -69,6 +69,19 @@ describe('Checklist list', () => {
     expect(checklistList.serverFilteredChecklists().length).toBe(2);
   });
 
+  // Test to verify that resetFilters clears all filter signals back to undefined
+  it('should reset all filter signals to undefined when resetFilters is called', fakeAsync(() => {
+    checklistList.studentName.set('Alice');
+    checklistList.school.set('Morris Area High School');
+    checklistList.grade.set('5');
+
+    checklistList.resetFilters();
+
+    expect(checklistList.studentName()).toBeUndefined();
+    expect(checklistList.school()).toBeUndefined();
+    expect(checklistList.grade()).toBeUndefined();
+  }));
+
   // Tests for the ChecklistViewComponent when the ChecklistService is not set up properly, ensuring that appropriate error messages are shown and that the component handles the error gracefully
   describe('Misbehaving Checklist List', () => {
     let checklistList: ChecklistViewComponent;

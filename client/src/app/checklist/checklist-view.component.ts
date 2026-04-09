@@ -1,5 +1,6 @@
 // Angular imports
 import { Component, inject, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -56,6 +57,7 @@ import { supplyToLabel } from './checklist-label';
 export class ChecklistViewComponent {
   private checklistService = inject(ChecklistService);
   private snackBar = inject(MatSnackBar);
+  private route = inject(ActivatedRoute);
 
   studentName = signal<string | undefined>(undefined);
   school = signal<string | undefined>(undefined);
@@ -63,6 +65,14 @@ export class ChecklistViewComponent {
   refreshTrigger = signal(0);
 
   errMsg = signal<string | undefined>(undefined);
+
+  constructor() {
+    this.route.queryParamMap.subscribe(params => {
+      if (params.get('generate') === 'true') {
+        this.generateChecklists();
+      }
+    });
+  }
 
   private studentName$ = toObservable(this.studentName);
   private school$ = toObservable(this.school);

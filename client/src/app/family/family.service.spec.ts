@@ -32,7 +32,8 @@ describe('FamilyService', () => {
           school: "Morris Elementary",
           requestedSupplies: ['pencils', 'markers']
         },
-      ]
+      ],
+      timeAvailability: { earlyMorning: false, lateMorning: true, earlyAfternoon: false, lateAfternoon: false }
     },
     {
       _id: 'jane_id',
@@ -53,7 +54,8 @@ describe('FamilyService', () => {
           school: "Hancock Middle School",
           requestedSupplies: ['calculator']
         },
-      ]
+      ],
+      timeAvailability: { earlyMorning: false, lateMorning: true, earlyAfternoon: false, lateAfternoon: false }
     },
     {
       _id: 'george_id',
@@ -80,7 +82,8 @@ describe('FamilyService', () => {
           school: "Morris Elementary",
           requestedSupplies: ['backpack', 'markers']
         },
-      ]
+      ],
+      timeAvailability: { earlyMorning: false, lateMorning: true, earlyAfternoon: false, lateAfternoon: false }
     },
   ];
 

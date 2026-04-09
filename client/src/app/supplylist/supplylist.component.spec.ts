@@ -203,11 +203,15 @@ describe('SupplyList Table', () => {
     supplylistTable.brand.set('Five Star');
     supplylistTable.color.set('Yellow');
     supplylistTable.type.set('Spiral');
-    supplylistTable.school.set('MHS')
-    supplylistTable.grade.set("PreK")
+    // Set school first and let detectChanges run the grade-reset effect
+    supplylistTable.school.set('MHS');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: "MHS", grade: "PreK", item: 'Notebook', brand: 'Five Star', color: 'Yellow', size: undefined, type: 'Spiral', material: undefined, style: undefined });
+    // Now set grade after the school effect has cleared it
+    supplylistTable.grade.set('PreK');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ school: 'MHS', grade: 'PreK', item: 'Notebook', brand: 'Five Star', color: 'Yellow', size: undefined, type: 'Spiral', material: undefined, style: undefined });
   }));
 
   it('should not show error message on successful load', () => {
@@ -248,7 +252,8 @@ describe('SupplyList Table', () => {
       const deleteSpy = spyOn(supplylistService, 'deleteSupplyList').and.returnValue(of(undefined));
 
       supplylistTable.confirmDelete('delete-me');
-      tick();
+      tick(300);
+      fixture.detectChanges();
 
       expect(deleteSpy).toHaveBeenCalledWith('delete-me');
       expect(supplylistTable.dataSource.data.find(i => i._id === 'delete-me')).toBeUndefined();
@@ -440,10 +445,15 @@ describe('Misbehaving SupplyList Table', () => {
       imports: [
         SupplyListComponent
       ],
-      providers: [{
-        provide: SupplyListService,
-        useValue: supplylistServiceStub
-      }, provideRouter([])],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: SupplyListService,
+          useValue: supplylistServiceStub
+        },
+        provideRouter([])
+      ],
     })
       .compileComponents();
   }));
@@ -611,5 +621,17 @@ describe('SupplyListComponent#cancelEdit() without prior startEdit', () => {
     // editingBackup is null initially — covers the if(this.editingBackup) false branch (line 244)
     expect(() => supplylistTable.cancelEdit()).not.toThrow();
     expect(supplylistTable.editingItemId).toBeNull();
+  });
+
+  it('toggleAll toggles allExpanded signal from false to true', () => {
+    expect(supplylistTable.allExpanded()).toBeFalse();
+    supplylistTable.toggleAll();
+    expect(supplylistTable.allExpanded()).toBeTrue();
+  });
+
+  it('toggleAll toggles allExpanded signal from true back to false', () => {
+    supplylistTable.toggleAll(); // false → true
+    supplylistTable.toggleAll(); // true → false
+    expect(supplylistTable.allExpanded()).toBeFalse();
   });
 });
