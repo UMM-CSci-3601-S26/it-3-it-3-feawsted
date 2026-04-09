@@ -50,6 +50,7 @@ import io.javalin.http.HttpStatus;
 import io.javalin.json.JavalinJackson;
 import umm3601.family.Family;
 import umm3601.family.Family.StudentInfo;
+import umm3601.settings.Settings;
 import umm3601.supplylist.SupplyList;
 
 /**
@@ -626,5 +627,142 @@ class ChecklistControllerSpec {
     Checklist c = new Checklist();
     c._id = null;
     assertEquals(0, c.hashCode());
+  }
+
+  // ---- applySupplyOrder unit tests ----
+
+  // Helper: build a SupplyItemOrder entry
+  private Settings.SupplyItemOrder orderEntry(String term, String status) {
+    Settings.SupplyItemOrder e = new Settings.SupplyItemOrder();
+    e.itemTerm = term;
+    e.status = status;
+    return e;
+  }
+
+  // Helper: build a SupplyList with optional item terms
+  private SupplyList makeSupply(String... items) {
+    SupplyList s = new SupplyList();
+    s.item = (items.length > 0) ? Arrays.asList(items) : null;
+    return s;
+  }
+
+  // Empty order list → all supplies returned, original order preserved
+  @Test
+  void applySupplyOrderEmptyOrderReturnsAllSupplies() {
+    SupplyList a = makeSupply("notebook");
+    SupplyList b = makeSupply("folder");
+    List<SupplyList> supplies = List.of(a, b);
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(supplies, List.of());
+
+    assertEquals(2, result.size());
+  }
+
+  // Staged terms dictate order: notebook before folder regardless of input order
+  @Test
+  void applySupplyOrderStagedTermsPreserveDefinedOrder() {
+    SupplyList folderSupply = makeSupply("folder");
+    SupplyList notebookSupply = makeSupply("notebook");
+    List<SupplyList> supplies = List.of(folderSupply, notebookSupply);
+
+    List<Settings.SupplyItemOrder> order = List.of(
+        orderEntry("notebook", "staged"),
+        orderEntry("folder", "staged"));
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(supplies, order);
+
+    assertEquals(2, result.size());
+    assertTrue(result.get(0).item.contains("notebook"));
+    assertTrue(result.get(1).item.contains("folder"));
+  }
+
+  // notGiven supplies are excluded entirely
+  @Test
+  void applySupplyOrderNotGivenTermsAreExcluded() {
+    SupplyList pencilSupply = makeSupply("pencil");
+    SupplyList notebookSupply = makeSupply("notebook");
+    List<SupplyList> supplies = List.of(pencilSupply, notebookSupply);
+
+    List<Settings.SupplyItemOrder> order = List.of(
+        orderEntry("pencil", "notGiven"),
+        orderEntry("notebook", "staged"));
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(supplies, order);
+
+    assertEquals(1, result.size());
+    assertTrue(result.get(0).item.contains("notebook"));
+  }
+
+  // Unstaged supplies appear after all staged supplies
+  @Test
+  void applySupplyOrderUnstagedComesAfterStaged() {
+    SupplyList folderSupply = makeSupply("folder");  // unstaged
+    SupplyList notebookSupply = makeSupply("notebook");  // staged
+
+    List<Settings.SupplyItemOrder> order = List.of(
+        orderEntry("notebook", "staged"),
+        orderEntry("folder", "unstaged"));
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(
+        List.of(folderSupply, notebookSupply), order);
+
+    assertEquals(2, result.size());
+    assertTrue(result.get(0).item.contains("notebook"));
+    assertTrue(result.get(1).item.contains("folder"));
+  }
+
+  // Multiple supplies sharing same term both sort together before another term
+  @Test
+  void applySupplyOrderMultipleSuppliesWithSameTermAllOrdered() {
+    SupplyList spiralNotebook = makeSupply("notebook");
+    SupplyList compositionNotebook = makeSupply("notebook");
+    SupplyList folderSupply = makeSupply("folder");
+
+    List<Settings.SupplyItemOrder> order = List.of(
+        orderEntry("notebook", "staged"),
+        orderEntry("folder", "staged"));
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(
+        List.of(folderSupply, spiralNotebook, compositionNotebook), order);
+
+    assertEquals(3, result.size());
+    // folder (index=1) comes after both notebooks (index=0)
+    assertTrue(result.get(0).item.contains("notebook"));
+    assertTrue(result.get(1).item.contains("notebook"));
+    assertTrue(result.get(2).item.contains("folder"));
+  }
+
+  // Supply with null item list is kept (not excluded) and sorted to end
+  @Test
+  void applySupplyOrderNullItemListKeptAndSortedLast() {
+    SupplyList notebookSupply = makeSupply("notebook");
+    SupplyList nullItemSupply = makeSupply(); // item will be null
+
+    List<Settings.SupplyItemOrder> order = List.of(
+        orderEntry("notebook", "staged"));
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(
+        List.of(nullItemSupply, notebookSupply), order);
+
+    assertEquals(2, result.size());
+    assertTrue(result.get(0).item.contains("notebook"));
+    assertEquals(null, result.get(1).item);
+  }
+
+  // Supply whose item list contains one notGiven term is excluded
+  // even if the item list also contains other non-notGiven terms
+  @Test
+  void applySupplyOrderExcludesSupplyWithAnyNotGivenTerm() {
+    // This supply has both "notebook" (staged) and "pencil" (notGiven)
+    SupplyList mixedSupply = makeSupply("notebook", "pencil");
+
+    List<Settings.SupplyItemOrder> order = List.of(
+        orderEntry("notebook", "staged"),
+        orderEntry("pencil", "notGiven"));
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(
+        List.of(mixedSupply), order);
+
+    assertEquals(0, result.size());
   }
 }
