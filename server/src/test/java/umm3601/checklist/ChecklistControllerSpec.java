@@ -484,56 +484,140 @@ class ChecklistControllerSpec {
     assertTrue(result.size() > 0);
     assertTrue(result.get(0).studentName.equals("Elmo"));
   }
-  // @Test
-  // void canCreateChecklist() throws IOException {
-  // when(ctx.queryParamMap()).thenReturn(Collections.emptyMap());
-  // checklistController.createChecklist(ctx);
 
-  // verify(ctx).json(checklistArrayListCaptor.capture());
-  // verify(ctx).status(HttpStatus.OK);
+  // Tests for normalizeSchool static method
+  @Test
+  void normalizeSchoolHandlesNull() {
+    assertEquals("", ChecklistController.normalizeSchool(null));
+  }
 
-  // assertEquals(
-  // db.getCollection("checklists").countDocuments(),
-  // checklistArrayListCaptor.getValue().size());
-  // }
+  @Test
+  void normalizeSchoolStripsTrailingSchool() {
+    assertEquals("morris area high", ChecklistController.normalizeSchool("Morris Area High School"));
+  }
 
-  // Looks up a checklist using a real ID and makes sure the controller returns
-  // the
-  // correct checklist and a 200 OK status. @Test
-  // Checks that the CSV export endpoint produces a properly formatted CSV string,
-  // including the header and the correct student counts for each checklist. @Test
-  /*
-   * @Test
-   * void exportFamiliesAsCSVProducesCorrectCSV() {
-   * checklistController.exportFamiliesAsCSV(ctx);
-   * ArgumentCaptor<String> resultCaptor = ArgumentCaptor.forClass(String.class);
-   *
-   * verify(ctx).result(resultCaptor.capture());
-   * verify(ctx).contentType("text/csv");
-   * verify(ctx).status(HttpStatus.OK);
-   *
-   * String csv = resultCaptor.getValue();
-   *
-   * // Check header
-   * assertTrue(csv.contains(
-   * "Guardian Name,Email,Address,Time Slot,Number of Students"));
-   *
-   * // Check Jane Doe (2 students)
-   * assertTrue(csv.contains(
-   * "\"Jane Doe\",\"jane@email.com\",\"123 Street\",\"10:00-11:00\",2"));
-   *
-   * // Check John Christensen (2 students)
-   * assertTrue(csv.contains(
-   * "\"John Christensen\",\"jchristensen@email.com\",\"713 Broadway\",\"8:00-9:00\",2"
-   * ));
-   *
-   * // Check John Johnson (1 student)
-   * assertTrue(csv.contains(
-   * "\"John Johnson\",\"jjohnson@email.com\",\"456 Avenue\",\"2:00-3:00\",1"));
-   *
-   * // Check Bob Jones (1 student)
-   * assertTrue(csv.contains(
-   * "\"Bob Jones\",\"bob@email.com\",\"456 Oak Ave\",\"2:00-3:00\",1"));
-   * }
-   */
+  @Test
+  void normalizeSchoolTrimsAndLowers() {
+    assertEquals("mahs", ChecklistController.normalizeSchool("  MAHS  "));
+  }
+
+  // Tests for normalizeGrade static method
+  @Test
+  void normalizeGradeHandlesNull() {
+    assertEquals("", ChecklistController.normalizeGrade(null));
+  }
+
+  @Test
+  void normalizeGradeStripsHyphensAndSpaces() {
+    assertEquals("4thgrade", ChecklistController.normalizeGrade("4th-Grade"));
+  }
+
+  @Test
+  void normalizeGradeTrimsAndLowers() {
+    assertEquals("prek", ChecklistController.normalizeGrade("  PreK  "));
+  }
+
+  // Test constructFilter with only school param
+  @Test
+  void filterChecklistsBySchoolOnly() throws IOException {
+    when(ctx.queryParamMap()).thenReturn(Map.of("school", List.of("MAHS")));
+    when(ctx.queryParam("school")).thenReturn("MAHS");
+
+    checklistController.getStoredChecklists(ctx);
+
+    verify(ctx).json(checklistArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(1, checklistArrayListCaptor.getValue().size());
+    assertEquals("Elmo", checklistArrayListCaptor.getValue().get(0).studentName);
+  }
+
+  // Test constructFilter with only grade param
+  @Test
+  void filterChecklistsByGradeOnly() throws IOException {
+    when(ctx.queryParamMap()).thenReturn(Map.of("grade", List.of("8")));
+    when(ctx.queryParam("grade")).thenReturn("8");
+
+    checklistController.getStoredChecklists(ctx);
+
+    verify(ctx).json(checklistArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(1, checklistArrayListCaptor.getValue().size());
+    assertEquals("johnny", checklistArrayListCaptor.getValue().get(0).studentName);
+  }
+
+  // Test constructFilter with all three params
+  @Test
+  void filterChecklistsBySchoolGradeAndName() throws IOException {
+    when(ctx.queryParamMap()).thenReturn(Map.of(
+        "school", List.of("MAHS"),
+        "grade", List.of("4"),
+        "studentName", List.of("Elmo")));
+    when(ctx.queryParam("school")).thenReturn("MAHS");
+    when(ctx.queryParam("grade")).thenReturn("4");
+    when(ctx.queryParam("studentName")).thenReturn("Elmo");
+
+    checklistController.getStoredChecklists(ctx);
+
+    verify(ctx).json(checklistArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(1, checklistArrayListCaptor.getValue().size());
+    assertEquals("Elmo", checklistArrayListCaptor.getValue().get(0).studentName);
+  }
+
+  // Test createChecklist when supply has null school
+  @Test
+  void createChecklistExcludesSupplyWithNullSchool() {
+    ChecklistController controller = new ChecklistController(null, null, null);
+
+    StudentInfo student = new StudentInfo();
+    student.name = "TestStudent";
+    student.school = "MAHS";
+    student.grade = "4";
+    student.requestedSupplies = List.of();
+
+    SupplyList supplyNullSchool = new SupplyList();
+    supplyNullSchool.school = null;
+    supplyNullSchool.grade = "4";
+    supplyNullSchool.item = Arrays.asList("Pencils");
+
+    SupplyList supplyNullGrade = new SupplyList();
+    supplyNullGrade.school = "MAHS";
+    supplyNullGrade.grade = null;
+    supplyNullGrade.item = Arrays.asList("Erasers");
+
+    Checklist result = controller.createChecklist(student, List.of(supplyNullSchool, supplyNullGrade));
+    assertEquals(0, result.checklist.size());
+  }
+
+  // Test Checklist.equals() branches
+  @Test
+  void checklistEqualsWithSelf() {
+    Checklist c = new Checklist();
+    c._id = "abc";
+    assertEquals(c, c);
+  }
+
+  @Test
+  void checklistEqualsWithNull() {
+    Checklist c = new Checklist();
+    c._id = "abc";
+    assertTrue(!c.equals(null));
+  }
+
+  @Test
+  void checklistEqualsWithNonChecklist() {
+    Checklist c = new Checklist();
+    c._id = "abc";
+    assertTrue(!c.equals("not a checklist"));
+  }
+
+  @Test
+  void checklistHashCodeWithNullId() {
+    Checklist c = new Checklist();
+    c._id = null;
+    assertEquals(0, c.hashCode());
+  }
 }

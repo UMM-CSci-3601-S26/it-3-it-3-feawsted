@@ -4,6 +4,7 @@ package umm3601.settings;
 // Static Imports
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static com.mongodb.client.model.Filters.eq;
@@ -227,5 +228,92 @@ class SettingsControllerSpec {
     verify(mockServer, Mockito.atLeast(1)).get(any(), any());
     verify(mockServer, atLeastOnce()).patch(any(), any());
     verify(mockServer, never()).post(any(), any()); // never use post so we confirm this
+  }
+
+  @Test
+  void updateSchoolsThrowsOnMissingSchools() {
+    Settings body = new Settings();
+    body.schools = null; // Simulate missing schools
+    when(ctx.bodyAsClass(Settings.class)).thenReturn(body);
+    boolean threw = false;
+    try {
+      settingsController.updateSchools(ctx);
+    } catch (io.javalin.http.BadRequestResponse e) {
+      threw = true;
+      assertEquals("Request body must include a 'schools' array.", e.getMessage());
+    }
+    assertTrue(threw);
+  }
+
+  @Test
+  void updateSchoolsUpdatesSchoolsList() {
+    Settings body = new Settings();
+    Settings.SchoolInfo school = new Settings.SchoolInfo();
+    school.name = "Test School";
+    school.abbreviation = "TS";
+    body.schools = List.of(school);
+    when(ctx.bodyAsClass(Settings.class)).thenReturn(body);
+
+    settingsController.updateSchools(ctx);
+    verify(ctx).status(HttpStatus.OK);
+  }
+
+  @Test
+  void updateSchoolsWithMultipleSchools() {
+    Settings body = new Settings();
+    Settings.SchoolInfo s1 = new Settings.SchoolInfo();
+    s1.name = "School A";
+    s1.abbreviation = "SA";
+    Settings.SchoolInfo s2 = new Settings.SchoolInfo();
+    s2.name = "School B";
+    s2.abbreviation = "SB";
+    body.schools = List.of(s1, s2);
+    when(ctx.bodyAsClass(Settings.class)).thenReturn(body);
+
+    settingsController.updateSchools(ctx);
+    verify(ctx).status(HttpStatus.OK);
+  }
+
+  @Test
+  void updateTimeAvailabilityUpdatesLabels() {
+    Settings.TimeAvailabilityLabels labels = new Settings.TimeAvailabilityLabels();
+    labels.earlyMorning = "8:00-9:00 AM";
+    labels.lateMorning = "9:00-10:00 AM";
+    labels.earlyAfternoon = "12:00-1:00 PM";
+    labels.lateAfternoon = "2:00-3:00 PM";
+    when(ctx.bodyAsClass(Settings.TimeAvailabilityLabels.class)).thenReturn(labels);
+
+    settingsController.updateTimeAvailability(ctx);
+    verify(ctx).status(HttpStatus.OK);
+  }
+
+  @Test
+  void updateTimeAvailabilityWithNullFields() {
+    Settings.TimeAvailabilityLabels labels = new Settings.TimeAvailabilityLabels();
+    labels.earlyMorning = null;
+    labels.lateMorning = null;
+    labels.earlyAfternoon = null;
+    labels.lateAfternoon = null;
+    when(ctx.bodyAsClass(Settings.TimeAvailabilityLabels.class)).thenReturn(labels);
+
+    settingsController.updateTimeAvailability(ctx);
+    verify(ctx).status(HttpStatus.OK);
+  }
+
+  @Test
+  void getSettingsReturnsExistingWhenPresent() {
+    db.getCollection("settings").drop();
+    db.getCollection("settings").insertOne(
+      new Document("_id", SettingsController.SETTINGS_ID)
+        .append("schools", List.of())
+        .append("timeAvailability", new Document()));
+
+    settingsController = new SettingsController(db);
+    settingsController.getSettings(ctx);
+
+    settingsCaptor = ArgumentCaptor.forClass(Settings.class);
+    verify(ctx).json(settingsCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+    assertEquals(SettingsController.SETTINGS_ID, settingsCaptor.getValue()._id);
   }
 }

@@ -801,4 +801,102 @@ public class SupplyListControllerSpec {
     supplylistController.addRoutes(mockServer);
     verify(mockServer, Mockito.atLeast(1)).get(any(), any());
   }
+
+  @Test
+  void canFilterSupplyListByCount() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("count", List.of("1")));
+    when(ctx.queryParam("count")).thenReturn("1");
+
+    supplylistController.getSupplyLists(ctx);
+
+    verify(ctx).json(supplylistArrayCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertTrue(supplylistArrayCaptor.getValue().size() > 0);
+    assertEquals(1, supplylistArrayCaptor.getValue().get(0).count);
+  }
+
+  @Test
+  void getSupplyListsRejectsNonIntegerCount() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("count", List.of("notAnInt")));
+    when(ctx.queryParam("count")).thenReturn("notAnInt");
+
+    BadRequestResponse ex = assertThrows(BadRequestResponse.class, () -> {
+      supplylistController.getSupplyLists(ctx);
+    });
+
+    assertEquals("count must be an integer.", ex.getMessage());
+  }
+
+  @Test
+  void canFilterSupplyListByTeacher() {
+    // Insert a doc with a teacher field
+    db.getCollection("supplylist").insertOne(
+        new Document()
+            .append("school", "MHS")
+            .append("grade", "PreK")
+            .append("teacher", "Smith")
+            .append("item", Arrays.asList("Ruler"))
+            .append("brand", new Document().append("allOf", Arrays.asList("Westcott")).append("anyOf", new ArrayList<>()))
+            .append("color", new Document().append("allOf", Arrays.asList("clear")).append("anyOf", new ArrayList<>()))
+            .append("count", 1)
+            .append("size", "12 inch")
+            .append("quantity", 1)
+            .append("notes", "N/A")
+            .append("type", new Document().append("allOf", new ArrayList<>()).append("anyOf", new ArrayList<>()))
+            .append("material", new Document().append("allOf", Arrays.asList("plastic")).append("anyOf", new ArrayList<>()))
+            .append("style", new Document().append("allOf", new ArrayList<>()).append("anyOf", new ArrayList<>())));
+
+    when(ctx.queryParamMap()).thenReturn(Map.of("teacher", List.of("Smith")));
+    when(ctx.queryParam("teacher")).thenReturn("Smith");
+
+    supplylistController.getSupplyLists(ctx);
+
+    verify(ctx).json(supplylistArrayCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(1, supplylistArrayCaptor.getValue().size());
+  }
+
+  @Test
+  void canFilterSupplyListByAcademicYear() {
+    db.getCollection("supplylist").insertOne(
+        new Document()
+            .append("school", "MHS")
+            .append("grade", "PreK")
+            .append("academicYear", "2025-2026")
+            .append("item", Arrays.asList("Scissors"))
+            .append("brand", new Document().append("allOf", Arrays.asList("Fiskars")).append("anyOf", new ArrayList<>()))
+            .append("color", new Document().append("allOf", Arrays.asList("orange")).append("anyOf", new ArrayList<>()))
+            .append("count", 1)
+            .append("size", "5 inch")
+            .append("quantity", 1)
+            .append("notes", "N/A")
+            .append("type", new Document().append("allOf", new ArrayList<>()).append("anyOf", new ArrayList<>()))
+            .append("material", new Document().append("allOf", Arrays.asList("metal")).append("anyOf", new ArrayList<>()))
+            .append("style", new Document().append("allOf", new ArrayList<>()).append("anyOf", new ArrayList<>())));
+
+    when(ctx.queryParamMap()).thenReturn(Map.of("academicYear", List.of("2025-2026")));
+    when(ctx.queryParam("academicYear")).thenReturn("2025-2026");
+
+    supplylistController.getSupplyLists(ctx);
+
+    verify(ctx).json(supplylistArrayCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(1, supplylistArrayCaptor.getValue().size());
+  }
+
+  @Test
+  void canFilterSupplyListByQuantity() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("quantity", List.of("10")));
+    when(ctx.queryParam("quantity")).thenReturn("10");
+
+    supplylistController.getSupplyLists(ctx);
+
+    verify(ctx).json(supplylistArrayCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertTrue(supplylistArrayCaptor.getValue().size() > 0);
+  }
 }
