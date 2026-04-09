@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -25,9 +26,9 @@ class ChecklistSpec {
     checklist2 = new Checklist();
 
     SupplyList supply1 = new SupplyList();
-    supply1.item = "Pencil";
-    supply1.brand = "Ticonderoga";
-    supply1.description = "Ticonderoga Pencil";
+    supply1.item = Arrays.asList("Pencil");
+    supply1.brand = new SupplyList.AttributeOptions();
+    supply1.brand.allOf = Arrays.asList("Ticonderoga");
 
     checklist1.studentName = "Joe";
     checklist1.grade = "1";
@@ -101,8 +102,7 @@ class ChecklistSpec {
     assertEquals("Morris", checklist1.school);
     assertEquals(List.of("Backpack"), checklist1.requestedSupplies);
     assertEquals(1, checklist1.checklist.size());
-    assertEquals("Pencil", checklist1.checklist.get(0).supply.item);
-    assertEquals("Ticonderoga", checklist1.checklist.get(0).supply.brand);
-    assertEquals("Ticonderoga Pencil", checklist1.checklist.get(0).supply.description);
+    assertTrue(checklist1.checklist.get(0).supply.item.contains("Pencil"));
+    assertTrue(checklist1.checklist.get(0).supply.brand.allOf.contains("Ticonderoga"));
   }
 }

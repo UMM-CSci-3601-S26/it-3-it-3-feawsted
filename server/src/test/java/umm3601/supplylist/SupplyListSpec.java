@@ -6,6 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+// Java Imports
+import java.util.Arrays;
+
 // Org Imports
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,9 +27,9 @@ public class SupplyListSpec {
 
     inv1.school = "MHS";
     inv1.grade = "PreK";
-    inv1.item = "Pencil";
-    inv1.brand = "Ticonderoga";
-    inv1.description = "Ticonderoga Pencil";
+    inv1.item = Arrays.asList("Pencil");
+    inv1.brand = new SupplyList.AttributeOptions();
+    inv1.brand.allOf = Arrays.asList("Ticonderoga");
   }
 
   @Test
@@ -74,7 +77,7 @@ public class SupplyListSpec {
   @Test
   void listToString() {
 
-    assertEquals(inv1.toString(), "0x Pencil Ticonderoga");
+    assertEquals(inv1.toString(), "Pencil Ticonderoga");
   }
 
 }

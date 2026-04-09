@@ -17,14 +17,14 @@ describe('ChecklistService', () => {
   const mockSupply1: SupplyList = {
     school: "Herman",
     grade: "7",
-    item: "Pencil",
-    brand: "Generic",
-    color: "Yellow",
+    item: ["Pencil"],
+    brand: { allOf: ["Generic"], anyOf: [] },
+    color: { allOf: [], anyOf: ["yellow"] },
     count: 1,
     size: "Medium",
-    type: "Standard",
-    material: "Wood",
-    description: "A standard pencil for school use",
+    type: { allOf: ["Standard"], anyOf: [] },
+    material: { allOf: ["Wood"], anyOf: [] },
+    style: { allOf: [], anyOf: [] },
     quantity: 1,
     notes: ""
   };
@@ -32,14 +32,14 @@ describe('ChecklistService', () => {
   const mockSupply2: SupplyList = {
     school: "Herman",
     grade: "3",
-    item: "Notebook",
-    brand: "Generic",
-    color: "Red",
+    item: ["Notebook"],
+    brand: { allOf: ["Generic"], anyOf: [] },
+    color: { allOf: ["red"], anyOf: [] },
     count: 1,
     size: "Medium",
-    type: "Standard",
-    material: "Paper",
-    description: "A standard notebook for school use",
+    type: { allOf: ["Standard"], anyOf: [] },
+    material: { allOf: ["Paper"], anyOf: [] },
+    style: { allOf: [], anyOf: [] },
     quantity: 1,
     notes: ""
   };
@@ -91,6 +91,27 @@ describe('ChecklistService', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     checklistService = TestBed.inject(ChecklistService);
   });
+
+
+
+
+  // Test to verify that getChecklists() returns checklist data when called
+  it('getChecklists() should be called and return checklists', () => {
+    spyOn(checklistService, 'getChecklists').and.returnValue(of(testChecklists));
+
+    checklistService.getChecklists().subscribe(result => {
+      expect(result).toEqual(testChecklists);
+    });
+
+    expect(checklistService.getChecklists).toHaveBeenCalled();
+  });
+
+
+
+
+
+
+
 
   afterEach(() => {
     httpTestingController.verify();
@@ -179,5 +200,31 @@ describe('ChecklistService', () => {
     expect(req.request.method).toBe('GET');
 
     req.flush(testChecklist);
+  });
+
+  describe('printAllChecklists()', () => {
+    it('should call GET /api/checklists with no parameters', () => {
+      checklistService.printAllChecklists().subscribe(result => {
+        expect(result).toEqual(testChecklists);
+        expect(result.length).toBe(2);
+      });
+
+      const req = httpTestingController.expectOne(req =>
+        req.method === 'GET' && req.url === checklistService.checklistUrl
+      );
+      expect(req.request.method).toBe('GET');
+      expect(req.request.params.keys().length).toBe(0);
+      req.flush(testChecklists);
+    });
+
+    it('should return an Observable of Checklist[]', () => {
+      const mockedMethod = spyOn(httpClient, 'get').and.returnValue(of(testChecklists));
+
+      checklistService.printAllChecklists().subscribe(result => {
+        expect(result).toEqual(testChecklists);
+        expect(mockedMethod).toHaveBeenCalledTimes(1);
+        expect(mockedMethod).toHaveBeenCalledWith(checklistService.checklistUrl);
+      });
+    });
   });
 });

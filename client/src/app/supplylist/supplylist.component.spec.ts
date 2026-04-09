@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed, waitForAsync, tick, fakeAsync } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync, tick, fakeAsync, flushMicrotasks } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { MockSupplyListService } from 'src/testing/supplylist.service.mock'
@@ -25,13 +25,15 @@ describe('SupplyList Table', () => {
     });
   });
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(fakeAsync(() => {
     TestBed.compileComponents().then(() => {
       fixture = TestBed.createComponent(SupplyListComponent);
       supplylistTable = fixture.componentInstance;
       supplylistService = TestBed.inject(SupplyListService);
       fixture.detectChanges();
     });
+    flushMicrotasks(); // resolve the compileComponents promise
+    tick(300);         // advance past the initial debounceTime(300)
   }));
 
   it('should create the component', () => {
@@ -49,7 +51,7 @@ describe('SupplyList Table', () => {
     supplylistTable.school.set('Herman');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: 'Herman', grade: undefined, item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ school: 'Herman', grade: undefined, item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: undefined, style: undefined });
   }));
 
   it('should call getSupplyList() when grade signal changes', fakeAsync(() => {
@@ -57,7 +59,7 @@ describe('SupplyList Table', () => {
     supplylistTable.grade.set('PreK');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: 'PreK', item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: 'PreK', item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: undefined, style: undefined });
   }));
 
   it('should call getSupplyList() when item signal changes', fakeAsync(() => {
@@ -65,7 +67,7 @@ describe('SupplyList Table', () => {
     supplylistTable.item.set('Markers');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: 'Markers', brand: undefined, color: undefined, size: undefined, type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: 'Markers', brand: undefined, color: undefined, size: undefined, type: undefined, material: undefined, style: undefined });
   }));
 
   it('should call getSupplyList() when brand signal changes', fakeAsync(() => {
@@ -73,7 +75,7 @@ describe('SupplyList Table', () => {
     supplylistTable.brand.set('Crayola');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: 'Crayola', color: undefined, size: undefined, type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: 'Crayola', color: undefined, size: undefined, type: undefined, material: undefined, style: undefined });
   }));
 
   it('should call getSupplyList() when color signal changes', fakeAsync(() => {
@@ -81,7 +83,7 @@ describe('SupplyList Table', () => {
     supplylistTable.color.set('Red');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: 'Red', size: undefined, type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: 'Red', size: undefined, type: undefined, material: undefined, style: undefined });
   }));
 
   it('should call getSupplyList() when size signal changes', fakeAsync(() => {
@@ -89,7 +91,7 @@ describe('SupplyList Table', () => {
     supplylistTable.size.set('Wide Ruled');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: undefined, size: 'Wide Ruled', type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: undefined, size: 'Wide Ruled', type: undefined, material: undefined, style: undefined });
   }));
 
   it('should call getSupplyList() when type signal changes', fakeAsync(() => {
@@ -97,7 +99,7 @@ describe('SupplyList Table', () => {
     supplylistTable.type.set('Spiral');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: undefined, size: undefined, type: 'Spiral', material: undefined });
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: undefined, size: undefined, type: 'Spiral', material: undefined, style: undefined });
   }));
 
   it('should call getSupplyList() when material signal changes', fakeAsync(() => {
@@ -105,7 +107,7 @@ describe('SupplyList Table', () => {
     supplylistTable.material.set('Plastic');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: 'Plastic' });
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: 'Plastic', style: undefined });
   }));
 
   // Tests to verify the use of multiple filter inputs in the same filter
@@ -114,7 +116,7 @@ describe('SupplyList Table', () => {
     supplylistTable.school.set('Herman, St. Mary\'s');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: 'Herman, St. Mary\'s', grade: undefined, item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ school: 'Herman, St. Mary\'s', grade: undefined, item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: undefined, style: undefined });
   }));
 
   it('should call getSupplyList() when grade signal changes', fakeAsync(() => {
@@ -122,7 +124,7 @@ describe('SupplyList Table', () => {
     supplylistTable.grade.set('PreK, 12th grade');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: 'PreK, 12th grade', item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: 'PreK, 12th grade', item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: undefined, style: undefined });
   }));
 
   it('should call getSupplyList() when item signal changes', fakeAsync(() => {
@@ -130,7 +132,7 @@ describe('SupplyList Table', () => {
     supplylistTable.item.set('Markers, Crayons');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: 'Markers, Crayons', brand: undefined, color: undefined, size: undefined, type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: 'Markers, Crayons', brand: undefined, color: undefined, size: undefined, type: undefined, material: undefined, style: undefined });
   }));
 
   it('should call getSupplyList() when brand signal changes', fakeAsync(() => {
@@ -138,7 +140,7 @@ describe('SupplyList Table', () => {
     supplylistTable.brand.set('Crayola, Five Star');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: 'Crayola, Five Star', color: undefined, size: undefined, type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: 'Crayola, Five Star', color: undefined, size: undefined, type: undefined, material: undefined, style: undefined });
   }));
 
   it('should call getSupplyList() when color signal changes', fakeAsync(() => {
@@ -146,7 +148,7 @@ describe('SupplyList Table', () => {
     supplylistTable.color.set('Red, Black');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: 'Red, Black', size: undefined, type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: 'Red, Black', size: undefined, type: undefined, material: undefined, style: undefined });
   }));
 
   it('should call getSupplyList() when size signal changes', fakeAsync(() => {
@@ -154,7 +156,7 @@ describe('SupplyList Table', () => {
     supplylistTable.size.set('Wide Ruled, Standard');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: undefined, size: 'Wide Ruled, Standard', type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: undefined, size: 'Wide Ruled, Standard', type: undefined, material: undefined, style: undefined });
   }));
 
   it('should call getSupplyList() when type signal changes', fakeAsync(() => {
@@ -162,7 +164,7 @@ describe('SupplyList Table', () => {
     supplylistTable.type.set('Spiral, Composition');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: undefined, size: undefined, type: 'Spiral, Composition', material: undefined });
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: undefined, size: undefined, type: 'Spiral, Composition', material: undefined, style: undefined });
   }));
 
   it('should call getSupplyList() when material signal changes', fakeAsync(() => {
@@ -170,7 +172,7 @@ describe('SupplyList Table', () => {
     supplylistTable.material.set('Plastic, Wood');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: 'Plastic, Wood' });
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: 'Plastic, Wood', style: undefined });
   }));
 
 
@@ -181,7 +183,7 @@ describe('SupplyList Table', () => {
     supplylistTable.brand.set('Crayola');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: 'Crayola', color: 'Black', size: undefined, type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: undefined, brand: 'Crayola', color: 'Black', size: undefined, type: undefined, material: undefined, style: undefined });
   }));
 
   it('should call getSupplyList() when item, brand, color, and material signals change', fakeAsync(() => {
@@ -192,7 +194,7 @@ describe('SupplyList Table', () => {
     supplylistTable.type.set('Spiral');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: 'Notebook', brand: 'Five Star', color: 'Yellow', size: undefined, type: 'Spiral', material: undefined });
+    expect(spy).toHaveBeenCalledWith({ school: undefined, grade: undefined, item: 'Notebook', brand: 'Five Star', color: 'Yellow', size: undefined, type: 'Spiral', material: undefined, style: undefined });
   }));
 
   it('should call getSupplyList() when item, brand, color, material, school and grade signals change', fakeAsync(() => {
@@ -205,7 +207,7 @@ describe('SupplyList Table', () => {
     supplylistTable.grade.set("PreK")
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ school: "MHS", grade: "PreK", item: 'Notebook', brand: 'Five Star', color: 'Yellow', size: undefined, type: 'Spiral', material: undefined });
+    expect(spy).toHaveBeenCalledWith({ school: "MHS", grade: "PreK", item: 'Notebook', brand: 'Five Star', color: 'Yellow', size: undefined, type: 'Spiral', material: undefined, style: undefined });
   }));
 
   it('should not show error message on successful load', () => {
@@ -215,8 +217,9 @@ describe('SupplyList Table', () => {
   it('should group supplies with missing school/grade under fallback labels', fakeAsync(() => {
     spyOn(supplylistService, 'getSupplyList').and.returnValue(of([
       {
-        school: '', grade: '', item: 'Pencil', description: '', brand: '', color: '',
-        count: 1, size: '', type: '', material: '', quantity: 0, notes: ''
+        school: '', grade: '', item: ['Pencil'], brand: { allOf: [], anyOf: [] }, color: { allOf: [], anyOf: [] },
+        count: 1, size: '', type: { allOf: [], anyOf: [] }, style: { allOf: [], anyOf: [] },
+        material: { allOf: [], anyOf: [] }, quantity: 0, notes: ''
       } as SupplyList
     ]));
 
@@ -235,8 +238,9 @@ describe('SupplyList Table', () => {
     it('calls deleteSupplyList() and removes the item from dataSource on success', fakeAsync(() => {
       const itemWithId: SupplyList = {
         _id: 'delete-me',
-        school: 'MHS', grade: 'PreK', item: 'Eraser', description: '', brand: '',
-        color: '', size: '', type: '', material: '', count: 1, quantity: 1, notes: ''
+        school: 'MHS', grade: 'PreK', item: ['Eraser'], brand: { allOf: [], anyOf: [] },
+        color: { allOf: [], anyOf: [] }, size: '', type: { allOf: [], anyOf: [] }, style: { allOf: [], anyOf: [] },
+        material: { allOf: [], anyOf: [] }, count: 1, quantity: 1, notes: ''
       };
       supplylistTable.dataSource.data = [itemWithId];
 
@@ -253,8 +257,9 @@ describe('SupplyList Table', () => {
     it('does nothing when the user cancels the confirm dialog', fakeAsync(() => {
       const itemWithId: SupplyList = {
         _id: 'keep-me',
-        school: 'MHS', grade: 'PreK', item: 'Ruler', description: '', brand: '',
-        color: '', size: '', type: '', material: '', count: 1, quantity: 1, notes: ''
+        school: 'MHS', grade: 'PreK', item: ['Ruler'], brand: { allOf: [], anyOf: [] },
+        color: { allOf: [], anyOf: [] }, size: '', type: { allOf: [], anyOf: [] }, style: { allOf: [], anyOf: [] },
+        material: { allOf: [], anyOf: [] }, count: 1, quantity: 1, notes: ''
       };
       supplylistTable.dataSource.data = [itemWithId];
 
@@ -281,8 +286,9 @@ describe('SupplyList Table', () => {
     it('sets errMsg when deleteSupplyList() returns an error', fakeAsync(() => {
       const itemWithId: SupplyList = {
         _id: 'fail-delete',
-        school: 'MHS', grade: 'PreK', item: 'Tape', description: '', brand: '',
-        color: '', size: '', type: '', material: '', count: 1, quantity: 1, notes: ''
+        school: 'MHS', grade: 'PreK', item: ['Tape'], brand: { allOf: [], anyOf: [] },
+        color: { allOf: [], anyOf: [] }, size: '', type: { allOf: [], anyOf: [] }, style: { allOf: [], anyOf: [] },
+        material: { allOf: [], anyOf: [] }, count: 1, quantity: 1, notes: ''
       };
       supplylistTable.dataSource.data = [itemWithId];
 
@@ -304,8 +310,9 @@ describe('SupplyList Table', () => {
     it('sets editingItemId to the item\'s _id', () => {
       const item: SupplyList = {
         _id: 'edit-id',
-        school: 'MHS', grade: 'PreK', item: 'Marker', description: '', brand: '',
-        color: '', size: '', type: '', material: '', count: 1, quantity: 1, notes: ''
+        school: 'MHS', grade: 'PreK', item: ['Marker'], brand: { allOf: [], anyOf: [] },
+        color: { allOf: [], anyOf: [] }, size: '', type: { allOf: [], anyOf: [] }, style: { allOf: [], anyOf: [] },
+        material: { allOf: [], anyOf: [] }, count: 1, quantity: 1, notes: ''
       };
       supplylistTable.startEdit(item);
       expect(supplylistTable.editingItemId).toBe('edit-id');
@@ -314,16 +321,17 @@ describe('SupplyList Table', () => {
     it('stores a deep copy as backup, separate from the original object', () => {
       const item: SupplyList = {
         _id: 'backup-id',
-        school: 'Herman', grade: '3rd grade', item: 'Glue', description: '', brand: '',
-        color: '', size: '', type: '', material: '', count: 1, quantity: 2, notes: ''
+        school: 'Herman', grade: '3rd grade', item: ['Glue'], brand: { allOf: [], anyOf: [] },
+        color: { allOf: [], anyOf: [] }, size: '', type: { allOf: [], anyOf: [] }, style: { allOf: [], anyOf: [] },
+        material: { allOf: [], anyOf: [] }, count: 1, quantity: 2, notes: ''
       };
       supplylistTable.startEdit(item);
       // Mutating the original should not affect the backup
-      item.item = 'Changed';
+      item.item = ['Changed'];
       // Access backup via cancelEdit restoring from it
       supplylistTable.dataSource.data = [item];
       supplylistTable.cancelEdit();
-      expect(supplylistTable.dataSource.data[0].item).toBe('Glue');
+      expect(supplylistTable.dataSource.data[0].item).toEqual(['Glue']);
     });
   });
 
@@ -331,8 +339,9 @@ describe('SupplyList Table', () => {
     it('clears editingItemId after cancelling', () => {
       const item: SupplyList = {
         _id: 'cancel-id',
-        school: 'MHS', grade: 'PreK', item: 'Pen', description: '', brand: '',
-        color: '', size: '', type: '', material: '', count: 1, quantity: 1, notes: ''
+        school: 'MHS', grade: 'PreK', item: ['Pen'], brand: { allOf: [], anyOf: [] },
+        color: { allOf: [], anyOf: [] }, size: '', type: { allOf: [], anyOf: [] }, style: { allOf: [], anyOf: [] },
+        material: { allOf: [], anyOf: [] }, count: 1, quantity: 1, notes: ''
       };
       supplylistTable.dataSource.data = [item];
       supplylistTable.startEdit(item);
@@ -343,14 +352,15 @@ describe('SupplyList Table', () => {
     it('restores the original item values in dataSource', () => {
       const item: SupplyList = {
         _id: 'restore-id',
-        school: 'MHS', grade: '1st grade', item: 'Crayon', description: '', brand: 'Crayola',
-        color: 'Red', size: '', type: '', material: '', count: 1, quantity: 3, notes: ''
+        school: 'MHS', grade: '1st grade', item: ['Crayon'], brand: { allOf: [], anyOf: ['Crayola'] },
+        color: { allOf: [], anyOf: ['Red'] }, size: '', type: { allOf: [], anyOf: [] }, style: { allOf: [], anyOf: [] },
+        material: { allOf: [], anyOf: [] }, count: 1, quantity: 3, notes: ''
       };
       supplylistTable.dataSource.data = [{ ...item }];
       supplylistTable.startEdit(supplylistTable.dataSource.data[0]);
-      supplylistTable.dataSource.data[0].item = 'Pencil'; // simulate in-progress edit
+      supplylistTable.dataSource.data[0].item = ['Pencil']; // simulate in-progress edit
       supplylistTable.cancelEdit();
-      expect(supplylistTable.dataSource.data[0].item).toBe('Crayon');
+      expect(supplylistTable.dataSource.data[0].item).toEqual(['Crayon']);
     });
   });
 
@@ -358,8 +368,9 @@ describe('SupplyList Table', () => {
     it('calls editSupplyList() and clears editing state on success', fakeAsync(() => {
       const item: SupplyList = {
         _id: 'save-id',
-        school: 'MHS', grade: 'PreK', item: 'Notebook', description: '', brand: 'Five Star',
-        color: 'Blue', size: 'Wide Ruled', type: 'Spiral', material: 'N/A', count: 1, quantity: 2, notes: ''
+        school: 'MHS', grade: 'PreK', item: ['Notebook'], brand: { allOf: [], anyOf: ['Five Star'] },
+        color: { allOf: [], anyOf: ['Blue'] }, size: 'Wide Ruled', type: { allOf: ['Spiral'], anyOf: [] },
+        style: { allOf: [], anyOf: [] }, material: { allOf: [], anyOf: ['N/A'] }, count: 1, quantity: 2, notes: ''
       };
       const saveSpy = spyOn(supplylistService, 'editSupplyList').and.returnValue(of(undefined));
 
@@ -373,8 +384,9 @@ describe('SupplyList Table', () => {
 
     it('does nothing when item has no _id', fakeAsync(() => {
       const item: SupplyList = {
-        school: 'MHS', grade: 'PreK', item: 'Notebook', description: '', brand: '',
-        color: '', size: '', type: '', material: '', count: 1, quantity: 1, notes: ''
+        school: 'MHS', grade: 'PreK', item: ['Notebook'], brand: { allOf: [], anyOf: [] },
+        color: { allOf: [], anyOf: [] }, size: '', type: { allOf: [], anyOf: [] }, style: { allOf: [], anyOf: [] },
+        material: { allOf: [], anyOf: [] }, count: 1, quantity: 1, notes: ''
       };
       const saveSpy = spyOn(supplylistService, 'editSupplyList').and.returnValue(of(undefined));
 
@@ -387,8 +399,9 @@ describe('SupplyList Table', () => {
     it('sets errMsg when editSupplyList() returns an error', fakeAsync(() => {
       const item: SupplyList = {
         _id: 'err-save-id',
-        school: 'MHS', grade: 'PreK', item: 'Folder', description: '', brand: '',
-        color: '', size: '', type: '', material: '', count: 1, quantity: 1, notes: ''
+        school: 'MHS', grade: 'PreK', item: ['Folder'], brand: { allOf: [], anyOf: [] },
+        color: { allOf: [], anyOf: [] }, size: '', type: { allOf: [], anyOf: [] }, style: { allOf: [], anyOf: [] },
+        material: { allOf: [], anyOf: [] }, count: 1, quantity: 1, notes: ''
       };
       spyOn(supplylistService, 'editSupplyList').and.returnValue(
         new Observable(o => o.error({ status: 422, message: 'Unprocessable' }))
@@ -449,5 +462,154 @@ describe('Misbehaving SupplyList Table', () => {
     expect(supplylistTable.errMsg())
       .withContext('the error message will be')
       .toContain('Problem contacting the server - Error Code:');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tests for SupplyListComponent#toLabel()
+// ─────────────────────────────────────────────────────────────────────────────
+describe('SupplyListComponent#toLabel()', () => {
+  let supplylistTable: SupplyListComponent;
+
+  // Minimal valid SupplyList with no optional fields set
+  const base: SupplyList = {
+    school: 'MHS', grade: 'K', item: ['crayon'],
+    brand: { allOf: [], anyOf: [] }, color: { allOf: [], anyOf: [] },
+    size: '', type: { allOf: [], anyOf: [] }, style: { allOf: [], anyOf: [] },
+    material: { allOf: [], anyOf: [] }, count: 0, quantity: 1, notes: ''
+  };
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [SupplyListComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: SupplyListService, useClass: MockSupplyListService },
+        provideRouter([])
+      ],
+    });
+  });
+
+  beforeEach(fakeAsync(() => {
+    TestBed.compileComponents().then(() => {
+      const fixture = TestBed.createComponent(SupplyListComponent);
+      supplylistTable = fixture.componentInstance;
+      fixture.detectChanges();
+    });
+    flushMicrotasks();
+    tick(300);
+  }));
+
+  it('should include brand allOf values in the label', () => {
+    const label = supplylistTable.toLabel({ ...base, brand: { allOf: ['Crayola'], anyOf: [] } });
+    expect(label).toContain('Crayola');
+  });
+
+  it('should include brand anyOf values in the label', () => {
+    const label = supplylistTable.toLabel({ ...base, brand: { allOf: [], anyOf: ['Expo'] } });
+    expect(label).toContain('Expo');
+  });
+
+  it('should pluralize size when quantity > 1', () => {
+    const label = supplylistTable.toLabel({ ...base, size: 'pack', quantity: 2 });
+    expect(label).toContain('packs of');
+  });
+
+  it('should not pluralize size when quantity is 1', () => {
+    const label = supplylistTable.toLabel({ ...base, size: 'pack', quantity: 1 });
+    expect(label).toContain('pack of');
+    expect(label).not.toContain('packs');
+  });
+
+  it('should omit size section when size is empty string', () => {
+    const label = supplylistTable.toLabel({ ...base, size: '' });
+    expect(label).not.toContain(' of ');
+  });
+
+  it('should omit size section when size is N/A', () => {
+    const label = supplylistTable.toLabel({ ...base, size: 'N/A' });
+    expect(label).not.toContain(' of ');
+  });
+
+  it('should pluralize item when quantity > 1 and item does not end with s', () => {
+    const label = supplylistTable.toLabel({ ...base, quantity: 2, item: ['crayon'] });
+    expect(label).toContain('crayons');
+  });
+
+  it('should not double-pluralize item that already ends with s (ternary false branch)', () => {
+    // quantity > 1 but itemStr ends with 's' → keep original, don't append another 's'
+    const label = supplylistTable.toLabel({ ...base, quantity: 2, item: ['scissors'] });
+    expect(label).not.toContain('scissorss');
+    expect(label).toContain('scissors');
+  });
+
+  it('should omit item portion when item array is empty (if(itemStr) false branch)', () => {
+    const label = supplylistTable.toLabel({ ...base, item: [] });
+    expect(label.trim()).toBe('1x');
+  });
+
+  it('should include notes when notes is a non-empty, non-N/A string', () => {
+    const label = supplylistTable.toLabel({ ...base, notes: 'for art class' });
+    expect(label).toContain('(for art class)');
+  });
+
+  it('should omit notes section when notes is N/A', () => {
+    // Covers the s.notes !== 'N/A' false branch
+    const label = supplylistTable.toLabel({ ...base, notes: 'N/A' });
+    expect(label).not.toContain('N/A');
+    expect(label).not.toContain('(');
+  });
+
+  it('should handle undefined brand gracefully (attrStr ?? [] fallback for allOf/anyOf)', () => {
+    // When brand is undefined, a?.allOf and a?.anyOf are undefined → ?? [] kicks in
+    const label = supplylistTable.toLabel({ ...base, brand: undefined } as SupplyList);
+    expect(typeof label).toBe('string');
+    expect(label).toBeTruthy();
+  });
+
+  it('should handle undefined color gracefully', () => {
+    const label = supplylistTable.toLabel({ ...base, color: undefined } as SupplyList);
+    expect(typeof label).toBe('string');
+  });
+
+  it('should handle undefined type gracefully', () => {
+    const label = supplylistTable.toLabel({ ...base, type: undefined } as SupplyList);
+    expect(typeof label).toBe('string');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tests for SupplyListComponent#cancelEdit() without prior startEdit
+// ─────────────────────────────────────────────────────────────────────────────
+describe('SupplyListComponent#cancelEdit() without prior startEdit', () => {
+  let supplylistTable: SupplyListComponent;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [SupplyListComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: SupplyListService, useClass: MockSupplyListService },
+        provideRouter([])
+      ],
+    });
+  });
+
+  beforeEach(fakeAsync(() => {
+    TestBed.compileComponents().then(() => {
+      const fixture = TestBed.createComponent(SupplyListComponent);
+      supplylistTable = fixture.componentInstance;
+      fixture.detectChanges();
+    });
+    flushMicrotasks();
+    tick(300);
+  }));
+
+  it('should not throw when cancelEdit is called without prior startEdit (editingBackup is null)', () => {
+    // editingBackup is null initially — covers the if(this.editingBackup) false branch (line 244)
+    expect(() => supplylistTable.cancelEdit()).not.toThrow();
+    expect(supplylistTable.editingItemId).toBeNull();
   });
 });

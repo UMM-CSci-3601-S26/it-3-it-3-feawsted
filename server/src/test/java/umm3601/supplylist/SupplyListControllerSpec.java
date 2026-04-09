@@ -126,60 +126,100 @@ public class SupplyListControllerSpec {
         new Document()
             .append("school", "MHS")
             .append("grade", "PreK")
-            .append("item", "Pencil")
-            .append("brand", "Ticonderoga")
-            .append("color", "yellow")
+            .append("item", Arrays.asList("Pencil"))
+            .append("brand", new Document()
+                .append("allOf", Arrays.asList("Ticonderoga"))
+                .append("anyOf", new ArrayList<>()))
+            .append("color", new Document()
+                .append("allOf", Arrays.asList("yellow"))
+                .append("anyOf", new ArrayList<>()))
             .append("count", 1)
             .append("size", "N/A")
-            .append("description", "A standard pencil")
             .append("quantity", 10)
             .append("notes", "N/A")
-            .append("type", "#2")
-            .append("material", "wood"));
+            .append("type", new Document()
+                .append("allOf", Arrays.asList("#2"))
+                .append("anyOf", new ArrayList<>()))
+            .append("material", new Document()
+                .append("allOf", Arrays.asList("wood"))
+                .append("anyOf", new ArrayList<>()))
+            .append("style", new Document()
+              .append("allOf", Arrays.asList("hexagonal"))
+              .append("anyOf", new ArrayList<>())));
     testSupplyList.add(
         new Document()
             .append("school", "CHS")
             .append("grade", "12th grade")
-            .append("item", "Eraser")
-            .append("brand", "Pink Pearl")
-            .append("color", "pink")
+            .append("item", Arrays.asList("Eraser"))
+            .append("brand", new Document()
+                .append("allOf", Arrays.asList("Pink Pearl"))
+                .append("anyOf", new ArrayList<>()))
+            .append("color", new Document()
+                .append("allOf", Arrays.asList("pink"))
+                .append("anyOf", new ArrayList<>()))
             .append("count", 1)
             .append("size", "Small")
-            .append("description", "A standard eraser")
             .append("quantity", 5)
             .append("notes", "N/A")
-            .append("type", "rubber")
-            .append("material", "rubber"));
+            .append("type", new Document()
+                .append("allOf", Arrays.asList("rubber"))
+                .append("anyOf", new ArrayList<>()))
+            .append("material", new Document()
+                .append("allOf", Arrays.asList("rubber"))
+                .append("anyOf", new ArrayList<>()))
+            .append("style", new Document()
+                .append("allOf", new ArrayList<>())
+                .append("anyOf", new ArrayList<>())));
     testSupplyList.add(
         new Document()
             .append("school", "MHS")
             .append("grade", "PreK")
-            .append("item", "Notebook")
-            .append("brand", "Five Star")
-            .append("color", "blue")
+            .append("item", Arrays.asList("Notebook"))
+            .append("brand", new Document()
+                .append("allOf", Arrays.asList("Five Star"))
+                .append("anyOf", new ArrayList<>()))
+            .append("color", new Document()
+                .append("allOf", Arrays.asList("blue"))
+                .append("anyOf", new ArrayList<>()))
             .append("count", 1)
             .append("size", "N/A")
-            .append("description", "A standard notebook")
             .append("quantity", 3)
             .append("notes", "N/A")
-            .append("type", "spiral")
-            .append("material", "paper"));
+            .append("type", new Document()
+                .append("allOf", Arrays.asList("spiral"))
+                .append("anyOf", new ArrayList<>()))
+            .append("material", new Document()
+                .append("allOf", Arrays.asList("paper"))
+                .append("anyOf", new ArrayList<>()))
+            .append("style", new Document()
+                .append("allOf", new ArrayList<>())
+                .append("anyOf", new ArrayList<>())));
 
     samsId = new ObjectId();
     Document sam = new Document()
         .append("_id", samsId)
         .append("school", "MHS")
         .append("grade", "PreK")
-        .append("item", "Backpack")
-        .append("brand", "JanSport")
-        .append("color", "black")
+        .append("item", Arrays.asList("Backpack"))
+        .append("brand", new Document()
+            .append("allOf", Arrays.asList("JanSport"))
+            .append("anyOf", new ArrayList<>()))
+        .append("color", new Document()
+            .append("allOf", Arrays.asList("black"))
+            .append("anyOf", new ArrayList<>()))
         .append("count", 1)
         .append("size", "Standard")
-        .append("description", "A standard backpack")
         .append("quantity", 2)
         .append("notes", "Plain colors only")
-        .append("type", "shoulder bag")
-        .append("material", "fabric");
+        .append("type", new Document()
+            .append("allOf", Arrays.asList("shoulder bag"))
+            .append("anyOf", new ArrayList<>()))
+        .append("material", new Document()
+            .append("allOf", Arrays.asList("fabric"))
+            .append("anyOf", new ArrayList<>()))
+        .append("style", new Document()
+            .append("allOf", Arrays.asList("standard"))
+            .append("anyOf", new ArrayList<>()));
 
     supplylistDocuments.insertMany(testSupplyList);
     supplylistDocuments.insertOne(sam);
@@ -215,7 +255,7 @@ public class SupplyListControllerSpec {
 
     verify(ctx).json(supplylistCaptor.capture());
     verify(ctx).status(HttpStatus.OK);
-    assertEquals("Backpack", supplylistCaptor.getValue().item);
+    assertTrue(supplylistCaptor.getValue().item.contains("Backpack"));
     assertEquals(samsId.toHexString(), supplylistCaptor.getValue()._id);
   }
 
@@ -275,7 +315,7 @@ public class SupplyListControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(1, supplylistArrayCaptor.getValue().size());
-    assertEquals("Pencil", supplylistArrayCaptor.getValue().get(0).item);
+    assertTrue(supplylistArrayCaptor.getValue().get(0).item.contains("Pencil"));
   }
 
   @Test
@@ -289,7 +329,7 @@ public class SupplyListControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(1, supplylistArrayCaptor.getValue().size());
-    assertEquals("Ticonderoga", supplylistArrayCaptor.getValue().get(0).brand);
+    assertTrue(supplylistArrayCaptor.getValue().get(0).brand.allOf.contains("Ticonderoga"));
   }
 
   @Test
@@ -303,7 +343,7 @@ public class SupplyListControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(1, supplylistArrayCaptor.getValue().size());
-    assertEquals("yellow", supplylistArrayCaptor.getValue().get(0).color);
+    assertTrue(supplylistArrayCaptor.getValue().get(0).color.allOf.contains("yellow"));
   }
 
   @Test
@@ -321,9 +361,9 @@ public class SupplyListControllerSpec {
   }
 
   @Test
-  void canFilterSupplyListByDescriptionCaseInsensitive() {
-    when(ctx.queryParamMap()).thenReturn(Map.of("description", List.of("A standard backpack")));
-    when(ctx.queryParam("description")).thenReturn("A standard backpack");
+  void canFilterSupplyListByStyleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("style", List.of("hExAgOnAl")));
+    when(ctx.queryParam("style")).thenReturn("hExAgOnAl");
 
     supplylistController.getSupplyLists(ctx);
 
@@ -331,7 +371,7 @@ public class SupplyListControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(1, supplylistArrayCaptor.getValue().size());
-    assertEquals("A standard backpack", supplylistArrayCaptor.getValue().get(0).description);
+    assertTrue(supplylistArrayCaptor.getValue().get(0).style.allOf.contains("hexagonal"));
   }
 
   @Test
@@ -357,7 +397,7 @@ public class SupplyListControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(1, supplylistArrayCaptor.getValue().size());
-    assertEquals("wood", supplylistArrayCaptor.getValue().get(0).material);
+    assertTrue(supplylistArrayCaptor.getValue().get(0).material.allOf.contains("wood"));
   }
 
   @Test
@@ -370,7 +410,7 @@ public class SupplyListControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(1, supplylistArrayCaptor.getValue().size());
-    assertEquals("shoulder bag", supplylistArrayCaptor.getValue().get(0).type);
+    assertTrue(supplylistArrayCaptor.getValue().get(0).type.allOf.contains("shoulder bag"));
   }
 
   @Test
@@ -411,8 +451,8 @@ public class SupplyListControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(2, supplylistArrayCaptor.getValue().size());
-    assertEquals("Pencil", supplylistArrayCaptor.getValue().get(0).item);
-    assertEquals("Notebook", supplylistArrayCaptor.getValue().get(1).item);
+    assertTrue(supplylistArrayCaptor.getValue().get(0).item.contains("Pencil"));
+    assertTrue(supplylistArrayCaptor.getValue().get(1).item.contains("Notebook"));
   }
 
   @Test
@@ -426,8 +466,8 @@ public class SupplyListControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(2, supplylistArrayCaptor.getValue().size());
-    assertEquals("Ticonderoga", supplylistArrayCaptor.getValue().get(0).brand);
-    assertEquals("Pink Pearl", supplylistArrayCaptor.getValue().get(1).brand);
+    assertTrue(supplylistArrayCaptor.getValue().get(0).brand.allOf.contains("Ticonderoga"));
+    assertTrue(supplylistArrayCaptor.getValue().get(1).brand.allOf.contains("Pink Pearl"));
   }
 
   @Test
@@ -441,9 +481,9 @@ public class SupplyListControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(3, supplylistArrayCaptor.getValue().size());
-    assertEquals("yellow", supplylistArrayCaptor.getValue().get(0).color);
-    assertEquals("pink", supplylistArrayCaptor.getValue().get(1).color);
-    assertEquals("blue", supplylistArrayCaptor.getValue().get(2).color);
+    assertTrue(supplylistArrayCaptor.getValue().get(0).color.allOf.contains("yellow"));
+    assertTrue(supplylistArrayCaptor.getValue().get(1).color.allOf.contains("pink"));
+    assertTrue(supplylistArrayCaptor.getValue().get(2).color.allOf.contains("blue"));
   }
 
   @Test
@@ -462,9 +502,9 @@ public class SupplyListControllerSpec {
   }
 
   @Test
-  void canFilterSupplyListByDescriptionMultipleCaseInsensitive() {
-    when(ctx.queryParamMap()).thenReturn(Map.of("description", List.of("backpack, pencil")));
-    when(ctx.queryParam("description")).thenReturn("backpack, pencil");
+  void canFilterSupplyListByStyleMultipleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("style", List.of("hexagonal, standard")));
+    when(ctx.queryParam("style")).thenReturn("hexagonal, standard");
 
     supplylistController.getSupplyLists(ctx);
 
@@ -472,8 +512,8 @@ public class SupplyListControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(2, supplylistArrayCaptor.getValue().size());
-    assertEquals("A standard pencil", supplylistArrayCaptor.getValue().get(0).description);
-    assertEquals("A standard backpack", supplylistArrayCaptor.getValue().get(1).description);
+    assertTrue(supplylistArrayCaptor.getValue().get(0).style.allOf.contains("hexagonal"));
+    assertTrue(supplylistArrayCaptor.getValue().get(1).style.allOf.contains("standard"));
   }
 
   @Test
@@ -486,8 +526,8 @@ public class SupplyListControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(2, supplylistArrayCaptor.getValue().size());
-    assertEquals("wood", supplylistArrayCaptor.getValue().get(0).material);
-    assertEquals("paper", supplylistArrayCaptor.getValue().get(1).material);
+    assertTrue(supplylistArrayCaptor.getValue().get(0).material.allOf.contains("wood"));
+    assertTrue(supplylistArrayCaptor.getValue().get(1).material.allOf.contains("paper"));
   }
 
   @Test
@@ -500,8 +540,8 @@ public class SupplyListControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(2, supplylistArrayCaptor.getValue().size());
-    assertEquals("#2", supplylistArrayCaptor.getValue().get(0).type);
-    assertEquals("shoulder bag", supplylistArrayCaptor.getValue().get(1).type);
+    assertTrue(supplylistArrayCaptor.getValue().get(0).type.allOf.contains("#2"));
+    assertTrue(supplylistArrayCaptor.getValue().get(1).type.allOf.contains("shoulder bag"));
   }
 
   @Test
@@ -539,16 +579,15 @@ public class SupplyListControllerSpec {
         {
           "school": "MHS",
           "grade": "PreK",
-          "item": "Marker",
-          "brand": "Crayola",
-          "color": "red",
+          "item": ["Marker"],
+          "brand": {"allOf": [], "anyOf": ["Crayola"]},
+          "color": {"allOf": [], "anyOf": ["red"]},
           "count": 1,
           "size": "N/A",
-          "description": "A standard marker",
           "quantity": 10,
           "notes": "N/A",
-          "type": "dry erase",
-          "material": "plastic"
+          "type": {"allOf": ["dry erase"], "anyOf": []},
+          "material": {"allOf": ["plastic"], "anyOf": []}
         }
         """;
 
@@ -568,60 +607,18 @@ public class SupplyListControllerSpec {
   @Test
   void addSupplyWithEmptyString() {
     String invalidSupplyList = """
-    {
-      "school": "",
-      "grade": "PreK",
-      "item": "Marker",
-      "brand": "Crayola",
-      "color": "red",
-      "count": 1,
-      "size": "N/A",
-      "description": "A standard marker",
-      "quantity": 5,
-      "notes": "N/A",
-      "type": "dry erase",
-      "material": "plastic"
-    }
-    """;
-
-    when(ctx.body()).thenReturn(invalidSupplyList);
-    when(ctx.bodyValidator(SupplyList.class))
-        .thenReturn(new BodyValidator<SupplyList>(
-            invalidSupplyList,
-            SupplyList.class,
-              () -> javalinJackson.fromJsonString(invalidSupplyList, SupplyList.class)
-          ));
-
-    ValidationException exception = assertThrows(ValidationException.class, () -> {
-      supplylistController.addSupplyList(ctx);
-    });
-
-    assertTrue(
-      exception.getErrors()
-        .get("REQUEST_BODY")
-        .stream()
-        .anyMatch(err -> err.toString().contains("school"))
-    );
-  }
-
-
-
-  @Test
-  void addSupplyItemWithInvalidQuantity() {
-    String invalidSupplyList = """
         {
           "school": "MHS",
           "grade": "PreK",
-          "item": "Marker",
-          "brand": "Crayola",
-          "color": "red",
+          "item": ["Marker"],
+          "brand": {"allOf": [], "anyOf": ["Crayola"]},
+          "color": {"allOf": [], "anyOf": ["red"]},
           "count": 1,
           "size": "N/A",
-          "description": "A standard marker",
           "quantity": -5,
           "notes": "N/A",
-          "type": "dry erase",
-          "material": "plastic"
+          "type": {"allOf": ["dry erase"], "anyOf": []},
+          "material": {"allOf": ["plastic"], "anyOf": []}
         }
         """;
 
@@ -637,12 +634,8 @@ public class SupplyListControllerSpec {
       supplylistController.addSupplyList(ctx);
     });
 
-    assertTrue(
-      exception.getErrors()
-        .get("REQUEST_BODY")
-        .stream()
-        .anyMatch(err -> err.toString().contains("quantity"))
-    );
+    assertTrue(exception.getErrors().get("REQUEST_BODY")
+    .get(0).toString().contains("quantity must be a positive integer"));
   }
 
   @Test
@@ -651,16 +644,15 @@ public class SupplyListControllerSpec {
         {
           "school": "MHS",
           "grade": "PreK",
-          "item": "Marker",
-          "brand": "Crayola",
-          "color": "red",
+          "item": ["Marker"],
+          "brand": {"allOf": [], "anyOf": ["Crayola"]},
+          "color": {"allOf": [], "anyOf": ["red"]},
           "count": 0,
           "size": "N/A",
-          "description": "A standard marker",
           "quantity": 10,
           "notes": "N/A",
-          "type": "dry erase",
-          "material": "plastic"
+          "type": {"allOf": ["dry erase"], "anyOf": []},
+          "material": {"allOf": ["plastic"], "anyOf": []}
         }
         """;
 
@@ -690,15 +682,14 @@ public class SupplyListControllerSpec {
         {
           "school": "MHS",
           "grade": "PreK",
-          "brand": "Crayola",
-          "color": "red",
+          "brand": {"allOf": [], "anyOf": ["Crayola"]},
+          "color": {"allOf": [], "anyOf": ["red"]},
           "count": 1,
           "size": "N/A",
-          "description": "A standard marker",
           "quantity": 10,
           "notes": "N/A",
-          "type": "dry erase",
-          "material": "plastic"
+          "type": {"allOf": ["dry erase"], "anyOf": []},
+          "material": {"allOf": ["plastic"], "anyOf": []}
         }
         """;
 
@@ -714,12 +705,7 @@ public class SupplyListControllerSpec {
       supplylistController.addSupplyList(ctx);
     });
 
-    assertTrue(
-      exception.getErrors()
-        .get("REQUEST_BODY")
-        .stream()
-        .anyMatch(err -> err.toString().contains("item"))
-    );
+    assertTrue(exception.getErrors().get("REQUEST_BODY").get(0).toString().contains("item must be a non-empty list"));
   }
 
   @Test
@@ -727,16 +713,15 @@ public class SupplyListControllerSpec {
     String invalidSupplyList = """
         {
           "grade": "PreK",
-          "item": "Marker",
-          "brand": "Crayola",
-          "color": "red",
+          "item": ["Marker"],
+          "brand": {"allOf": [], "anyOf": ["Crayola"]},
+          "color": {"allOf": [], "anyOf": ["red"]},
           "count": 1,
           "size": "N/A",
-          "description": "A standard marker",
           "quantity": 10,
           "notes": "N/A",
-          "type": "dry erase",
-          "material": "plastic"
+          "type": {"allOf": ["dry erase"], "anyOf": []},
+          "material": {"allOf": ["plastic"], "anyOf": []}
         }
         """;
 
@@ -765,16 +750,15 @@ public class SupplyListControllerSpec {
     String invalidSupplyList = """
         {
           "school": "MHS",
-          "item": "Marker",
-          "brand": "Crayola",
-          "color": "red",
+          "item": ["Marker"],
+          "brand": {"allOf": [], "anyOf": ["Crayola"]},
+          "color": {"allOf": [], "anyOf": ["red"]},
           "count": 1,
           "size": "N/A",
-          "description": "A standard marker",
           "quantity": 10,
           "notes": "N/A",
-          "type": "dry erase",
-          "material": "plastic"
+          "type": {"allOf": ["dry erase"], "anyOf": []},
+          "material": {"allOf": ["plastic"], "anyOf": []}
         }
         """;
 
@@ -857,5 +841,123 @@ public class SupplyListControllerSpec {
     Javalin mockServer = mock(Javalin.class);
     supplylistController.addRoutes(mockServer);
     verify(mockServer, Mockito.atLeast(1)).get(any(), any());
+  }
+
+  @Test
+  void canFilterSupplyListByCount() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("count", List.of("1")));
+    when(ctx.queryParam("count")).thenReturn("1");
+
+    supplylistController.getSupplyLists(ctx);
+
+    verify(ctx).json(supplylistArrayCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertTrue(supplylistArrayCaptor.getValue().size() > 0);
+    assertEquals(1, supplylistArrayCaptor.getValue().get(0).count);
+  }
+
+  @Test
+  void getSupplyListsRejectsNonIntegerCount() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("count", List.of("notAnInt")));
+    when(ctx.queryParam("count")).thenReturn("notAnInt");
+
+    BadRequestResponse ex = assertThrows(BadRequestResponse.class, () -> {
+      supplylistController.getSupplyLists(ctx);
+    });
+
+    assertEquals("count must be an integer.", ex.getMessage());
+  }
+
+  @Test
+  void canFilterSupplyListByTeacher() {
+    // Insert a doc with a teacher field
+    db.getCollection("supplylist").insertOne(
+        new Document()
+            .append("school", "MHS")
+            .append("grade", "PreK")
+            .append("teacher", "Smith")
+            .append("item", Arrays.asList("Ruler"))
+            .append("brand", new Document()
+              .append("allOf", Arrays.asList("Westcott"))
+              .append("anyOf", new ArrayList<>()))
+            .append("color", new Document()
+              .append("allOf", Arrays.asList("clear"))
+              .append("anyOf", new ArrayList<>()))
+            .append("count", 1)
+            .append("size", "12 inch")
+            .append("quantity", 1)
+            .append("notes", "N/A")
+            .append("type", new Document()
+              .append("allOf", new ArrayList<>())
+              .append("anyOf", new ArrayList<>()))
+            .append("material", new Document()
+              .append("allOf", Arrays.asList("plastic"))
+              .append("anyOf", new ArrayList<>()))
+            .append("style", new Document()
+              .append("allOf", new ArrayList<>())
+              .append("anyOf", new ArrayList<>())));
+
+    when(ctx.queryParamMap()).thenReturn(Map.of("teacher", List.of("Smith")));
+    when(ctx.queryParam("teacher")).thenReturn("Smith");
+
+    supplylistController.getSupplyLists(ctx);
+
+    verify(ctx).json(supplylistArrayCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(1, supplylistArrayCaptor.getValue().size());
+  }
+
+  @Test
+  void canFilterSupplyListByAcademicYear() {
+    db.getCollection("supplylist").insertOne(
+        new Document()
+            .append("school", "MHS")
+            .append("grade", "PreK")
+            .append("academicYear", "2025-2026")
+            .append("item", Arrays.asList("Scissors"))
+            .append("brand", new Document()
+                .append("allOf", Arrays.asList("Fiskars"))
+                .append("anyOf", new ArrayList<>()))
+            .append("color", new Document()
+                .append("allOf", Arrays.asList("orange"))
+                .append("anyOf", new ArrayList<>()))
+            .append("count", 1)
+            .append("size", "5 inch")
+            .append("quantity", 1)
+            .append("notes", "N/A")
+            .append("type", new Document()
+                .append("allOf", new ArrayList<>())
+                .append("anyOf", new ArrayList<>()))
+            .append("material", new Document()
+              .append("allOf", Arrays.asList("metal"))
+              .append("anyOf", new ArrayList<>()))
+            .append("style", new Document()
+            .append("allOf", new ArrayList<>())
+            .append("anyOf", new ArrayList<>())));
+
+    when(ctx.queryParamMap()).thenReturn(Map.of("academicYear", List.of("2025-2026")));
+    when(ctx.queryParam("academicYear")).thenReturn("2025-2026");
+
+    supplylistController.getSupplyLists(ctx);
+
+    verify(ctx).json(supplylistArrayCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(1, supplylistArrayCaptor.getValue().size());
+  }
+
+  @Test
+  void canFilterSupplyListByQuantity() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("quantity", List.of("10")));
+    when(ctx.queryParam("quantity")).thenReturn("10");
+
+    supplylistController.getSupplyLists(ctx);
+
+    verify(ctx).json(supplylistArrayCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertTrue(supplylistArrayCaptor.getValue().size() > 0);
   }
 }

@@ -8,50 +8,50 @@ import { SupplyList } from 'src/app/supplylist/supplylist';
 @Injectable({
   providedIn: AppComponent
 })
-export class MockChecklistService implements Pick<ChecklistService, 'getChecklists' | 'getChecklistById' | 'generateChecklists'> {
+export class MockChecklistService implements Pick<ChecklistService, 'getChecklists' | 'getChecklistById' | 'generateChecklists' | 'printAllChecklists'> {
   static mockSupply1: SupplyList = {
     school: "Herman",
     grade: "7",
-    item: "Pencil",
-    brand: "Generic",
-    color: "Yellow",
+    item: ["Pencil"],
+    brand: { allOf: ["Generic"], anyOf: [] },
+    color: { allOf: [], anyOf: ["yellow"] },
     count: 1,
     size: "Medium",
-    type: "Standard",
-    material: "Wood",
-    description: "A standard pencil for school use",
-    quantity: 2,
+    type: { allOf: ["Standard"], anyOf: [] },
+    material: { allOf: ["Wood"], anyOf: [] },
+    style: { allOf: [], anyOf: [] },
+    quantity: 1,
     notes: ""
   };
 
   static mockSupply2: SupplyList = {
     school: "Herman",
     grade: "3",
-    item: "Notebook",
-    brand: "Generic",
-    color: "Red",
+    item: ["Notebook"],
+    brand: { allOf: ["Generic"], anyOf: [] },
+    color: { allOf: ["red"], anyOf: [] },
     count: 1,
     size: "Medium",
-    type: "Standard",
-    material: "Paper",
-    description: "A standard notebook for school use",
+    type: { allOf: ["Standard"], anyOf: [] },
+    material: { allOf: ["Paper"], anyOf: [] },
+    style: { allOf: [], anyOf: [] },
     quantity: 1,
-    notes: ""
+    notes: "a good pencil?"
   };
 
   static mockSupply3: SupplyList = {
-    school: "Herman",
-    grade: "7",
-    item: "Pencil",
-    brand: "Generic",
-    color: "Yellow",
-    count: 1,
-    size: "Medium",
-    type: "Standard",
-    material: "Wood",
-    description: "A standard pencil for school use",
-    quantity: 1,
-    notes: "a good pencil?"
+    school: "Lincoln",
+    grade: "5",
+    item: ["Marker"],
+    brand: { allOf: ["Crayola"], anyOf: [] },
+    color: { allOf: [], anyOf: ["blue", "red"] },
+    count: 10,
+    size: "Large",
+    type: { allOf: ["Washable"], anyOf: [] },
+    material: { allOf: ["Plastic"], anyOf: [] },
+    style: { allOf: [], anyOf: [] },
+    quantity: 2,
+    notes: "extra supplies"
   };
 
 
@@ -89,6 +89,10 @@ export class MockChecklistService implements Pick<ChecklistService, 'getChecklis
   ];
 
   getChecklists(): Observable<Checklist[]> {
+    return of(MockChecklistService.testChecklists);
+  }
+
+  printAllChecklists(): Observable<Checklist[]> {
     return of(MockChecklistService.testChecklists);
   }
 

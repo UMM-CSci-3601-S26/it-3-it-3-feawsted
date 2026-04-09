@@ -31,8 +31,8 @@ public class Checklist {
     public Boolean unreceived = false;
     public String selectedOption;
 
-    // Default constructor for Jackson serialization
     public ChecklistItem() {
+      // No-arg constructor for deserialization
     }
 
     ChecklistItem(SupplyList supply) {

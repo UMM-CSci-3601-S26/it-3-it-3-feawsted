@@ -8,13 +8,13 @@
       {
         "name": "Tim",
         "grade": "1",
-        "school": "St. Mary's",
+        "school": "Chokio-Alberta Elementary School",
         "requestedSupplies": ["Headphones"]
       },
       {
         "name": "Sara",
         "grade": "2",
-        "school": "St. Mary's",
+        "school": "Chokio-Alberta Elementary School",
         "requestedSupplies": ["Backpack"]
       }
     ]
@@ -27,20 +27,20 @@
     "students": [
       {
         "name": "Johnny Jr.",
-        "grade": "PreK",
-        "school": "Herman",
+        "grade": "Pre-K",
+        "school": "Herman-Norcross Elementary School",
         "requestedSupplies": ["Headphones", "Backpack"]
       },
       {
         "name": "Burtrum",
         "grade": "4",
-        "school": "St. Mary's",
+        "school": "Herman-Norcross Elementary School",
         "requestedSupplies": ["Backpack"]
       },
       {
         "name": "Harold",
         "grade": "5",
-        "school": "St. Mary's",
+        "school": "Herman-Norcross Elementary School",
         "requestedSupplies": ["Backpack"]
       }
     ]
@@ -53,14 +53,14 @@
     "students": [
       {
         "name": "Timothy",
-        "grade": "PreK",
-        "school": "Herman",
+        "grade": "Pre-K",
+        "school": "Hancock Elementary School",
         "requestedSupplies": ["Headphones"]
       },
       {
         "name": "Sarah",
         "grade": "6",
-        "school": "St. Mary's",
+        "school": "Hancock Elementary School",
         "requestedSupplies": []
       }
     ]

@@ -125,54 +125,58 @@ public class InventoryControllerSpec {
     List<Document> testInventory = new ArrayList<>();
     testInventory.add(
         new Document()
-            .append("item", "Pencil")
+            .append("item", "pencil")
             .append("brand", "Ticonderoga")
             .append("color", "yellow")
             .append("count", 1)
-            .append("size", "N/A")
-            .append("description", "A standard pencil")
+            .append("size", "")
             .append("quantity", 10)
-            .append("notes", "N/A")
-            .append("type", "#2")
-            .append("material", "wood"));
+            .append("notes", "")
+            .append("type", List.of("#2"))
+            .append("style", List.of("hexagonal"))
+            .append("material", List.of("wood"))
+            .append("bin", List.of(1)));
     testInventory.add(
         new Document()
-            .append("item", "Eraser")
+            .append("item", "eraser")
             .append("brand", "Pink Pearl")
             .append("color", "pink")
             .append("count", 1)
-            .append("size", "Small")
-            .append("description", "A standard eraser")
+            .append("size", "small")
             .append("quantity", 5)
-            .append("notes", "N/A")
-            .append("type", "rubber")
-            .append("material", "rubber"));
+            .append("notes", "")
+            .append("type", List.of())
+            .append("style", List.of())
+            .append("material", List.of("rubber"))
+            .append("bin", List.of(2)));
     testInventory.add(
         new Document()
-            .append("item", "Notebook")
+            .append("item", "notebook")
             .append("brand", "Five Star")
             .append("color", "blue")
             .append("count", 1)
-            .append("size", "N/A")
-            .append("description", "A standard notebook")
+            .append("size", "")
             .append("quantity", 3)
-            .append("notes", "N/A")
-            .append("type", "spiral")
-            .append("material", "paper"));
+            .append("notes", "")
+            .append("type", List.of("spiral"))
+            .append("style", List.of("wide ruled"))
+            .append("material", List.of("paper"))
+            .append("bin", List.of(3)));
 
     inventoryId = new ObjectId();
     Document sam = new Document()
         .append("_id", inventoryId)
-        .append("item", "Backpack")
+        .append("item", "backpack")
         .append("brand", "JanSport")
         .append("color", "black")
         .append("count", 1)
-        .append("size", "Standard")
-        .append("description", "A standard backpack")
+        .append("size", "standard")
         .append("quantity", 2)
         .append("notes", "Plain colors only")
-        .append("type", "shoulder bag")
-        .append("material", "fabric");
+        .append("type", List.of("shoulder bag"))
+        .append("style", List.of())
+        .append("material", List.of("fabric"))
+        .append("bin", List.of(4, 5));
 
     inventoryDocuments.insertMany(testInventory);
     inventoryDocuments.insertOne(sam);
@@ -209,7 +213,7 @@ public class InventoryControllerSpec {
 
     verify(ctx).json(inventoryCaptor.capture());
     verify(ctx).status(HttpStatus.OK);
-    assertEquals("Backpack", inventoryCaptor.getValue().item);
+    assertEquals("backpack", inventoryCaptor.getValue().item);
     assertEquals(inventoryId.toHexString(), inventoryCaptor.getValue()._id);
   }
 
@@ -256,7 +260,7 @@ public class InventoryControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(1, inventoryArrayListCaptor.getValue().size());
-    assertEquals("Eraser", inventoryArrayListCaptor.getValue().get(0).item);
+    assertEquals("eraser", inventoryArrayListCaptor.getValue().get(0).item);
   }
 
   // If someone tries to filter by a quantity that isn’t a number,
@@ -288,7 +292,7 @@ public class InventoryControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(1, inventoryArrayListCaptor.getValue().size());
-    assertEquals("Pencil", inventoryArrayListCaptor.getValue().get(0).item);
+    assertEquals("pencil", inventoryArrayListCaptor.getValue().get(0).item);
   }
 
   @Test
@@ -330,13 +334,14 @@ public class InventoryControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(1, inventoryArrayListCaptor.getValue().size());
-    assertEquals("Standard", inventoryArrayListCaptor.getValue().get(0).size);
+    assertEquals("standard", inventoryArrayListCaptor.getValue().get(0).size);
   }
 
   @Test
   void canFilterInventoryByDescriptionCaseInsensitive() {
-    when(ctx.queryParamMap()).thenReturn(Map.of("description", List.of("A standard backpack")));
-    when(ctx.queryParam("description")).thenReturn("A standard backpack");
+    // description field has been removed; this test verifies type array filtering
+    when(ctx.queryParamMap()).thenReturn(Map.of("type", List.of("#2")));
+    when(ctx.queryParam("type")).thenReturn("#2");
 
     inventoryController.getInventories(ctx);
 
@@ -344,7 +349,7 @@ public class InventoryControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(1, inventoryArrayListCaptor.getValue().size());
-    assertEquals("A standard backpack", inventoryArrayListCaptor.getValue().get(0).description);
+    assertEquals("pencil", inventoryArrayListCaptor.getValue().get(0).item);
   }
 
   @Test
@@ -370,7 +375,7 @@ public class InventoryControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(1, inventoryArrayListCaptor.getValue().size());
-    assertEquals("wood", inventoryArrayListCaptor.getValue().get(0).material);
+    assertEquals("wood", inventoryArrayListCaptor.getValue().get(0).material[0]);
   }
 
   @Test
@@ -383,7 +388,7 @@ public class InventoryControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(1, inventoryArrayListCaptor.getValue().size());
-    assertEquals("shoulder bag", inventoryArrayListCaptor.getValue().get(0).type);
+    assertEquals("shoulder bag", inventoryArrayListCaptor.getValue().get(0).type[0]);
   }
 
   // Makes sure that multiple filters can be applied at once
@@ -398,8 +403,8 @@ public class InventoryControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(2, inventoryArrayListCaptor.getValue().size());
-    assertEquals("Pencil", inventoryArrayListCaptor.getValue().get(0).item);
-    assertEquals("Notebook", inventoryArrayListCaptor.getValue().get(1).item);
+    assertEquals("pencil", inventoryArrayListCaptor.getValue().get(0).item);
+    assertEquals("notebook", inventoryArrayListCaptor.getValue().get(1).item);
   }
 
   @Test
@@ -444,14 +449,15 @@ public class InventoryControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(2, inventoryArrayListCaptor.getValue().size());
-    assertEquals("Small", inventoryArrayListCaptor.getValue().get(0).size);
-    assertEquals("Standard", inventoryArrayListCaptor.getValue().get(1).size);
+    assertEquals("small", inventoryArrayListCaptor.getValue().get(0).size);
+    assertEquals("standard", inventoryArrayListCaptor.getValue().get(1).size);
   }
 
   @Test
   void canFilterInventoryByDescriptionMultipleCaseInsensitive() {
-    when(ctx.queryParamMap()).thenReturn(Map.of("description", List.of("backpack, pencil")));
-    when(ctx.queryParam("description")).thenReturn("backpack, pencil");
+    // description field removed; this test now verifies multi-value type filtering
+    when(ctx.queryParamMap()).thenReturn(Map.of("type", List.of("#2, spiral")));
+    when(ctx.queryParam("type")).thenReturn("#2, spiral");
 
     inventoryController.getInventories(ctx);
 
@@ -459,8 +465,8 @@ public class InventoryControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(2, inventoryArrayListCaptor.getValue().size());
-    assertEquals("A standard pencil", inventoryArrayListCaptor.getValue().get(0).description);
-    assertEquals("A standard backpack", inventoryArrayListCaptor.getValue().get(1).description);
+    assertEquals("pencil", inventoryArrayListCaptor.getValue().get(0).item);
+    assertEquals("notebook", inventoryArrayListCaptor.getValue().get(1).item);
   }
 
   @Test
@@ -473,21 +479,76 @@ public class InventoryControllerSpec {
     verify(ctx).status(HttpStatus.OK);
 
     assertEquals(2, inventoryArrayListCaptor.getValue().size());
-    assertEquals("wood", inventoryArrayListCaptor.getValue().get(0).material);
-    assertEquals("paper", inventoryArrayListCaptor.getValue().get(1).material);
+    assertEquals("wood", inventoryArrayListCaptor.getValue().get(0).material[0]);
+    assertEquals("paper", inventoryArrayListCaptor.getValue().get(1).material[0]);
   }
 
-// @Test
-  // void canFilterInventoryByTypeMultipleCaseInsensitive() {
-  //   when(ctx.queryParamMap()).thenReturn(Map.of("type", List.of("shoulder bag, spiral")));
-  //   when(ctx.queryParam("type")).thenReturn("shoulder bag, spiral");
-  //   inventoryController.getInventories(ctx);
-  //   verify(ctx).json(inventoryArrayListCaptor.capture());
-  //   verify(ctx).status(HttpStatus.OK);
-  //   assertEquals(2, inventoryArrayListCaptor.getValue().size());
-  //   assertEquals("spiral", inventoryArrayListCaptor.getValue().get(0).type);
-  //   assertEquals("shoulder bag", inventoryArrayListCaptor.getValue().get(1).type);
-  // }
+  @Test
+  void canFilterInventoryByTypeMultipleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("type", List.of("shoulder bag, spiral")));
+    when(ctx.queryParam("type")).thenReturn("shoulder bag, spiral");
+    inventoryController.getInventories(ctx);
+
+    verify(ctx).json(inventoryArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(2, inventoryArrayListCaptor.getValue().size());
+    assertEquals("spiral", inventoryArrayListCaptor.getValue().get(0).type[0]);
+    assertEquals("shoulder bag", inventoryArrayListCaptor.getValue().get(1).type[0]);
+  }
+
+  @Test
+  void canFilterInventoryByBin() throws IOException {
+    when(ctx.queryParamMap()).thenReturn(Map.of("bin", List.of("1")));
+    when(ctx.queryParam("bin")).thenReturn("1");
+    inventoryController.getInventories(ctx);
+
+    verify(ctx).json(inventoryArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(1, inventoryArrayListCaptor.getValue().size());
+    assertEquals("pencil", inventoryArrayListCaptor.getValue().get(0).item);
+    assertEquals(1, inventoryArrayListCaptor.getValue().get(0).bin[0]);
+  }
+
+  @Test
+  void canFilterInventoryByBinMultiple() throws IOException {
+    when(ctx.queryParamMap()).thenReturn(Map.of("bin", List.of("4")));
+    when(ctx.queryParam("bin")).thenReturn("4");
+    inventoryController.getInventories(ctx);
+
+    verify(ctx).json(inventoryArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(1, inventoryArrayListCaptor.getValue().size());
+    assertEquals("backpack", inventoryArrayListCaptor.getValue().get(0).item);
+  }
+
+  @Test
+  void cannotFilterInventoryByBinWithInvalidValue() throws IOException {
+    when(ctx.queryParamMap()).thenReturn(Map.of("bin", List.of("notANumber")));
+    when(ctx.queryParam("bin")).thenReturn("notANumber");
+
+    Throwable exception = assertThrows(BadRequestResponse.class, () -> {
+      inventoryController.getInventories(ctx);
+    });
+
+    assertEquals("bin must be an integer.", exception.getMessage());
+  }
+
+  @Test
+  void canFilterInventoryByStyleCaseInsensitive() {
+    when(ctx.queryParamMap()).thenReturn(Map.of("style", List.of("HEXAGONAL")));
+    when(ctx.queryParam("style")).thenReturn("HEXAGONAL");
+    inventoryController.getInventories(ctx);
+
+    verify(ctx).json(inventoryArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(1, inventoryArrayListCaptor.getValue().size());
+    assertEquals("pencil", inventoryArrayListCaptor.getValue().get(0).item);
+    assertEquals("hexagonal", inventoryArrayListCaptor.getValue().get(0).style[0]);
+  }
 
   // Makes sure the controller actually registers its routes with Javalin.
   // If someone accidentally removes or renames a route, this test will catch it.
@@ -554,11 +615,12 @@ public class InventoryControllerSpec {
           "color": "multicolor",
           "count": 1,
           "size": "N/A",
-          "description": "A box of crayons",
           "quantity": 2,
-          "notes": "N/A",
-          "type": "wax",
-          "material": "wax"
+          "notes": "",
+          "type": [],
+          "style": [],
+          "material": ["wax"],
+          "bin": [7]
         }
         """;
 
@@ -578,10 +640,9 @@ public class InventoryControllerSpec {
     assertEquals("multicolor", addedInventory.get("color"));
     assertEquals(1, addedInventory.get("count"));
     assertEquals("N/A", addedInventory.get("size"));
-    assertEquals("A box of crayons", addedInventory.get("description"));
     assertEquals(2, addedInventory.get("quantity"));
-    assertEquals("N/A", addedInventory.get("notes"));
-    assertEquals("wax", addedInventory.get("type"));
+    assertEquals("", addedInventory.get("notes"));
+    assertEquals(List.of(), addedInventory.get("type"));
   }
 
   // Tries to add an item where “count” is invalid (like zero or wrong type).
@@ -595,12 +656,13 @@ public class InventoryControllerSpec {
           "brand": "Crayola",
           "color": "multicolor",
           "count": "0",
-          "size": "N/A",
-          "description": "A box of crayons",
+          "size": "",
           "quantity": 2,
-          "notes": "N/A",
-          "type": "wax",
-          "material": "wax"
+          "notes": "",
+          "type": [],
+          "style": [],
+          "material": ["wax"],
+          "bin": []
         }
         """;
 
@@ -628,12 +690,13 @@ public class InventoryControllerSpec {
           "brand": "Crayola",
           "color": "multicolor",
           "count": "1",
-          "size": "N/A",
-          "description": "A box of crayons",
+          "size": "",
           "quantity": -1,
-          "notes": "N/A",
-          "type": "wax",
-          "material": "wax"
+          "notes": "",
+          "type": [],
+          "style": [],
+          "material": ["wax"],
+          "bin": []
         }
         """;
 
@@ -661,12 +724,13 @@ public class InventoryControllerSpec {
           "brand": "Crayola",
           "color": "multicolor",
           "count": "10",
-          "size": "N/A",
-          "description": "A box of crayons",
+          "size": "",
           "quantity": 2,
-          "notes": "N/A",
-          "type": "wax",
-          "material": "wax"
+          "notes": "",
+          "type": [],
+          "style": [],
+          "material": ["wax"],
+          "bin": []
         }
         """;
 
@@ -694,12 +758,13 @@ public class InventoryControllerSpec {
           "brand": "Crayola",
           "color": "multicolor",
           "count": 1,
-          "size": "N/A",
-          "description": "A box of crayons",
+          "size": "",
           "quantity": 6,
-          "notes": "N/A",
-          "type": "wax",
-          "material": "wax"
+          "notes": "For art",
+          "type": ["multi-colored"],
+          "style": [],
+          "material": ["wax"],
+          "bin": []
         }
         """;
 
@@ -719,11 +784,10 @@ public class InventoryControllerSpec {
     assertEquals("Crayola", editedInventory.get("brand"));
     assertEquals("multicolor", editedInventory.get("color"));
     assertEquals(1, editedInventory.get("count"));
-    assertEquals("N/A", editedInventory.get("size"));
-    assertEquals("A box of crayons", editedInventory.get("description"));
+    assertEquals("", editedInventory.get("size"));
     assertEquals(6, editedInventory.get("quantity"));
-    assertEquals("N/A", editedInventory.get("notes"));
-    assertEquals("wax", editedInventory.get("type"));
+    assertEquals("For art", editedInventory.get("notes"));
+    assertEquals(List.of("multi-colored"), editedInventory.get("type"));
   }
 
   // A well-formed request body but the ID in the URL is not a valid ObjectId.
@@ -738,12 +802,13 @@ public class InventoryControllerSpec {
           "brand": "Crayola",
           "color": "multicolor",
           "count": 1,
-          "size": "N/A",
-          "description": "A box of crayons",
+          "size": "",
           "quantity": 6,
-          "notes": "N/A",
-          "type": "wax",
-          "material": "wax"
+          "notes": "",
+          "type": [],
+          "style": [],
+          "material": ["wax"],
+          "bin": []
         }
         """;
 
@@ -772,12 +837,13 @@ public class InventoryControllerSpec {
           "brand": "Crayola",
           "color": "multicolor",
           "count": 1,
-          "size": "N/A",
-          "description": "A box of crayons",
+          "size": "",
           "quantity": 6,
-          "notes": "N/A",
-          "type": "wax",
-          "material": "wax"
+          "notes": "",
+          "type": [],
+          "style": [],
+          "material": ["wax"],
+          "bin": []
         }
         """;
 
@@ -807,12 +873,13 @@ public class InventoryControllerSpec {
           "brand": "Crayola",
           "color": "multicolor",
           "count": 1,
-          "size": "N/A",
-          "description": "A box of crayons",
+          "size": "",
           "quantity": 6,
-          "notes": "N/A",
-          "type": "wax",
-          "material": "wax"
+          "notes": "",
+          "type": [],
+          "style": [],
+          "material": ["wax"],
+          "bin": []
         }
         """;
 
@@ -842,12 +909,13 @@ public class InventoryControllerSpec {
           "brand": "Crayola",
           "color": "multicolor",
           "count": 0,
-          "size": "N/A",
-          "description": "A box of crayons",
+          "size": "",
           "quantity": 6,
-          "notes": "N/A",
-          "type": "wax",
-          "material": "wax"
+          "notes": "",
+          "type": [],
+          "style": [],
+          "material": ["wax"],
+          "bin": []
         }
         """;
 
@@ -877,12 +945,13 @@ public class InventoryControllerSpec {
           "brand": "Crayola",
           "color": "multicolor",
           "count": 1,
-          "size": "N/A",
-          "description": "A box of crayons",
+          "size": "",
           "quantity": -1,
-          "notes": "N/A",
-          "type": "wax",
-          "material": "wax"
+          "notes": "",
+          "type": [],
+          "style": [],
+          "material": ["wax"],
+          "bin": []
         }
         """;
 

@@ -59,11 +59,12 @@ public class InventoryController implements Controller {
   static final String COUNT_KEY = "count";
   static final String SIZE_KEY = "size";
   static final String COLOR_KEY = "color";
-  static final String DESCRIPTION_KEY = "description";
   static final String QUANTITY_KEY = "quantity";
   static final String NOTES_KEY = "notes";
   static final String MATERIAL_KEY = "material";
   static final String TYPE_KEY = "type";
+  static final String STYLE_KEY = "style";
+  static final String BIN_KEY = "bin";
   static final String SORT_ORDER_KEY = "sortorder";
 
   private final JacksonMongoCollection<Inventory> inventoryCollection;
@@ -147,11 +148,6 @@ public class InventoryController implements Controller {
       filters.add(multipleIntakeFilter(SIZE_KEY, ctx.queryParam(SIZE_KEY)));
     }
 
-    // For description
-    if (ctx.queryParamMap().containsKey(DESCRIPTION_KEY)) {
-      filters.add(multipleIntakeFilter(DESCRIPTION_KEY, ctx.queryParam(DESCRIPTION_KEY)));
-    }
-
     // For quantity, which must be an integer
     if (ctx.queryParamMap().containsKey(QUANTITY_KEY)) {
       String qParam = ctx.queryParam(QUANTITY_KEY);
@@ -172,6 +168,22 @@ public class InventoryController implements Controller {
     // For material
     if (ctx.queryParamMap().containsKey(MATERIAL_KEY)) {
       filters.add(multipleIntakeFilter(MATERIAL_KEY, ctx.queryParam(MATERIAL_KEY)));
+    }
+
+    // For style
+    if (ctx.queryParamMap().containsKey(STYLE_KEY)) {
+      filters.add(multipleIntakeFilter(STYLE_KEY, ctx.queryParam(STYLE_KEY)));
+    }
+
+    // For bin
+    if (ctx.queryParamMap().containsKey(BIN_KEY)) {
+      String binParam = ctx.queryParam(BIN_KEY);
+      try {
+        int bin = Integer.parseInt(binParam);
+        filters.add(Filters.eq(BIN_KEY, bin));
+      } catch (NumberFormatException e) {
+        throw new BadRequestResponse("bin must be an integer.");
+      }
     }
 
     // For type

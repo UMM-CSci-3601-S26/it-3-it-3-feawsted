@@ -13,54 +13,54 @@ export class MockSupplyListService implements Pick<SupplyListService, 'getSupply
     {
       school: "MHS",
       grade: "PreK",
-      item: "Markers",
-      description: "8 Pack of Washable Wide Markers",
-      brand: "Crayola",
-      color: "N/A",
+      item: ["Markers"],
+      brand: { allOf: [], anyOf: ["Crayola"] },
+      color: { allOf: [], anyOf: [] },
       count: 8,
       size: "Wide",
-      type: "Washable",
-      material: "N/A",
+      type: { allOf: ["Washable"], anyOf: [] },
+      style: { allOf: [], anyOf: [] },
+      material: { allOf: [], anyOf: [] },
       quantity: 0,
-      notes: "N/A"
+      notes: ""
     },
     {
       school: "Herman",
       grade: "preK",
-      item: "Folder",
-      description: "Red 2 Prong Plastic Pocket Folder",
-      brand: "N/A",
-      color: "Red",
+      item: ["Folder"],
+      brand: { allOf: [], anyOf: [] },
+      color: { allOf: [], anyOf: ["Red"] },
       count: 1,
-      size: "N/A",
-      type: "2 Prong",
-      material: "Plastic",
+      size: "",
+      type: { allOf: ["2 Prong"], anyOf: [] },
+      style: { allOf: [], anyOf: [] },
+      material: { allOf: [], anyOf: ["Plastic"] },
       quantity: 0,
-      notes: "N/A"
+      notes: ""
     },
     {
       school: "MHS",
       grade: "6th grade",
-      item: "Notebook",
-      description: "Yellow Wide Ruled Spiral Notebook",
-      brand: "Five Star",
-      color: "Yellow",
+      item: ["Notebook"],
+      brand: { allOf: [], anyOf: ["Five Star"] },
+      color: { allOf: [], anyOf: ["Yellow"] },
       count: 1,
       size: "Wide Ruled",
-      type: "Spiral",
-      material: "N/A",
+      type: { allOf: ["Spiral"], anyOf: [] },
+      style: { allOf: [], anyOf: [] },
+      material: { allOf: [], anyOf: [] },
       quantity: 0,
-      notes: "N/A"
+      notes: ""
     }
   ];
 
   /* eslint-disable @typescript-eslint/no-unused-vars */
-  getSupplyList(_filters: { school?: string, grade?: string, item?: string, brand?: string, color?: string, size?: string, type?: string, material?: string }): Observable<SupplyList[]> {
+  getSupplyList(_filters: { school?: string, grade?: string, item?: string, brand?: string, color?: string, size?: string, type?: string, material?: string, style?: string }): Observable<SupplyList[]> {
     return of(MockSupplyListService.testSupplyList);
   }
 
-  addSupplyList(_newItem: Partial<SupplyList>): Observable<string> {
-    return of('test-id');
+  addSupplyList(_newItem: Partial<SupplyList>): Observable<void> {
+    return of(undefined);
   }
 
   deleteSupplyList(_id: string): Observable<unknown> {

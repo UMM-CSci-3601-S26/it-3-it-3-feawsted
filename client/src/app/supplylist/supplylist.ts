@@ -1,15 +1,22 @@
+export interface AttributeOptions {
+  allOf: string[];
+  anyOf: string[];
+}
+
 export interface SupplyList {
   _id?: string,
+  district?: string,
   school: string,
   grade: string,
   teacher?: string,
-  item: string,
-  description: string,
-  brand: string,
-  color:string,
+  academicYear?: string,
+  item: string[],
+  brand: AttributeOptions,
+  color: AttributeOptions,
   size: string,
-  type: string,
-  material:string,
+  type: AttributeOptions,
+  style: AttributeOptions,
+  material: AttributeOptions,
   count: number,
   quantity: number,
   notes: string

@@ -5,6 +5,8 @@ import { Injectable, inject } from '@angular/core';
 // RxJS Imports
 import { Observable } from 'rxjs';
 
+// import { jsPDF } from 'jspdf';
+
 // Environment and Checklist Interface Imports
 import { environment } from '../../environments/environment';
 import { Checklist } from './checklist';
@@ -20,6 +22,7 @@ import { Checklist } from './checklist';
  * the API endpoints defined in the environment configuration, and it handles the necessary query parameters for filtering and data retrieval as needed.
  * Each method returns an Observable that can be subscribed to by components or other services that require access to checklist data.
  */
+@Injectable({ providedIn: 'root' })
 export class ChecklistService {
   private httpClient = inject(HttpClient);
 
@@ -56,6 +59,35 @@ export class ChecklistService {
   // exportChecklists(): Observable<string> {
   //   return this.httpClient.get(`${this.checklistUrl}/export`, {
   //     responseType: 'text'
+  //   });
+  // }
+  printAllChecklists(): Observable<Checklist[]> {
+    return this.httpClient.get<Checklist[]>(this.checklistUrl);
+  }
+
+  // downloadPDF() {
+  //   this.checklistService.printAllChecklists().subscribe(checklists => {
+  //     const doc = new jsPDF();
+
+  //     let y = 10;
+
+  //     checklists.forEach((c: any) => {
+  //       doc.text(`Student: ${c.studentName} (${c.school}, Grade ${c.grade})`, 10, y);
+  //       y += 8;
+
+  //       c.checklist.forEach((item: any) => {
+  //         doc.text(
+  //           ` - ${item.supply} | completed: ${item.completed} | unreceived: ${item.unreceived} | option: ${item.selectedOption}`,
+  //           10,
+  //           y
+  //         );
+  //         y += 6;
+  //       });
+
+  //       y += 10;
+  //     });
+
+  //     doc.save('checklists.pdf');
   //   });
   // }
 }

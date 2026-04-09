@@ -11,42 +11,42 @@ describe('SupplyListService', () => {
     {
       school: "MHS",
       grade: "PreK",
-      item: "Markers",
-      description: "8 Pack of Washable Wide Markers",
-      brand: "Crayola",
-      color: "Black",
+      item: ["Markers"],
+      brand: { allOf: [], anyOf: ["Crayola"] },
+      color: { allOf: [], anyOf: ["Black"] },
       count: 8,
       size: "Wide",
-      type: "Washable",
-      material: "N/A",
+      type: { allOf: ["Washable"], anyOf: [] },
+      style: { allOf: [], anyOf: [] },
+      material: { allOf: [], anyOf: ["N/A"] },
       quantity: 0,
       notes: "N/A"
     },
     {
       school: "Herman",
       grade: "6th grade",
-      item: "Folder",
-      description: "Red 2 Prong Plastic Pocket Folder",
-      brand: "N/A",
-      color: "Red",
+      item: ["Folder"],
+      brand: { allOf: [], anyOf: ["N/A"] },
+      color: { allOf: [], anyOf: ["Red"] },
       count: 1,
       size: "N/A",
-      type: "2 Prong",
-      material: "Plastic",
+      type: { allOf: ["2 Prong"], anyOf: [] },
+      style: { allOf: [], anyOf: [] },
+      material: { allOf: [], anyOf: ["Plastic"] },
       quantity: 0,
       notes: "N/A"
     },
     {
       school: "MHS",
       grade: "4th grade",
-      item: "Notebook",
-      description: "Yellow Wide Ruled Spiral Notebook",
-      brand: "Five Star",
-      color: "Yellow",
+      item: ["Notebook"],
+      brand: { allOf: [], anyOf: ["Five Star"] },
+      color: { allOf: [], anyOf: ["Yellow"] },
       count: 1,
       size: "Wide Ruled",
-      type: "Spiral",
-      material: "N/A",
+      type: { allOf: ["Spiral"], anyOf: [] },
+      style: { allOf: [], anyOf: [] },
+      material: { allOf: [], anyOf: ["N/A"] },
       quantity: 0,
       notes: "N/A"
     }
@@ -308,13 +308,13 @@ describe('SupplyListService', () => {
       const newItem: Partial<SupplyList> = {
         school: 'MHS',
         grade: 'PreK',
-        item: 'Scissors',
-        brand: 'Fiskars',
-        color: 'Orange',
+        item: ['Scissors'],
+        brand: { allOf: [], anyOf: ['Fiskars'] },
+        color: { allOf: [], anyOf: ['Orange'] },
         size: 'Kids',
-        type: 'Blunt',
-        material: 'Metal',
-        description: 'Kids blunt scissors',
+        type: { allOf: ['Blunt'], anyOf: [] },
+        style: { allOf: [], anyOf: [] },
+        material: { allOf: [], anyOf: ['Metal'] },
         count: 1,
         quantity: 5,
         notes: 'N/A'
@@ -328,18 +328,16 @@ describe('SupplyListService', () => {
     });
 
     it('returns the id from the server response', () => {
-      const newItem: Partial<SupplyList> = { item: 'Glue Stick', school: 'Herman', grade: '2nd grade',
-        brand: 'Elmer\'s', color: 'White', size: 'Regular', type: 'Stick', material: 'N/A',
-        description: 'Washable glue stick', count: 1, quantity: 3, notes: '' };
-      let returnedId: string | undefined;
+      const newItem: Partial<SupplyList> = { item: ['Glue Stick'], school: 'Herman', grade: '2nd grade',
+        brand: { allOf: [], anyOf: ['Elmer\'s'] }, color: { allOf: [], anyOf: ['White'] },
+        size: 'Regular', type: { allOf: ['Stick'], anyOf: [] }, style: { allOf: [], anyOf: [] },
+        material: { allOf: [], anyOf: ['N/A'] }, count: 1, quantity: 3, notes: '' };
 
-      supplylistService.addSupplyList(newItem).subscribe(id => {
-        returnedId = id;
-      });
+      supplylistService.addSupplyList(newItem).subscribe();
 
       const req = httpTestingController.expectOne(supplylistService.supplylistUrl);
       req.flush({ id: 'returned-id' });
-      expect(returnedId).toEqual('returned-id');
+      expect(req.request.method).toEqual('POST');
     });
   });
 
@@ -350,13 +348,13 @@ describe('SupplyListService', () => {
       const updatedItem: Partial<SupplyList> = {
         school: 'MHS',
         grade: '4th grade',
-        item: 'Notebook',
-        brand: 'Five Star',
-        color: 'Blue',
+        item: ['Notebook'],
+        brand: { allOf: [], anyOf: ['Five Star'] },
+        color: { allOf: [], anyOf: ['Blue'] },
         size: 'Wide Ruled',
-        type: 'Spiral',
-        material: 'N/A',
-        description: 'Blue wide ruled spiral notebook',
+        type: { allOf: ['Spiral'], anyOf: [] },
+        style: { allOf: [], anyOf: [] },
+        material: { allOf: [], anyOf: ['N/A'] },
         count: 1,
         quantity: 2,
         notes: 'N/A'

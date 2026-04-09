@@ -136,9 +136,10 @@ class ChecklistControllerSpec {
             .append("checklist", List.of(
                 new Document()
                     .append("supply", new Document()
-                        .append("item", "Pencils")
-                        .append("brand", "Ticonderoga")
-                        .append("description", "Ticonderoga Pencil"))
+                        .append("item", Arrays.asList("Pencils"))
+                        .append("brand", new Document()
+                        .append("allOf", Arrays.asList("Ticonderoga"))
+                        .append("anyOf", new ArrayList<>())))
                     .append("completed", false)
                     .append("unreceived", false)
                     .append("selectedOption", null))));
@@ -151,9 +152,10 @@ class ChecklistControllerSpec {
             .append("checklist", List.of(
                 new Document()
                     .append("supply", new Document()
-                        .append("item", "Notebooks")
-                        .append("brand", "Five Star")
-                        .append("description", "Five Star Notebook"))
+                        .append("item", Arrays.asList("Notebooks"))
+                        .append("brand", new Document()
+                        .append("allOf", Arrays.asList("Five Star"))
+                        .append("anyOf", new ArrayList<>())))
                     .append("completed", false)
                     .append("unreceived", false)
                     .append("selectedOption", null))));
@@ -166,9 +168,10 @@ class ChecklistControllerSpec {
             .append("checklist", List.of(
                 new Document()
                     .append("supply", new Document()
-                        .append("item", "Erasers")
-                        .append("brand", "Pink Pearl")
-                        .append("description", "Pink Pearl Eraser"))
+                        .append("item", Arrays.asList("Erasers"))
+                        .append("brand", new Document()
+                        .append("allOf", Arrays.asList("Pink Pearl"))
+                        .append("anyOf", new ArrayList<>())))
                     .append("completed", false)
                     .append("unreceived", false)
                     .append("selectedOption", null))));
@@ -184,9 +187,9 @@ class ChecklistControllerSpec {
         .append("checklist", List.of(
             new Document()
                 .append("supply", new Document()
-                    .append("item", "Markers")
-                    .append("brand", "Crayola")
-                    .append("description", "Crayola Markers"))
+                    .append("item", Arrays.asList("Markers"))
+                    .append("brand", new Document().append("allOf", Arrays.asList("Crayola"))
+                    .append("anyOf", new ArrayList<>())))
                 .append("completed", false)
                 .append("unreceived", false)
                 .append("selectedOption", null)));
@@ -243,7 +246,7 @@ class ChecklistControllerSpec {
         checklistCollection);
     // Mock supply list
     SupplyList supply = new SupplyList();
-    supply.item = "Pencils";
+    supply.item = Arrays.asList("Pencils");
 
     FindIterable<SupplyList> supplyFind = mock(FindIterable.class);
     when(supplyListCollection.find()).thenReturn(supplyFind);
@@ -310,7 +313,7 @@ class ChecklistControllerSpec {
     SupplyList supply = new SupplyList();
     supply.school = "MAHS";
     supply.grade = "4";
-    supply.item = "Notebook";
+    supply.item = Arrays.asList("Notebook");
 
     List<SupplyList> supplies = List.of(supply);
 
@@ -326,7 +329,7 @@ class ChecklistControllerSpec {
     // Assert one checklist item was created for the matching supply
     assertEquals(1, result.checklist.size());
     Checklist.ChecklistItem item = result.checklist.get(0);
-    assertEquals("Notebook", item.supply.item);
+    assertTrue(item.supply.item.contains("Notebook"));
     assertEquals(false, item.completed);
     assertEquals(false, item.unreceived);
     assertEquals(null, item.selectedOption);
@@ -349,12 +352,12 @@ class ChecklistControllerSpec {
     SupplyList wrongSchool = new SupplyList();
     wrongSchool.school = "AHS";
     wrongSchool.grade = "4";
-    wrongSchool.item = "Pencils";
+    wrongSchool.item = Arrays.asList("Pencils");
 
     SupplyList wrongGrade = new SupplyList();
     wrongGrade.school = "MAHS";
     wrongGrade.grade = "8";
-    wrongGrade.item = "Notebooks";
+    wrongGrade.item = Arrays.asList("Notebooks");
 
     List<SupplyList> supplies = List.of(wrongSchool, wrongGrade);
 
@@ -488,56 +491,140 @@ class ChecklistControllerSpec {
     assertTrue(result.size() > 0);
     assertTrue(result.get(0).studentName.equals("Elmo"));
   }
-  // @Test
-  // void canCreateChecklist() throws IOException {
-  // when(ctx.queryParamMap()).thenReturn(Collections.emptyMap());
-  // checklistController.createChecklist(ctx);
 
-  // verify(ctx).json(checklistArrayListCaptor.capture());
-  // verify(ctx).status(HttpStatus.OK);
+  // Tests for normalizeSchool static method
+  @Test
+  void normalizeSchoolHandlesNull() {
+    assertEquals("", ChecklistController.normalizeSchool(null));
+  }
 
-  // assertEquals(
-  // db.getCollection("checklists").countDocuments(),
-  // checklistArrayListCaptor.getValue().size());
-  // }
+  @Test
+  void normalizeSchoolStripsTrailingSchool() {
+    assertEquals("morris area high", ChecklistController.normalizeSchool("Morris Area High School"));
+  }
 
-  // Looks up a checklist using a real ID and makes sure the controller returns
-  // the
-  // correct checklist and a 200 OK status. @Test
-  // Checks that the CSV export endpoint produces a properly formatted CSV string,
-  // including the header and the correct student counts for each checklist. @Test
-  /*
-   * @Test
-   * void exportFamiliesAsCSVProducesCorrectCSV() {
-   * checklistController.exportFamiliesAsCSV(ctx);
-   * ArgumentCaptor<String> resultCaptor = ArgumentCaptor.forClass(String.class);
-   *
-   * verify(ctx).result(resultCaptor.capture());
-   * verify(ctx).contentType("text/csv");
-   * verify(ctx).status(HttpStatus.OK);
-   *
-   * String csv = resultCaptor.getValue();
-   *
-   * // Check header
-   * assertTrue(csv.contains(
-   * "Guardian Name,Email,Address,Time Slot,Number of Students"));
-   *
-   * // Check Jane Doe (2 students)
-   * assertTrue(csv.contains(
-   * "\"Jane Doe\",\"jane@email.com\",\"123 Street\",\"10:00-11:00\",2"));
-   *
-   * // Check John Christensen (2 students)
-   * assertTrue(csv.contains(
-   * "\"John Christensen\",\"jchristensen@email.com\",\"713 Broadway\",\"8:00-9:00\",2"
-   * ));
-   *
-   * // Check John Johnson (1 student)
-   * assertTrue(csv.contains(
-   * "\"John Johnson\",\"jjohnson@email.com\",\"456 Avenue\",\"2:00-3:00\",1"));
-   *
-   * // Check Bob Jones (1 student)
-   * assertTrue(csv.contains(
-   * "\"Bob Jones\",\"bob@email.com\",\"456 Oak Ave\",\"2:00-3:00\",1"));
-   * }
-   */
+  @Test
+  void normalizeSchoolTrimsAndLowers() {
+    assertEquals("mahs", ChecklistController.normalizeSchool("  MAHS  "));
+  }
+
+  // Tests for normalizeGrade static method
+  @Test
+  void normalizeGradeHandlesNull() {
+    assertEquals("", ChecklistController.normalizeGrade(null));
+  }
+
+  @Test
+  void normalizeGradeStripsHyphensAndSpaces() {
+    assertEquals("4thgrade", ChecklistController.normalizeGrade("4th-Grade"));
+  }
+
+  @Test
+  void normalizeGradeTrimsAndLowers() {
+    assertEquals("prek", ChecklistController.normalizeGrade("  PreK  "));
+  }
+
+  // Test constructFilter with only school param
+  @Test
+  void filterChecklistsBySchoolOnly() throws IOException {
+    when(ctx.queryParamMap()).thenReturn(Map.of("school", List.of("MAHS")));
+    when(ctx.queryParam("school")).thenReturn("MAHS");
+
+    checklistController.getStoredChecklists(ctx);
+
+    verify(ctx).json(checklistArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(1, checklistArrayListCaptor.getValue().size());
+    assertEquals("Elmo", checklistArrayListCaptor.getValue().get(0).studentName);
+  }
+
+  // Test constructFilter with only grade param
+  @Test
+  void filterChecklistsByGradeOnly() throws IOException {
+    when(ctx.queryParamMap()).thenReturn(Map.of("grade", List.of("8")));
+    when(ctx.queryParam("grade")).thenReturn("8");
+
+    checklistController.getStoredChecklists(ctx);
+
+    verify(ctx).json(checklistArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(1, checklistArrayListCaptor.getValue().size());
+    assertEquals("johnny", checklistArrayListCaptor.getValue().get(0).studentName);
+  }
+
+  // Test constructFilter with all three params
+  @Test
+  void filterChecklistsBySchoolGradeAndName() throws IOException {
+    when(ctx.queryParamMap()).thenReturn(Map.of(
+        "school", List.of("MAHS"),
+        "grade", List.of("4"),
+        "studentName", List.of("Elmo")));
+    when(ctx.queryParam("school")).thenReturn("MAHS");
+    when(ctx.queryParam("grade")).thenReturn("4");
+    when(ctx.queryParam("studentName")).thenReturn("Elmo");
+
+    checklistController.getStoredChecklists(ctx);
+
+    verify(ctx).json(checklistArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(1, checklistArrayListCaptor.getValue().size());
+    assertEquals("Elmo", checklistArrayListCaptor.getValue().get(0).studentName);
+  }
+
+  // Test createChecklist when supply has null school
+  @Test
+  void createChecklistExcludesSupplyWithNullSchool() {
+    ChecklistController controller = new ChecklistController(null, null, null);
+
+    StudentInfo student = new StudentInfo();
+    student.name = "TestStudent";
+    student.school = "MAHS";
+    student.grade = "4";
+    student.requestedSupplies = List.of();
+
+    SupplyList supplyNullSchool = new SupplyList();
+    supplyNullSchool.school = null;
+    supplyNullSchool.grade = "4";
+    supplyNullSchool.item = Arrays.asList("Pencils");
+
+    SupplyList supplyNullGrade = new SupplyList();
+    supplyNullGrade.school = "MAHS";
+    supplyNullGrade.grade = null;
+    supplyNullGrade.item = Arrays.asList("Erasers");
+
+    Checklist result = controller.createChecklist(student, List.of(supplyNullSchool, supplyNullGrade));
+    assertEquals(0, result.checklist.size());
+  }
+
+  // Test Checklist.equals() branches
+  @Test
+  void checklistEqualsWithSelf() {
+    Checklist c = new Checklist();
+    c._id = "abc";
+    assertEquals(c, c);
+  }
+
+  @Test
+  void checklistEqualsWithNull() {
+    Checklist c = new Checklist();
+    c._id = "abc";
+    assertTrue(!c.equals(null));
+  }
+
+  @Test
+  void checklistEqualsWithNonChecklist() {
+    Checklist c = new Checklist();
+    c._id = "abc";
+    assertTrue(!c.equals("not a checklist"));
+  }
+
+  @Test
+  void checklistHashCodeWithNullId() {
+    Checklist c = new Checklist();
+    c._id = null;
+    assertEquals(0, c.hashCode());
+  }
 }

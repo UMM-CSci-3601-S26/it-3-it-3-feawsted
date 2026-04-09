@@ -21,37 +21,40 @@ describe('InventoryService', () => {
   const testInventory: Inventory[] = [
     {
       item: "Markers",
-      description: "8 Pack of Washable Wide Markers",
       brand: "Crayola",
       color: "Black",
       count: 8,
       size: "Wide",
-      type: "Washable",
-      material: "N/A",
+      type: ["Washable"],
+      style: [],
+      material: [],
+      bin: [1],
       quantity: 0,
       notes: "N/A"
     },
     {
       item: "Folder",
-      description: "Red 2 Prong Plastic Pocket Folder",
       brand: "N/A",
       color: "Red",
       count: 1,
       size: "N/A",
-      type: "2 Prong",
-      material: "Plastic",
+      type: ["2 Prong"],
+      style: [],
+      material: ["Plastic"],
+      bin: [2],
       quantity: 0,
       notes: "N/A"
     },
     {
       item: "Notebook",
-      description: "Yellow Wide Ruled Spiral Notebook",
       brand: "N/A",
       color: "Yellow",
       count: 1,
       size: "Wide Ruled",
-      type: "Spiral",
-      material: "N/A",
+      type: ["Spiral"],
+      style: [],
+      material: [],
+      bin: [3],
       quantity: 0,
       notes: "N/A"
     }
@@ -276,13 +279,14 @@ describe('InventoryService', () => {
         const mockedMethod = spyOn(httpClient, 'post').and.returnValue(of({ id: 'new-id' }));
         const newItem: Partial<Inventory> = {
           item: 'Markers',
-          description: '8 Pack of Washable Wide Markers',
           brand: 'Crayola',
           color: 'Black',
           count: 8,
           size: 'Wide',
-          type: 'Washable',
-          material: 'N/A',
+          type: ['Washable'],
+          style: [],
+          material: [],
+          bin: [1],
           quantity: 0,
           notes: 'N/A'
         };
@@ -301,13 +305,14 @@ describe('InventoryService', () => {
         spyOn(httpClient, 'post').and.returnValue(of({ id: 'abc-123' }));
         const newItem: Partial<Inventory> = {
           item: 'Notebook',
-          description: 'Yellow Wide Ruled Spiral Notebook',
           brand: 'N/A',
           color: 'Yellow',
           count: 1,
           size: 'Wide Ruled',
-          type: 'Spiral',
-          material: 'N/A',
+          type: ['Spiral'],
+          style: [],
+          material: ['N/A'],
+          bin: [],
           quantity: 3,
           notes: 'N/A'
         };
@@ -338,13 +343,14 @@ describe('InventoryService', () => {
         const idToEdit = '12345';
         const updatedItem: Partial<Inventory> = {
           item: 'Markers',
-          description: '8 Pack of Washable Wide Markers',
           brand: 'Crayola',
           color: 'Black',
           count: 8,
           size: 'Wide',
-          type: 'Washable',
-          material: 'N/A',
+          type: ['Washable'],
+          style: [],
+          material: ['N/A'],
+          bin: [],
           quantity: 5,
           notes: 'N/A'
         };
@@ -379,13 +385,14 @@ describe('InventoryService', () => {
         const idToEdit = 'update-full-id';
         const updatedItem: Partial<Inventory> = {
           item: 'Notebook',
-          description: 'Yellow Wide Ruled Spiral Notebook',
           brand: 'Five Star',
           color: 'Yellow',
           count: 1,
           size: 'Wide Ruled',
-          type: 'Spiral',
-          material: 'N/A',
+          type: ['Spiral'],
+          style: [],
+          material: ['N/A'],
+          bin: [],
           quantity: 10,
           notes: 'Updated notes'
         };

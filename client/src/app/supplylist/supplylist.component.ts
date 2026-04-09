@@ -24,7 +24,7 @@ import { RouterLink } from '@angular/router';
 import { catchError, combineLatest, debounceTime, of, switchMap } from 'rxjs';
 
 // Supply List Imports
-import { SupplyList } from './supplylist';
+import { SupplyList, AttributeOptions } from './supplylist';
 import { SupplyListService } from './supplylist.service';
 
 @Component({
@@ -62,11 +62,11 @@ export class SupplyListComponent {
     'school',
     'grade',
     'item',
-    'description',
     'brand',
     'color',
     'size',
     'type',
+    'style',
     'material',
     'count',
     'quantity',
@@ -97,8 +97,7 @@ export class SupplyListComponent {
   size = signal<string | undefined>(undefined);
   type = signal<string | undefined>(undefined);
   material = signal<string | undefined>(undefined);
-  description = signal<string | undefined>(undefined);
-  quantity = signal<number | undefined>(undefined);
+  style = signal<string | undefined>(undefined);
 
   errMsg = signal<string | undefined>(undefined);
 
@@ -111,14 +110,13 @@ export class SupplyListComponent {
   private size$ = toObservable(this.size);
   private type$ = toObservable(this.type);
   private material$ = toObservable(this.material);
-  private description$ = toObservable(this.description);
-  private quantity$ = toObservable(this.quantity);
+  private style$ = toObservable(this.style);
 
   serverFilteredSupplyList = toSignal(
-    combineLatest([this.school$, this.grade$, this.item$, this.brand$, this.color$, this.size$, this.type$, this.material$, this.description$, this.quantity$]).pipe(
+    combineLatest([this.school$, this.grade$, this.item$, this.brand$, this.color$, this.size$, this.type$, this.material$, this.style$]).pipe(
       debounceTime(300),
-      switchMap(([ school, grade, item, brand, color, size, type, material]) =>
-        this.supplylistService.getSupplyList({ school, grade, item, brand, color, size, type, material})
+      switchMap(([ school, grade, item, brand, color, size, type, material, style]) =>
+        this.supplylistService.getSupplyList({ school, grade, item, brand, color, size, type, material, style})
       ),
       catchError((err) => {
         const msg = `Problem contacting the server - Error Code: ${err.status}\nMessage: ${err.message}`;
@@ -201,25 +199,33 @@ export class SupplyListComponent {
     this.size.set(undefined);
     this.type.set(undefined);
     this.material.set(undefined);
+    this.style.set(undefined);
     this.school.set(undefined);
     this.grade.set(undefined);
   }
 
+  parseStringArray(value: string): string[] {
+    return value.split(',').map(s => s.trim()).filter(s => s.length > 0);
+  }
+
   /** Builds a compact human-readable label for an item, mirroring the server-side toString(). */
   toLabel(s: SupplyList): string {
+    const attrStr = (a: AttributeOptions | undefined) =>
+      [...(a?.allOf ?? []), ...(a?.anyOf ?? [])].filter(Boolean).join('/');
     const parts: string[] = [];
     parts.push(`${s.quantity}x`);
     if (s.count > 0) parts.push(`${s.count}ct.`);
     if (s.size && s.size !== 'N/A') {
       parts.push(`${s.size}${s.quantity > 1 ? 's' : ''} of`);
     }
-    if (s.item) {
-      parts.push(s.quantity > 1 && !s.item.endsWith('s') ? `${s.item}s` : s.item);
+    const itemStr = s.item?.join(', ') ?? '';
+    if (itemStr) {
+      parts.push(s.quantity > 1 && !itemStr.endsWith('s') ? `${itemStr}s` : itemStr);
     }
-    if (s.brand) parts.push(s.brand);
-    if (s.color) parts.push(s.color);
-    if (s.type) parts.push(s.type);
-    if (s.material) parts.push(s.material);
+    const brandStr = attrStr(s.brand); if (brandStr) parts.push(brandStr);
+    const colorStr = attrStr(s.color); if (colorStr) parts.push(colorStr);
+    const typeStr = attrStr(s.type); if (typeStr) parts.push(typeStr);
+    const matStr = attrStr(s.material); if (matStr) parts.push(matStr);
     if (s.notes && s.notes !== 'N/A') parts.push(`(${s.notes})`);
     return parts.join(' ');
   }

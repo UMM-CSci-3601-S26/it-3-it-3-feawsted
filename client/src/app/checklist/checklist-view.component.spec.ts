@@ -1,5 +1,5 @@
 // Angular Imports
-import { ComponentFixture, TestBed, waitForAsync, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
@@ -47,13 +47,15 @@ describe('Checklist list', () => {
   });
 
   // Compile the component and its template before running tests, and initialize the component instance and loader
-  beforeEach(waitForAsync(() => {
+  beforeEach(fakeAsync(() => {
     TestBed.compileComponents().then(() => {
       fixture = TestBed.createComponent(ChecklistViewComponent);
       checklistList = fixture.componentInstance;
       //checklistService = TestBed.inject(ChecklistService);
       fixture.detectChanges();
     });
+    flushMicrotasks(); // resolve compileComponents promise
+    tick(300);         // advance past debounceTime(300)
   }));
 
   // Test to ensure the component is created successfully
@@ -62,11 +64,10 @@ describe('Checklist list', () => {
   });
 
   // Test to verify that checklists are loaded from the service and that the expected checklist data is present
-  it('should load checklists from service', waitForAsync(() => {
-    fixture.whenStable().then(() => {
-      expect(checklistList.serverFilteredChecklists().length).toBe(2);
-    });
-  }));
+  // Signal is already populated after fakeAsync beforeEach ticks past debounceTime(300)
+  it('should load checklists from service', () => {
+    expect(checklistList.serverFilteredChecklists().length).toBe(2);
+  });
 
   // Tests for the ChecklistViewComponent when the ChecklistService is not set up properly, ensuring that appropriate error messages are shown and that the component handles the error gracefully
   describe('Misbehaving Checklist List', () => {
@@ -77,6 +78,7 @@ describe('Checklist list', () => {
       getChecklists: () => Observable<Checklist[]>;
       exportChecklists: () => Observable<string>;
       generateChecklists: () => Observable<void>;
+      printAllChecklists: () => Observable<Checklist[]>;
     };
 
     // Set up a stub for the ChecklistService that simulates an error when generateChecklists() is called, and returns empty arrays/strings for other methods
@@ -87,39 +89,42 @@ describe('Checklist list', () => {
         generateChecklists: () => new Observable((observer) => {
           observer.error('generateChecklists() Observer generates an error');
         }),
+        printAllChecklists: () => of([]),
       };
     });
 
     // Set up the testing module and component before each test, providing the misbehaving ChecklistService stub
-    beforeEach(waitForAsync(() => {
+    beforeEach(fakeAsync(() => {
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
         imports: [
           ChecklistViewComponent
         ],
-        providers: [{
-          provide: ChecklistService,
-          useValue: checklistServiceStub
-        },
-        provideRouter([])
+        providers: [
+          { provide: ChecklistService, useValue: checklistServiceStub },
+          provideRouter([]),
+          provideHttpClient(),
+          provideHttpClientTesting()
         ],
       })
         .compileComponents();
+      flushMicrotasks();
     }));
 
     // Compile the component and its template before running tests, and initialize the component instance
+    // detectChanges() is intentionally omitted here; fakeAsync tests call it inside the test body
     beforeEach(() => {
       fixture = TestBed.createComponent(ChecklistViewComponent);
       checklistList = fixture.componentInstance;
-      fixture.detectChanges();
     });
 
     // Test to verify that an appropriate error message is set when generateChecklists fails
-    it('should handle errors when generateChecklists fails', waitForAsync(() => {
+    it('should handle errors when generateChecklists fails', fakeAsync(() => {
+      fixture.detectChanges();
+      tick(300); // advance past debounceTime(300)
       checklistList.generateChecklists();
-      fixture.whenStable().then(() => {
-        expect(checklistList.errMsg()).toBe('Failed to generate checklists.');
-      });
+      tick();    // let the error observable emit
+      expect(checklistList.errMsg()).toBe('Failed to generate checklists.');
     }));
   });
 
@@ -133,6 +138,7 @@ describe('Checklist list', () => {
       getChecklists: () => Observable<Checklist[]>;
       exportChecklists: () => Observable<string>;
       generateChecklists: () => Observable<void>;
+      printAllChecklists: () => Observable<Checklist[]>;
     };
 
     // Test when HTTP error occurs (not an ErrorEvent)
@@ -147,10 +153,11 @@ describe('Checklist list', () => {
         getChecklists: () => throwError(() => httpErrorResponse),
         exportChecklists: () => of(''),
         generateChecklists: () => of(void 0),
+        printAllChecklists: () => of([]),
       };
     });
 
-    beforeEach(waitForAsync(() => {
+    beforeEach(fakeAsync(() => {
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
         imports: [
@@ -166,6 +173,7 @@ describe('Checklist list', () => {
           provideHttpClientTesting(),
         ],
       }).compileComponents();
+      flushMicrotasks();
     }));
 
     beforeEach(() => {
@@ -222,7 +230,7 @@ describe('Checklist list', () => {
         }));
       });
 
-      beforeEach(waitForAsync(() => {
+      beforeEach(fakeAsync(() => {
         TestBed.resetTestingModule();
         TestBed.configureTestingModule({
           imports: [
@@ -238,6 +246,7 @@ describe('Checklist list', () => {
             provideHttpClientTesting(),
           ],
         }).compileComponents();
+        flushMicrotasks();
       }));
 
       beforeEach(() => {
@@ -269,5 +278,82 @@ describe('Checklist list', () => {
         expect(snackBarSpy).toHaveBeenCalledWith('', 'OK', { duration: 6000 });
       }));
     });
+  });
+
+  describe('downloadPDF()', () => {
+    let checklistService: ChecklistService;
+
+    beforeEach(() => {
+      checklistService = TestBed.inject(ChecklistService);
+      // Prevent actual file downloads in headless tests
+      spyOn(URL, 'createObjectURL').and.returnValue('blob:test');
+      spyOn(URL, 'revokeObjectURL');
+    });
+
+    it('should call printAllChecklists on the service', fakeAsync(() => {
+      spyOn(checklistService, 'printAllChecklists').and.returnValue(of(MockChecklistService.testChecklists));
+
+      checklistList.downloadPDF();
+      tick();
+
+      expect(checklistService.printAllChecklists).toHaveBeenCalled();
+    }));
+
+    it('should trigger a file download when given valid checklists', fakeAsync(() => {
+      spyOn(checklistService, 'printAllChecklists').and.returnValue(of(MockChecklistService.testChecklists));
+
+      checklistList.downloadPDF();
+      tick();
+
+      expect(URL.createObjectURL).toHaveBeenCalled();
+    }));
+
+    it('should add a page for each checklist after the first', fakeAsync(() => {
+      spyOn(checklistService, 'printAllChecklists').and.returnValue(of(MockChecklistService.testChecklists));
+
+      checklistList.downloadPDF();
+      tick();
+
+      // With multiple checklists the PDF is still generated and a download is triggered
+      expect(URL.createObjectURL).toHaveBeenCalled();
+    }));
+
+    it('should show a snack bar when printAllChecklists fails', fakeAsync(() => {
+      spyOn(checklistService, 'printAllChecklists').and.returnValue(
+        throwError(() => ({ message: 'Network error' }))
+      );
+      const snackBar = TestBed.inject(MatSnackBar);
+      spyOn(snackBar, 'open').and.returnValue({
+        onAction: () => of(void 0),
+        close: () => {},
+        afterDismissed: () => of({ dismissedByAction: false }),
+      } as unknown as MatSnackBarRef<SimpleSnackBar>);
+
+      checklistList.downloadPDF();
+      tick();
+
+      expect(snackBar.open).toHaveBeenCalledWith(
+        'Failed to load checklists: Network error',
+        'OK',
+        { duration: 6000 }
+      );
+    }));
+
+    it('should not trigger a download when the service errors', fakeAsync(() => {
+      spyOn(checklistService, 'printAllChecklists').and.returnValue(
+        throwError(() => ({ message: 'error' }))
+      );
+      const snackBar = TestBed.inject(MatSnackBar);
+      spyOn(snackBar, 'open').and.returnValue({
+        onAction: () => of(void 0),
+        close: () => {},
+        afterDismissed: () => of({ dismissedByAction: false }),
+      } as unknown as MatSnackBarRef<SimpleSnackBar>);
+
+      checklistList.downloadPDF();
+      tick();
+
+      expect(URL.createObjectURL).not.toHaveBeenCalled();
+    }));
   });
 });

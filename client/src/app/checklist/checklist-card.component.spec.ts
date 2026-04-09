@@ -64,8 +64,8 @@ describe('ChecklistCardComponent', () => {
 
     const label = component.toLabel(supply);
 
-    // The label should start with quantity
-    expect(label.startsWith(`${supply.quantity}x`)).toBeTrue();
+    // The label should start with the quantity number
+    expect(label.startsWith(`${supply.quantity}`)).toBeTrue();
 
     // Notes cleaned of placeholders
     expect(label).not.toContain('?');

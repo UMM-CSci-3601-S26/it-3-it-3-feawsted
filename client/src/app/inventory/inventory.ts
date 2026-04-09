@@ -9,12 +9,13 @@
 export interface Inventory {
   _id?: string, // Added for delete functionality
   item: string,
-  description: string,
   brand: string,
-  color:string,
+  color: string,
   size: string,
-  type: string,
-  material:string,
+  type: string[],
+  style: string[],
+  material: string[],
+  bin: number[],
   count: number,
   quantity: number,
   notes: string

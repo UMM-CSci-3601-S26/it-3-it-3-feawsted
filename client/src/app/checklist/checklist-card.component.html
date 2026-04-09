@@ -45,16 +45,16 @@
 
         <mat-divider inset></mat-divider>
 
-        <!-- Checklist -->
-        <mat-list dense class="student-checklist">
-          @for (item of checklist().checklist ?? []; track item;) {
-            <mat-list-item class="student-checklist">
-              <mat-icon matListItemIcon class="student-icon">checklist</mat-icon>
-              <span class="item-label" data-cy="supplylist-item-label">{{ toLabel(item.supply) }}</span>
-            </mat-list-item>
-          }
-        </mat-list>
-     </mat-card-content>
+    <!-- Checklist -->
+    <mat-list dense class="student-checklist">
+      @for (item of checklist().checklist ?? []; track item) {
+        <mat-list-item class="student-checklist">
+          <mat-icon matListItemIcon class="student-icon">checklist</mat-icon>
+          <p matListItemTitle>{{ toLabel(item.supply) }}</p>
+        </mat-list-item>
+      }
+    </mat-list>
+      </mat-card-content>
     </div>
   </div>
 </mat-card>
