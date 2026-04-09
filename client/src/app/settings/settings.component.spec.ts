@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 
@@ -270,7 +271,7 @@ describe('SettingsComponent – drive order', () => {
   it('saveAndGenerateChecklists saves and navigates to /checklists?generate=true', () => {
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     // Patch the component's router with our spy
-    (component as any).router = routerSpy;
+    (component as unknown as { router: jasmine.SpyObj<Router> }).router = routerSpy;
     component.stagedTerms = ['notebook'];
     component.unstagedTerms = ['folder'];
     component.notGivenTerms = ['pencil'];
