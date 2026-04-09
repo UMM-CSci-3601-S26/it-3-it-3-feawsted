@@ -398,7 +398,8 @@ public class ChecklistController implements Controller {
     // Exclude supplies whose item list contains any notGiven term.
     // Sort remaining: staged supplies (by lowest matching term index) before unstaged.
     return supplies.stream()
-        // Exclude supplies that have any notGiven terms in their item list; if item is null, keep it (could be a non-standard supply that doesn't match any terms)
+        // Exclude supplies that have any notGiven terms in their item list; if item is null,
+        // keep it (could be a non-standard supply that doesn't match any terms)
         .filter(s -> s.item == null || s.item.stream().noneMatch(notGivenTerms::contains))
         // Supplies with a staged term get their lowest index; unstaged supplies default to MAX_VALUE, so come last
         .sorted(Comparator.comparingInt(s -> {
