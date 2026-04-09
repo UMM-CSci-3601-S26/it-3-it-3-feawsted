@@ -5,6 +5,8 @@ import { Injectable, inject } from '@angular/core';
 // RxJS Imports
 import { Observable } from 'rxjs';
 
+// import { jsPDF } from 'jspdf';
+
 // Environment and Checklist Interface Imports
 import { environment } from '../../environments/environment';
 import { Checklist } from './checklist';
@@ -56,6 +58,35 @@ export class ChecklistService {
   // exportChecklists(): Observable<string> {
   //   return this.httpClient.get(`${this.checklistUrl}/export`, {
   //     responseType: 'text'
+  //   });
+  // }
+  printAllChecklists(): Observable<Checklist[]> {
+    return this.httpClient.get<Checklist[]>(`${this.checklistUrl}/export`);
+  }
+
+  // downloadPDF() {
+  //   this.checklistService.printAllChecklists().subscribe(checklists => {
+  //     const doc = new jsPDF();
+
+  //     let y = 10;
+
+  //     checklists.forEach((c: any) => {
+  //       doc.text(`Student: ${c.studentName} (${c.school}, Grade ${c.grade})`, 10, y);
+  //       y += 8;
+
+  //       c.checklist.forEach((item: any) => {
+  //         doc.text(
+  //           ` - ${item.supply} | completed: ${item.completed} | unreceived: ${item.unreceived} | option: ${item.selectedOption}`,
+  //           10,
+  //           y
+  //         );
+  //         y += 6;
+  //       });
+
+  //       y += 10;
+  //     });
+
+  //     doc.save('checklists.pdf');
   //   });
   // }
 }

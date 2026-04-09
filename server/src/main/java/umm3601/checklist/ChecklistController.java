@@ -20,6 +20,8 @@ import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 // Java Imports
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,7 @@ import java.util.regex.Pattern;
 
 // Misc Imports
 import umm3601.Controller;
+import umm3601.checklist.Checklist.ChecklistItem;
 import umm3601.family.Family;
 import umm3601.family.Family.StudentInfo;
 import umm3601.supplylist.SupplyList;
@@ -102,17 +105,58 @@ public class ChecklistController implements Controller {
 
   // --- PRINT ROUTES (on-the-fly, not persisted) ---
 
-  // // GET /api/checklist/print — all students
-  // public void printAllChecklists(Context ctx) {
-  //   List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
-  //   List<Checklist> checklists = familyCollection.find().into(new ArrayList<>()).stream()
-  //       .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
-  //       .collect(Collectors.toList());
-  //   ctx.json(checklists);
-  //   ctx.status(HttpStatus.OK);
-  // }
+//   // GET /api/checklist/print — all students
+//   public void printAllChecklists(Context ctx) {
+//     List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
+//     List<Checklist> checklists = familyCollection.find().into(new ArrayList<>()).stream()
+//         .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
+//         .collect(Collectors.toList());
 
-  // // GET /api/checklist/student/{name} — single student by full name
+//     try (PDDocument doc = new PDDocument()) {
+//         PDPage page = new PDPage();
+//         doc.addPage(page);
+
+//         PDPageContentStream content = new PDPageContentStream(doc, page);
+//         content.setFont(PDType1Font.HELVETICA, 12);
+
+//         float y = 750;
+
+//         content.beginText();
+//         content.newLineAtOffset(50, y);
+
+//         for (Checklist c : checklists) {
+//             content.showText("Student: " + c.studentName + " (" + c.school + ", Grade " + c.grade + ")");
+//             content.newLineAtOffset(0, -20);
+
+//             for (ChecklistItem item : c.checklist) {
+//                 content.showText(" - " + item.supply.name +
+//                     " | completed: " + item.completed +
+//                     " | unreceived: " + item.unreceived +
+//                     " | option: " + item.selectedOption);
+//                 content.newLineAtOffset(0, -15);
+//             }
+//             content.newLineAtOffset(0, -20);
+//         }
+
+//         content.endText();
+//         content.close();
+
+//         ByteArrayOutputStream out = new ByteArrayOutputStream();
+//         doc.save(out);
+
+//         ctx.result(out.toByteArray());
+//         ctx.contentType("application/pdf");
+//         ctx.header("Content-Disposition", "attachment; filename=checklists.pdf");
+//         ctx.status(HttpStatus.OK);
+
+//     } catch (IOException e) {
+//         ctx.status(HttpStatus.INTERNAL_SERVER_ERROR);
+//         ctx.result("Failed to generate PDF");
+//     }
+// }
+
+
+  // GET /api/checklist/student/{name} — single student by full name
   // public void printChecklistByStudent(Context ctx) {
   //   String name = ctx.pathParam("name");
   //   List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
@@ -128,7 +172,7 @@ public class ChecklistController implements Controller {
   //   throw new NotFoundResponse("No student found with name: " + name);
   // }
 
-  // // GET /api/checklist/family/{guardianName} — all students in a family
+  // GET /api/checklist/family/{guardianName} — all students in a family
   // public void printChecklistsByFamily(Context ctx) {
   //   String guardianName = ctx.pathParam("guardianName");
   //   List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());

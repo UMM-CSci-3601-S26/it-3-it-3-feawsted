@@ -92,6 +92,35 @@ describe('ChecklistService', () => {
     checklistService = TestBed.inject(ChecklistService);
   });
 
+
+
+
+  // Test to verify that exportFamilies() is called when the CSV download function is triggered,
+  // and that the appropriate methods for handling the CSV data are invoked
+  it('exportFamilies() should be called when CSV is downloaded', () => {
+    spyOn(checklistService, 'checklistFamilies').and.returnValue(of('csv-data'));
+
+    spyOn(URL, 'createObjectURL').and.returnValue('blob-url');
+    spyOn(URL, 'revokeObjectURL');
+
+    const click = jasmine.createSpy('click');
+    spyOn(document, 'createElement').and.returnValue({ click } as unknown as HTMLElement);
+
+    checklistList.downloadCSV();
+    expect(familyService.exportFamilies).toHaveBeenCalled();
+    expect(document.createElement).toHaveBeenCalledWith('a');
+    expect(click).toHaveBeenCalled();
+    expect(URL.createObjectURL).toHaveBeenCalled();
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob-url');
+  });
+
+
+
+
+
+
+
+
   afterEach(() => {
     httpTestingController.verify();
   });

@@ -16,6 +16,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { catchError, combineLatest, debounceTime, of, switchMap } from 'rxjs';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 
+import { jsPDF } from 'jspdf';
+
 // Checklist Component and Service Import
 import { Checklist } from './checklist';
 import { ChecklistCardComponent } from './checklist-card.component';
@@ -99,5 +101,31 @@ export class ChecklistViewComponent {
     this.studentName.set(undefined);
     this.school.set(undefined);
     this.grade.set(undefined);
+  }
+
+  downloadCSV() {
+    this.checklistService.printAllChecklists().subscribe(checklists => {
+      const doc = new jsPDF();
+
+      let y = 10;
+
+      checklists.forEach(c => {
+        doc.text(`Student: ${c.studentName} (${c.school}, Grade ${c.grade})`, 10, y);
+        y += 8;
+
+        c.checklist.forEach(item => {
+          doc.text(
+            ` - ${item.supply} | completed: ${item.completed} | unreceived: ${item.unreceived} | option: ${item.selectedOption}`,
+            10,
+            y
+          );
+          y += 6;
+        });
+
+        y += 10;
+      });
+
+      doc.save('checklists.pdf');
+    });
   }
 }
