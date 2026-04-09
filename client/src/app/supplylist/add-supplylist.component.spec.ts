@@ -7,9 +7,10 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { of, throwError } from 'rxjs';
 import { AbstractControl, FormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { provideRouter } from '@angular/router';
 import { Location } from '@angular/common';
+import { TermsService } from '../terms/terms.service';
 
 // Minimal terms object reused across parse / helper tests
 const testTerms = {
@@ -700,3 +701,182 @@ describe('AddSupplyListComponent private helpers', () => {
   });
 });
 /* eslint-enable @typescript-eslint/no-explicit-any */
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tests for AddSupplyListComponent#ngOnInit() with school/grade query params
+// ─────────────────────────────────────────────────────────────────────────────
+describe('AddSupplyListComponent#ngOnInit() with route query params', () => {
+  let component: AddSupplyListComponent;
+
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      imports: [AddSupplyListComponent, MatSnackBarModule],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: SupplyListService, useClass: MockSupplyListService },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              queryParamMap: {
+                get: (key: string) => {
+                  if (key === 'school') return 'South High';
+                  if (key === 'grade') return '3rd Grade';
+                  return null;
+                }
+              }
+            }
+          }
+        }
+      ]
+    }).compileComponents();
+  }));
+
+  beforeEach(() => {
+    ({ component } = createComponentWithTerms());
+  });
+
+  it('should pre-populate school from route query param', () => {
+    expect(component.addSupplyListForm.get('school')?.value).toBe('South High');
+  });
+
+  it('should pre-populate grade from route query param', () => {
+    expect(component.addSupplyListForm.get('grade')?.value).toBe('3rd Grade');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tests for AddSupplyListComponent#ngOnInit() — getTerms error path
+// ─────────────────────────────────────────────────────────────────────────────
+describe('AddSupplyListComponent#ngOnInit() — getTerms error path', () => {
+  let component: AddSupplyListComponent;
+
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      imports: [AddSupplyListComponent, MatSnackBarModule],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: SupplyListService, useClass: MockSupplyListService },
+        {
+          provide: TermsService,
+          useValue: {
+            getTerms: () => throwError(() => new Error('Terms unavailable'))
+          }
+        }
+      ]
+    }).compileComponents();
+  }));
+
+  beforeEach(() => {
+    ({ component } = createComponentWithTerms());
+  });
+
+  it('should initialise filteredItem$ to emit empty array on getTerms error', (done) => {
+    component.filteredItem$.subscribe(items => {
+      expect(items).toEqual([]);
+      done();
+    });
+  });
+
+  it('should initialise filteredBrand$ to emit empty array on getTerms error', (done) => {
+    component.filteredBrand$.subscribe(items => {
+      expect(items).toEqual([]);
+      done();
+    });
+  });
+
+  it('should initialise filteredColor$ to emit empty array on getTerms error', (done) => {
+    component.filteredColor$.subscribe(items => {
+      expect(items).toEqual([]);
+      done();
+    });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tests for AddSupplyListComponent#submitForm() — pipe separator (anyOf) path
+// ─────────────────────────────────────────────────────────────────────────────
+describe('AddSupplyListComponent#submitForm() — pipe separator (anyOf) path', () => {
+  let component: AddSupplyListComponent;
+  let supplyListService: SupplyListService;
+
+  const baseFormValues = {
+    school: 'MHS', grade: 'PreK', item: 'Markers',
+    brand: '', color: '', count: '', size: '', type: '', material: '', style: '', quantity: '1', notes: ''
+  };
+
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      imports: [AddSupplyListComponent, MatSnackBarModule],
+      providers: sharedProviders
+    }).compileComponents();
+  }));
+
+  beforeEach(() => {
+    ({ component } = createComponentWithTerms());
+    supplyListService = TestBed.inject(SupplyListService);
+    component.addSupplyListForm.setValue(baseFormValues);
+  });
+
+  it('should map a | separator to anyOf when submitting', () => {
+    const addSpy = spyOn(supplyListService, 'addSupplyList').and.returnValue(of(undefined));
+    component.addSupplyListForm.patchValue({ color: 'red | blue' });
+    component.submitForm();
+    expect(addSpy).toHaveBeenCalledWith(jasmine.objectContaining({
+      color: jasmine.objectContaining({ anyOf: ['red', 'blue'], allOf: [] })
+    }));
+  });
+
+  it('should map a comma-separated value to allOf when submitting', () => {
+    const addSpy = spyOn(supplyListService, 'addSupplyList').and.returnValue(of(undefined));
+    component.addSupplyListForm.patchValue({ brand: 'Crayola, Expo' });
+    component.submitForm();
+    expect(addSpy).toHaveBeenCalledWith(jasmine.objectContaining({
+      brand: jasmine.objectContaining({ allOf: ['Crayola', 'Expo'], anyOf: [] })
+    }));
+  });
+
+  it('should produce empty allOf/anyOf for empty field (toAttr empty-val branch)', () => {
+    const addSpy = spyOn(supplyListService, 'addSupplyList').and.returnValue(of(undefined));
+    // brand, color, type etc. are all empty — toAttr('') should return { allOf:[], anyOf:[] }
+    component.submitForm();
+    expect(addSpy).toHaveBeenCalledWith(jasmine.objectContaining({
+      brand: { allOf: [], anyOf: [] },
+      color: { allOf: [], anyOf: [] }
+    }));
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tests for AddSupplyListComponent#parseDescription() — note-filter edge cases
+// ─────────────────────────────────────────────────────────────────────────────
+describe('AddSupplyListComponent#parseDescription() — note filter edge cases', () => {
+  let component: AddSupplyListComponent;
+
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      imports: [AddSupplyListComponent, MatSnackBarModule],
+      providers: sharedProviders
+    }).compileComponents();
+  }));
+
+  beforeEach(() => {
+    ({ component } = createComponentWithTerms());
+  });
+
+  it('should ignore an empty-string fragment from empty parentheses like ()', () => {
+    // '()' → fragment is '' → !fragment is true → filtered out, not added to notes
+    component.parseDescription('crayon ()');
+    expect(component.addSupplyListForm.get('notes')?.value || '').toBe('');
+  });
+
+  it('should not add a known-term paren into notes (bestTermMatch returns non-null)', () => {
+    // '(Crayola)' → fragment matches brand term → filtered out, not added to notes
+    component.parseDescription('crayon (Crayola)');
+    expect(component.addSupplyListForm.get('notes')?.value || '').toBe('');
+  });
+});

@@ -464,3 +464,152 @@ describe('Misbehaving SupplyList Table', () => {
       .toContain('Problem contacting the server - Error Code:');
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tests for SupplyListComponent#toLabel()
+// ─────────────────────────────────────────────────────────────────────────────
+describe('SupplyListComponent#toLabel()', () => {
+  let supplylistTable: SupplyListComponent;
+
+  // Minimal valid SupplyList with no optional fields set
+  const base: SupplyList = {
+    school: 'MHS', grade: 'K', item: ['crayon'],
+    brand: { allOf: [], anyOf: [] }, color: { allOf: [], anyOf: [] },
+    size: '', type: { allOf: [], anyOf: [] }, style: { allOf: [], anyOf: [] },
+    material: { allOf: [], anyOf: [] }, count: 0, quantity: 1, notes: ''
+  };
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [SupplyListComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: SupplyListService, useClass: MockSupplyListService },
+        provideRouter([])
+      ],
+    });
+  });
+
+  beforeEach(fakeAsync(() => {
+    TestBed.compileComponents().then(() => {
+      const fixture = TestBed.createComponent(SupplyListComponent);
+      supplylistTable = fixture.componentInstance;
+      fixture.detectChanges();
+    });
+    flushMicrotasks();
+    tick(300);
+  }));
+
+  it('should include brand allOf values in the label', () => {
+    const label = supplylistTable.toLabel({ ...base, brand: { allOf: ['Crayola'], anyOf: [] } });
+    expect(label).toContain('Crayola');
+  });
+
+  it('should include brand anyOf values in the label', () => {
+    const label = supplylistTable.toLabel({ ...base, brand: { allOf: [], anyOf: ['Expo'] } });
+    expect(label).toContain('Expo');
+  });
+
+  it('should pluralize size when quantity > 1', () => {
+    const label = supplylistTable.toLabel({ ...base, size: 'pack', quantity: 2 });
+    expect(label).toContain('packs of');
+  });
+
+  it('should not pluralize size when quantity is 1', () => {
+    const label = supplylistTable.toLabel({ ...base, size: 'pack', quantity: 1 });
+    expect(label).toContain('pack of');
+    expect(label).not.toContain('packs');
+  });
+
+  it('should omit size section when size is empty string', () => {
+    const label = supplylistTable.toLabel({ ...base, size: '' });
+    expect(label).not.toContain(' of ');
+  });
+
+  it('should omit size section when size is N/A', () => {
+    const label = supplylistTable.toLabel({ ...base, size: 'N/A' });
+    expect(label).not.toContain(' of ');
+  });
+
+  it('should pluralize item when quantity > 1 and item does not end with s', () => {
+    const label = supplylistTable.toLabel({ ...base, quantity: 2, item: ['crayon'] });
+    expect(label).toContain('crayons');
+  });
+
+  it('should not double-pluralize item that already ends with s (ternary false branch)', () => {
+    // quantity > 1 but itemStr ends with 's' → keep original, don't append another 's'
+    const label = supplylistTable.toLabel({ ...base, quantity: 2, item: ['scissors'] });
+    expect(label).not.toContain('scissorss');
+    expect(label).toContain('scissors');
+  });
+
+  it('should omit item portion when item array is empty (if(itemStr) false branch)', () => {
+    const label = supplylistTable.toLabel({ ...base, item: [] });
+    expect(label.trim()).toBe('1x');
+  });
+
+  it('should include notes when notes is a non-empty, non-N/A string', () => {
+    const label = supplylistTable.toLabel({ ...base, notes: 'for art class' });
+    expect(label).toContain('(for art class)');
+  });
+
+  it('should omit notes section when notes is N/A', () => {
+    // Covers the s.notes !== 'N/A' false branch
+    const label = supplylistTable.toLabel({ ...base, notes: 'N/A' });
+    expect(label).not.toContain('N/A');
+    expect(label).not.toContain('(');
+  });
+
+  it('should handle undefined brand gracefully (attrStr ?? [] fallback for allOf/anyOf)', () => {
+    // When brand is undefined, a?.allOf and a?.anyOf are undefined → ?? [] kicks in
+    const label = supplylistTable.toLabel({ ...base, brand: undefined } as SupplyList);
+    expect(typeof label).toBe('string');
+    expect(label).toBeTruthy();
+  });
+
+  it('should handle undefined color gracefully', () => {
+    const label = supplylistTable.toLabel({ ...base, color: undefined } as SupplyList);
+    expect(typeof label).toBe('string');
+  });
+
+  it('should handle undefined type gracefully', () => {
+    const label = supplylistTable.toLabel({ ...base, type: undefined } as SupplyList);
+    expect(typeof label).toBe('string');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tests for SupplyListComponent#cancelEdit() without prior startEdit
+// ─────────────────────────────────────────────────────────────────────────────
+describe('SupplyListComponent#cancelEdit() without prior startEdit', () => {
+  let supplylistTable: SupplyListComponent;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [SupplyListComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: SupplyListService, useClass: MockSupplyListService },
+        provideRouter([])
+      ],
+    });
+  });
+
+  beforeEach(fakeAsync(() => {
+    TestBed.compileComponents().then(() => {
+      const fixture = TestBed.createComponent(SupplyListComponent);
+      supplylistTable = fixture.componentInstance;
+      fixture.detectChanges();
+    });
+    flushMicrotasks();
+    tick(300);
+  }));
+
+  it('should not throw when cancelEdit is called without prior startEdit (editingBackup is null)', () => {
+    // editingBackup is null initially — covers the if(this.editingBackup) false branch (line 244)
+    expect(() => supplylistTable.cancelEdit()).not.toThrow();
+    expect(supplylistTable.editingItemId).toBeNull();
+  });
+});
