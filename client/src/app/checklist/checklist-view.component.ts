@@ -25,6 +25,7 @@ import { ChecklistService } from './checklist.service';
 
 @Component({
   selector: 'app-checklist',
+  standalone: true,
   templateUrl: './checklist-view.component.html',
   styleUrls: ['./checklist-view.component.scss'],
   providers: [],

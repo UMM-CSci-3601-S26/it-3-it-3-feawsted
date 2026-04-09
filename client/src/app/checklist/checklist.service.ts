@@ -22,6 +22,7 @@ import { Checklist } from './checklist';
  * the API endpoints defined in the environment configuration, and it handles the necessary query parameters for filtering and data retrieval as needed.
  * Each method returns an Observable that can be subscribed to by components or other services that require access to checklist data.
  */
+@Injectable({ providedIn: 'root' })
 export class ChecklistService {
   private httpClient = inject(HttpClient);
 
