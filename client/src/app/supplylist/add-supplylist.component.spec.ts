@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { MockSupplyListService } from 'src/testing/supplylist.service.mock';
 import { AddSupplyListComponent } from './add-supplylist.component';
 import { SupplyListService } from './supplylist.service';
+import { GRADES } from './supplylist';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
@@ -108,6 +109,28 @@ describe('AddSupplyListComponent', () => {
     it('should be valid with a grade value', () => {
       gradeControl.setValue('3rd');
       expect(gradeControl.valid).toBeTruthy();
+    });
+
+    it('should be valid with "High School"', () => {
+      gradeControl.setValue('High School');
+      expect(gradeControl.valid).toBeTruthy();
+    });
+  });
+
+  describe('GRADES constant', () => {
+    it('should include "High School" as a selectable grade', () => {
+      expect(GRADES).toContain('High School');
+    });
+
+    it('should still include all numeric grades 1–12', () => {
+      for (let g = 1; g <= 12; g++) {
+        expect(GRADES).toContain(String(g));
+      }
+    });
+
+    it('should still include Pre-K and K', () => {
+      expect(GRADES).toContain('Pre-K');
+      expect(GRADES).toContain('K');
     });
   });
 

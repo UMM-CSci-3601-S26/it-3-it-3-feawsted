@@ -10,7 +10,7 @@
 
 // Style for sorted column headers to make them visually distinct
 th.mat-sort-header-sorted {
-  color: black;
+  color: var(--app-primary-color);
 }
 
 // Styles for the filter controls container, using CSS Grid for layout
@@ -30,7 +30,7 @@ th.mat-sort-header-sorted {
 
 // Styles for the clear button, giving it a distinct appearance and ensuring it is easily clickable
 .clear-button {
-  border: 1px solid gray;
+  border: 1px solid var(--app-divider-color);
   border-radius: 4px;
   padding: 0 16px;
   min-height: 36px;
@@ -47,7 +47,7 @@ th.mat-sort-header-sorted {
 
 // Style for the count display, which shows the number of items in the inventory, with a distinct border and centered text
 .count-display {
-  border: 1px solid gray;
+  border: 1px solid var(--app-divider-color);
   border-radius: 4px;
   padding: 0 16px;
   min-height: 36px;
@@ -81,7 +81,7 @@ th.mat-sort-header-sorted {
   font-weight: 600;
   font-size: 14px;
   line-height: 1.2;
-  color: #212121;
+  color: var(--app-text-color);
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -96,7 +96,7 @@ th.mat-sort-header-sorted {
 
 // Hover effect for the action buttons, changing the background color to provide visual feedback when the user interacts with them
 .inventory-action:hover {
-  background-color: rgba(0, 0, 0, 0.06);
+  background-color: var(--app-hover-color);
 }
 
 /**
@@ -104,12 +104,12 @@ th.mat-sort-header-sorted {
   * with a hover effect that provides additional visual feedback.
   */
 .delete-action {
-  color: #e53e3e;
+  color: var(--app-warn-color);
 }
 
 // Hover effect for the delete action button, changing the background color to a light red to indicate the potential consequences of the action
 .delete-action:hover {
-  background-color: rgba(198, 40, 40, 0.12);
+  background-color: var(--app-warn-hover-color);
 }
 
 // Styles for the "Add Inventory" button, positioning it fixed at the bottom right of the screen

@@ -28,6 +28,18 @@
 
   // Define any styles affected by the theme.
 
+  // Expose theme palette values as CSS custom properties so component SCSS can
+  // reference them without needing direct access to the SCSS theme context.
+  body {
+    --app-primary-color: #{mat.m2-get-color-from-palette($primary)};
+    --app-warn-color: #{mat.m2-get-color-from-palette($warn)};
+    --app-warn-muted-color: #{color.change(mat.m2-get-color-from-palette($warn), $alpha: 0.6)};
+    --app-warn-hover-color: #{color.change(mat.m2-get-color-from-palette($warn), $alpha: 0.12)};
+    --app-divider-color: #{mat.m2-get-color-from-palette($foreground, divider)};
+    --app-text-color: #{mat.m2-get-color-from-palette($foreground, text)};
+    --app-hover-color: #{mat.m2-get-color-from-palette($background, hover)};
+  }
+
   @if $is-dark {
     .mat-toolbar.mat-primary {
       background: mat.m2-get-color-from-palette($background, app-bar);

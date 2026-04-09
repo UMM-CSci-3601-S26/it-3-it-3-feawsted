@@ -28,13 +28,21 @@
             <!-- Row 1: School + Grade -->
             <mat-form-field>
               <mat-label>School</mat-label>
-              <input matInput type="text" formControlName="school" required>
+              <mat-select formControlName="school" required data-cy="school-select">
+                @for (s of availableSchools$ | async; track s) {
+                  <mat-option [value]="s">{{ s }}</mat-option>
+                }
+              </mat-select>
               <mat-error *ngIf="formControlHasError('school')">{{ getErrorMessage('school') }}</mat-error>
             </mat-form-field>
 
             <mat-form-field>
               <mat-label>Grade</mat-label>
-              <input matInput type="text" formControlName="grade" required>
+              <mat-select formControlName="grade" required data-cy="grade-select">
+                @for (g of grades; track g) {
+                  <mat-option [value]="g">{{ g }}</mat-option>
+                }
+              </mat-select>
               <mat-error *ngIf="formControlHasError('grade')">{{ getErrorMessage('grade') }}</mat-error>
             </mat-form-field>
 

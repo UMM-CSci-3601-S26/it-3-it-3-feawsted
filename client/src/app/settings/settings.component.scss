@@ -25,10 +25,6 @@
     min-width: 180px;
   }
 
-  .abbreviation-field {
-    flex: 0 0 140px;
-  }
-
   button {
     margin-top: 4px;
   }
@@ -78,7 +74,7 @@
 }
 
 .staged-title {
-  color: #1565c0;
+  color: var(--app-primary-color);
 }
 
 .unstaged-title {
@@ -86,7 +82,7 @@
 }
 
 .not-given-title {
-  color: #b71c1c;
+  color: var(--app-warn-color);
 }
 
 .drop-list {
@@ -132,7 +128,7 @@
 }
 
 .not-given-icon {
-  color: #ef9a9a;
+  color: var(--app-warn-muted-color);
 }
 
 .item-label {

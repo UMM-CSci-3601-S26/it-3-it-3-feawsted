@@ -112,6 +112,69 @@ public class ChecklistController implements Controller {
     return g.trim().toLowerCase().replaceAll("[\\s\\-]", "");
   }
 
+  // Grades considered "high school" for expansion purposes
+  static final String[] HS_GRADES = {"9", "10", "11", "12"};
+
+  /**
+   * Expands any supply list entry whose grade normalizes to "highschool" into
+   * individual copies — one per HS grade (9–12) — but only for grades that do
+   * not already have a specific entry at the same school.  The original
+   * "High School" entry is consumed (not kept) once expanded.
+   *
+   * This lets operators enter a single "High School" row that automatically
+   * covers whichever HS grades a school lacks explicit entries for, without
+   * needing to know where each district's high school starts.
+   */
+  static List<SupplyList> expandHighSchoolSupplies(List<SupplyList> supplies) {
+    // Collect (normalizedSchool|normalizedGrade) keys that already have specific entries
+    Set<String> existingKeys = new HashSet<>();
+    for (SupplyList s : supplies) {
+      if (s.school != null && s.grade != null
+          && !normalizeGrade(s.grade).equals("highschool")) {
+        existingKeys.add(normalizeSchool(s.school) + "|" + normalizeGrade(s.grade));
+      }
+    }
+
+    List<SupplyList> result = new ArrayList<>();
+    for (SupplyList s : supplies) {
+      if (s.school != null && s.grade != null
+          && normalizeGrade(s.grade).equals("highschool")) {
+        // Replace this entry with grade-specific copies for each missing HS grade
+        for (String grade : HS_GRADES) {
+          String key = normalizeSchool(s.school) + "|" + normalizeGrade(grade);
+          if (!existingKeys.contains(key)) {
+            result.add(copyWithGrade(s, grade));
+          }
+        }
+      } else {
+        result.add(s);
+      }
+    }
+    return result;
+  }
+
+  // Shallow-copies a SupplyList, replacing only the grade field.
+  // _id is intentionally omitted — the copies are transient (in-memory only).
+  static SupplyList copyWithGrade(SupplyList source, String newGrade) {
+    SupplyList copy = new SupplyList();
+    copy.district = source.district;
+    copy.school = source.school;
+    copy.grade = newGrade;
+    copy.teacher = source.teacher;
+    copy.academicYear = source.academicYear;
+    copy.item = source.item;
+    copy.brand = source.brand;
+    copy.size = source.size;
+    copy.color = source.color;
+    copy.type = source.type;
+    copy.style = source.style;
+    copy.material = source.material;
+    copy.count = source.count;
+    copy.quantity = source.quantity;
+    copy.notes = source.notes;
+    return copy;
+  }
+
   // Builds a Checklist for a single student from the supply list (not persisted)
   public Checklist createChecklist(StudentInfo student, List<SupplyList> allSupplies) {
     String studentSchool = normalizeSchool(student.school);
@@ -135,11 +198,12 @@ public class ChecklistController implements Controller {
   // --- PRINT ROUTES (on-the-fly, not persisted) ---
   public void exportChecklistsPdf(Context ctx) {
     // Fetch your checklist data
+    List<SupplyList> pdfSupplies = expandHighSchoolSupplies(
+        supplyListCollection.find().into(new ArrayList<>()));
     List<Checklist> checklists = familyCollection.find()
         .into(new ArrayList<>())
         .stream()
-        .flatMap(f -> f.students.stream().map(s -> createChecklist(s, supplyListCollection
-          .find().into(new ArrayList<>()))))
+        .flatMap(f -> f.students.stream().map(s -> createChecklist(s, pdfSupplies)))
         .collect(Collectors.toList());
 
     // Build PDF content manually
@@ -300,7 +364,7 @@ public class ChecklistController implements Controller {
       }
     }
 
-    final List<SupplyList> allSupplies = orderedSupplies;
+    final List<SupplyList> allSupplies = expandHighSchoolSupplies(orderedSupplies);
     List<Checklist> checklists = familyCollection.find().into(new ArrayList<>()).stream()
         .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
         .collect(Collectors.toList());

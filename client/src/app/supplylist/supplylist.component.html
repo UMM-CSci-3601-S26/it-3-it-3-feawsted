@@ -128,10 +128,11 @@
             >
             Clear
             </button>
-            <!--# of Current Entries Displayed-->
-            <div mat-stroked-button class="count-display">
-            Count: {{ serverFilteredSupplyList().length }}
-            </div>
+            <!-- Expand / Collapse All -->
+            <button mat-stroked-button (click)="toggleAll()" data-cy="expand-collapse-all">
+              <mat-icon>{{ allExpanded() ? 'unfold_less' : 'unfold_more' }}</mat-icon>
+              {{ allExpanded() ? 'Collapse All' : 'Expand All' }}
+            </button>
         </div>
       </mat-card-content>
     </mat-card>
@@ -148,7 +149,7 @@
           <h2 class="school-heading" data-cy="supplylist-school">{{ schoolGroup.school }}</h2>
 
           @for (gradeGroup of schoolGroup.grades; track gradeGroup.grade) {
-            <mat-expansion-panel class="grade-panel">
+            <mat-expansion-panel class="grade-panel" [expanded]="allExpanded()">
               <mat-expansion-panel-header>
                 <mat-panel-title data-cy="supplylist-grade">{{ gradeGroup.grade }}</mat-panel-title>
                 <mat-panel-description>{{ gradeGroup.teachers[0]?.items?.length ?? 0 }} item(s)</mat-panel-description>

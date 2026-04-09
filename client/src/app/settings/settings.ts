@@ -1,6 +1,6 @@
 export interface SchoolInfo {
   name: string;         // e.g. "Morris Area High School"
-  abbreviation: string; // e.g. "MAHS"
+  abbreviation?: string; // legacy field, no longer used in UI
 }
 
 /**
