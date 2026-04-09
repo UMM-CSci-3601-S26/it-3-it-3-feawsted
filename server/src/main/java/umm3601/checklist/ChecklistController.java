@@ -3,6 +3,7 @@ package umm3601.checklist;
 
 // Static imports
 import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.regex;
 
 // Org Imports
@@ -22,7 +23,12 @@ import io.javalin.http.HttpStatus;
 
 // Java Imports
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.regex.Pattern;
 
@@ -31,6 +37,8 @@ import umm3601.Controller;
 import umm3601.checklist.Checklist.ChecklistItem;
 import umm3601.family.Family;
 import umm3601.family.Family.StudentInfo;
+import umm3601.settings.Settings;
+import umm3601.settings.SettingsController;
 import umm3601.supplylist.SupplyList;
 
 // Define the Checklist class if it doesn't exist elsewhere
@@ -64,6 +72,7 @@ public class ChecklistController implements Controller {
   private final JacksonMongoCollection<Family> familyCollection;
   private final JacksonMongoCollection<SupplyList> supplyListCollection;
   private final JacksonMongoCollection<Checklist> checklistCollection;
+  private final JacksonMongoCollection<Settings> settingsCollection;
 
   // constructor used for testing:
   public ChecklistController(JacksonMongoCollection<Family> familyCollection,
@@ -72,6 +81,7 @@ public class ChecklistController implements Controller {
     this.familyCollection = familyCollection;
     this.supplyListCollection = supplyListCollection;
     this.checklistCollection = checklistCollection;
+    this.settingsCollection = null;
   }
 
   // constructor used in server:
@@ -82,6 +92,8 @@ public class ChecklistController implements Controller {
       db, "supplylist", SupplyList.class, UuidRepresentation.STANDARD);
     checklistCollection = JacksonMongoCollection.builder().build(
         db, "checklists", Checklist.class, UuidRepresentation.STANDARD);
+    settingsCollection = JacksonMongoCollection.builder().build(
+        db, "settings", Settings.class, UuidRepresentation.STANDARD);
   }
 
   // Normalizes a school name for matching: lowercase, strip trailing " school"
@@ -277,13 +289,64 @@ public class ChecklistController implements Controller {
   // POST /api/checklist — snapshot all families into the checklists collection
   public void generateDigitalChecklists(Context ctx) {
     checklistCollection.deleteMany(new Document());
-    List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
+    List<SupplyList> rawSupplies = supplyListCollection.find().into(new ArrayList<>());
+
+    // Apply the operator-configured drive order from settings
+    List<SupplyList> orderedSupplies = rawSupplies;
+    if (settingsCollection != null) {
+      Settings settings = settingsCollection.find(eq("_id", SettingsController.SETTINGS_ID)).first();
+      if (settings != null && settings.supplyOrder != null && !settings.supplyOrder.isEmpty()) {
+        orderedSupplies = applySupplyOrder(rawSupplies, settings.supplyOrder);
+      }
+    }
+
+    final List<SupplyList> allSupplies = orderedSupplies;
     List<Checklist> checklists = familyCollection.find().into(new ArrayList<>()).stream()
         .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
         .collect(Collectors.toList());
     checklistCollection.insertMany(checklists);
     ctx.json(checklists);
     ctx.status(HttpStatus.CREATED);
+  }
+
+  /**
+   * Orders and filters the supply list according to the saved drive-day order.
+   * - "staged"   items come first, in their saved order
+   * - "unstaged" items come after all staged items (original fetch order preserved)
+   * - "notGiven" items are excluded entirely
+   */
+  static List<SupplyList> applySupplyOrder(List<SupplyList> supplies,
+      List<Settings.SupplyItemOrder> supplyOrder) {
+    // Build a map of itemTerm -> staged position
+    Map<String, Integer> stagedIndex = new HashMap<>();
+    Set<String> notGivenTerms = new HashSet<>();
+    // Set the index of staged items to their position in the supplyOrder list; unstaged items will default to MAX_VALUE
+    int pos = 0;
+    // Iterate in order and record the index of each staged term, and collect notGiven terms
+    for (Settings.SupplyItemOrder entry : supplyOrder) {
+      if ("staged".equals(entry.status)) {
+        stagedIndex.put(entry.itemTerm, pos++);
+      } else if ("notGiven".equals(entry.status)) {
+        notGivenTerms.add(entry.itemTerm);
+      }
+    }
+
+    // Exclude supplies whose item list contains any notGiven term.
+    // Sort remaining: staged supplies (by lowest matching term index) before unstaged.
+    return supplies.stream()
+        // Exclude supplies that have any notGiven terms in their item list; if item is null, keep it (could be a non-standard supply that doesn't match any terms)
+        .filter(s -> s.item == null || s.item.stream().noneMatch(notGivenTerms::contains))
+        // Supplies with a staged term get their lowest index; unstaged supplies default to MAX_VALUE, so come last
+        .sorted(Comparator.comparingInt(s -> {
+          if (s.item == null) {
+            return Integer.MAX_VALUE;
+          }
+          return s.item.stream()
+              .mapToInt(t -> stagedIndex.getOrDefault(t, Integer.MAX_VALUE))
+              .min()
+              .orElse(Integer.MAX_VALUE);
+        }))
+        .collect(Collectors.toList());
   }
 
   // GET /api/checklist — query stored digital checklists (optional ?school= and

@@ -101,6 +101,113 @@
           </div>
         </mat-tab>
 
+        <!-- ── Drive Order Tab ── -->
+        <mat-tab label="Drive Order">
+          <div class="tab-content">
+            <p class="tab-description">
+              Control how supply items appear on checklists during the drive.
+              <strong>Staged</strong> items are included in the exact order shown — drag to reorder.
+              <strong>Unstaged</strong> items are in the drive but appended after staged items.
+              <strong>Not Given</strong> items are excluded from checklists entirely.
+            </p>
+
+            <div class="drive-order-columns">
+
+              <!-- Staged column -->
+              <div class="order-section">
+                <h3 class="section-title staged-title">
+                  <mat-icon>format_list_numbered</mat-icon> Staged
+                  <span class="section-count">({{ stagedTerms.length }})</span>
+                </h3>
+                <div
+                  cdkDropList
+                  [cdkDropListData]="stagedTerms"
+                  (cdkDropListDropped)="dropStaged($event)"
+                  class="drop-list">
+                  @for (term of stagedTerms; track term) {
+                    <div cdkDrag class="supply-order-item">
+                      <mat-icon cdkDragHandle class="drag-handle">drag_indicator</mat-icon>
+                      <span class="item-label">{{ term }}</span>
+                      <span class="item-actions">
+                        <button mat-icon-button (click)="moveToUnstaged(term)" title="Move to Unstaged">
+                          <mat-icon>arrow_forward</mat-icon>
+                        </button>
+                        <button mat-icon-button color="warn" (click)="moveToNotGiven(term)" title="Mark as Not Given">
+                          <mat-icon>block</mat-icon>
+                        </button>
+                      </span>
+                    </div>
+                  }
+                  @empty {
+                    <div class="empty-hint">No staged items. Move items here to set the checklist order.</div>
+                  }
+                </div>
+              </div>
+
+              <!-- Unstaged column -->
+              <div class="order-section">
+                <h3 class="section-title unstaged-title">
+                  <mat-icon>radio_button_unchecked</mat-icon> Unstaged
+                  <span class="section-count">({{ unstagedTerms.length }})</span>
+                </h3>
+                <div class="drop-list">
+                  @for (term of unstagedTerms; track term) {
+                    <div class="supply-order-item">
+                      <mat-icon class="status-icon">inventory_2</mat-icon>
+                      <span class="item-label">{{ term }}</span>
+                      <span class="item-actions">
+                        <button mat-icon-button (click)="moveToStaged(term)" title="Add to Staged">
+                          <mat-icon>arrow_back</mat-icon>
+                        </button>
+                        <button mat-icon-button color="warn" (click)="moveToNotGiven(term)" title="Mark as Not Given">
+                          <mat-icon>block</mat-icon>
+                        </button>
+                      </span>
+                    </div>
+                  }
+                  @empty {
+                    <div class="empty-hint">No unstaged items.</div>
+                  }
+                </div>
+              </div>
+
+              <!-- Not Given column -->
+              <div class="order-section">
+                <h3 class="section-title not-given-title">
+                  <mat-icon>block</mat-icon> Not Given
+                  <span class="section-count">({{ notGivenTerms.length }})</span>
+                </h3>
+                <div class="drop-list">
+                  @for (term of notGivenTerms; track term) {
+                    <div class="supply-order-item not-given-item">
+                      <mat-icon class="status-icon not-given-icon">do_not_disturb</mat-icon>
+                      <span class="item-label">{{ term }}</span>
+                      <span class="item-actions">
+                        <button mat-icon-button (click)="moveToStaged(term)" title="Add to Staged">
+                          <mat-icon>format_list_numbered</mat-icon>
+                        </button>
+                        <button mat-icon-button (click)="moveToUnstaged(term)" title="Move to Unstaged">
+                          <mat-icon>arrow_back</mat-icon>
+                        </button>
+                      </span>
+                    </div>
+                  }
+                  @empty {
+                    <div class="empty-hint">No excluded items.</div>
+                  }
+                </div>
+              </div>
+
+            </div>
+
+            <div class="save-button">
+              <button mat-raised-button color="primary" (click)="saveSupplyOrder()">
+                Save Drive Order
+              </button>
+            </div>
+          </div>
+        </mat-tab>
+
       </mat-tab-group>
     </mat-card-content>
   </mat-card>

@@ -41,11 +41,12 @@ import umm3601.Controller;
 public class SettingsController implements Controller {
 
   // The fixed _id used for the singleton settings document
-  static final String SETTINGS_ID = "app-settings";
+  public static final String SETTINGS_ID = "app-settings";
 
   private static final String API_SETTINGS = "/api/settings";
   private static final String API_SETTINGS_SCHOOLS = "/api/settings/schools";
   private static final String API_SETTINGS_TIME = "/api/settings/timeAvailability";
+  private static final String API_SETTINGS_SUPPLY_ORDER = "/api/settings/supplyOrder";
 
   private final JacksonMongoCollection<Settings> settingsCollection;
 
@@ -68,6 +69,9 @@ public class SettingsController implements Controller {
       settings._id = SETTINGS_ID;
       settings.schools = new ArrayList<>();
       settings.timeAvailability = new Settings.TimeAvailabilityLabels();
+      settings.supplyOrder = new ArrayList<>();
+    } else if (settings.supplyOrder == null) {
+      settings.supplyOrder = new ArrayList<>();
     }
     ctx.json(settings);
     ctx.status(HttpStatus.OK);
@@ -91,6 +95,34 @@ public class SettingsController implements Controller {
     settingsCollection.updateOne(
         eq("_id", SETTINGS_ID),
         new Document("$set", new Document("schools", schoolDocs)),
+        new UpdateOptions().upsert(true));
+
+    ctx.status(HttpStatus.OK);
+  }
+
+  /**
+   * PATCH /api/settings/supplyOrder
+   * Replaces the supply item ordering used when generating checklists.
+   * Body: { "supplyOrder": [{ "supplyId": "...", "status": "staged|unstaged|notGiven" }] }
+   */
+  public void updateSupplyOrder(Context ctx) {
+    // Validate request body
+    Settings body = ctx.bodyAsClass(Settings.class);
+    // supplyOrder is required but can be an empty array
+    if (body.supplyOrder == null) {
+      throw new BadRequestResponse("Request body must include a 'supplyOrder' array.");
+    }
+
+    // Convert to plain BSON Documents
+    List<Document> orderDocs = body.supplyOrder.stream()
+        // Each entry must have an itemTerm and a valid status
+        .map(e -> new Document("itemTerm", e.itemTerm).append("status", e.status))
+        .collect(Collectors.toList());
+
+    // Update the supplyOrder field in the settings document
+    settingsCollection.updateOne(
+        eq("_id", SETTINGS_ID),
+        new Document("$set", new Document("supplyOrder", orderDocs)),
         new UpdateOptions().upsert(true));
 
     ctx.status(HttpStatus.OK);
@@ -123,5 +155,6 @@ public class SettingsController implements Controller {
     server.get(API_SETTINGS, this::getSettings);
     server.patch(API_SETTINGS_SCHOOLS, this::updateSchools);
     server.patch(API_SETTINGS_TIME, this::updateTimeAvailability);
+    server.patch(API_SETTINGS_SUPPLY_ORDER, this::updateSupplyOrder);
   }
 }

@@ -10,10 +10,17 @@ import { MatListModule } from '@angular/material/list';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { CommonModule } from '@angular/common';
+import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
+
+// RxJS Imports
+import { forkJoin } from 'rxjs';
 
 // Settings Service and Type Imports
 import { SettingsService } from './settings.service';
-import { SchoolInfo, TimeAvailabilityLabels } from './settings';
+import { SchoolInfo, SupplyItemOrder, TimeAvailabilityLabels } from './settings';
+
+// Terms Imports
+import { TermsService } from '../terms/terms.service';
 
 @Component({
   selector: 'app-settings',
@@ -30,10 +37,12 @@ import { SchoolInfo, TimeAvailabilityLabels } from './settings';
     MatButtonModule,
     MatIconModule,
     MatListModule,
+    DragDropModule,
   ]
 })
 export class SettingsComponent implements OnInit {
   private settingsService = inject(SettingsService);
+  private termsService = inject(TermsService);
   private snackBar = inject(MatSnackBar);
 
   // Current schools list, loaded from the server on init
@@ -61,12 +70,91 @@ export class SettingsComponent implements OnInit {
     lateAfternoon: new FormControl('', Validators.required),
   });
 
+  // Drive Order: three buckets of item terms (e.g. "notebook", "folder")
+  stagedTerms: string[] = [];    // included in the drive, checklist order matches this list
+  unstagedTerms: string[] = []; // included in the drive, appended after staged items
+  notGivenTerms: string[] = []; // excluded from checklists entirely
+
   ngOnInit(): void {
     this.settingsService.getSettings().subscribe(settings => {
       this.schools = settings.schools ?? [];
       if (settings.timeAvailability) {
         this.timeAvailabilityForm.patchValue(settings.timeAvailability);
       }
+    });
+
+    this.loadDriveOrder();
+  }
+
+  // Loads the drive order from the server and populates the three term lists accordingly
+  private loadDriveOrder(): void {
+    // Load both the full list of item terms and the saved supply order from the server in parallel
+    forkJoin({
+      terms: this.termsService.getTerms(),
+      settings: this.settingsService.getSettings()
+    }).subscribe(({ terms, settings }) => {
+      const allTerms: string[] = terms.item ?? [];
+      const savedOrder: SupplyItemOrder[] = settings.supplyOrder ?? [];
+
+      // Restore staged order from saved list (skip any terms no longer in the database)
+      const stagedTermSet = new Set(
+        savedOrder.filter(o => o.status === 'staged').map(o => o.itemTerm));
+      const notGivenTermSet = new Set(
+        savedOrder.filter(o => o.status === 'notGiven').map(o => o.itemTerm));
+
+      // Staged: in the order saved on the server, but only if the term still exists in the database
+      this.stagedTerms = savedOrder
+        .filter(o => o.status === 'staged' && allTerms.includes(o.itemTerm))
+        .map(o => o.itemTerm);
+
+      // Not Given: sorted alphabetically
+      this.notGivenTerms = allTerms
+        .filter(t => notGivenTermSet.has(t))
+        .sort((a, b) => a.localeCompare(b));
+
+      // Unstaged: every term not yet assigned — sorted alphabetically
+      this.unstagedTerms = allTerms
+        .filter(t => !stagedTermSet.has(t) && !notGivenTermSet.has(t))
+        .sort((a, b) => a.localeCompare(b));
+    });
+  }
+
+  // Move a term from its current list into Staged (appended at end)
+  moveToStaged(term: string): void {
+    this.unstagedTerms = this.unstagedTerms.filter(t => t !== term);
+    this.notGivenTerms = this.notGivenTerms.filter(t => t !== term);
+    this.stagedTerms = [...this.stagedTerms, term];
+  }
+
+  // Move a term to Unstaged
+  moveToUnstaged(term: string): void {
+    this.stagedTerms = this.stagedTerms.filter(t => t !== term);
+    this.notGivenTerms = this.notGivenTerms.filter(t => t !== term);
+    this.unstagedTerms = [...this.unstagedTerms, term].sort((a, b) => a.localeCompare(b));
+  }
+
+  // Mark a term as Not Given (all supplies with this item excluded from checklists)
+  moveToNotGiven(term: string): void {
+    this.stagedTerms = this.stagedTerms.filter(t => t !== term);
+    this.unstagedTerms = this.unstagedTerms.filter(t => t !== term);
+    this.notGivenTerms = [...this.notGivenTerms, term].sort((a, b) => a.localeCompare(b));
+  }
+
+  // CDK drag-drop handler for reordering the staged list
+  dropStaged(event: CdkDragDrop<string[]>): void {
+    moveItemInArray(this.stagedTerms, event.previousIndex, event.currentIndex);
+  }
+
+  // Persists the full drive order to the server
+  saveSupplyOrder(): void {
+    const order: SupplyItemOrder[] = [
+      ...this.stagedTerms.map(t => ({ itemTerm: t, status: 'staged' as const })),
+      ...this.unstagedTerms.map(t => ({ itemTerm: t, status: 'unstaged' as const })),
+      ...this.notGivenTerms.map(t => ({ itemTerm: t, status: 'notGiven' as const })),
+    ];
+    this.settingsService.updateSupplyOrder(order).subscribe({
+      next: () => this.snackBar.open('Drive order saved', 'OK', { duration: 2000 }),
+      error: () => this.snackBar.open('Failed to save drive order', 'OK', { duration: 3000 })
     });
   }
 
