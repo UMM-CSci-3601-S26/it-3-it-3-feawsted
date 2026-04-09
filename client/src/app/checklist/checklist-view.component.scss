@@ -89,6 +89,13 @@
 //   align-self: flex-start;
 // }
 
+.export-csv-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
 @media (max-width: 768px) {
   .checklist-cards-container {
     justify-content: center;
@@ -97,10 +104,4 @@
   .search-card {
     margin-bottom: 2rem;
   }
-
-  .export-csv-button {
-  position: fixed;
-  bottom: 15px;
-  left: 30px;
-}
 }

@@ -103,7 +103,7 @@ export class ChecklistViewComponent {
     this.grade.set(undefined);
   }
 
-  downloadCSV() {
+  downloadPDF() {
     this.checklistService.printAllChecklists().subscribe(checklists => {
       const doc = new jsPDF();
 
