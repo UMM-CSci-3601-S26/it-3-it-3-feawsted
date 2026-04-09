@@ -188,7 +188,8 @@ class ChecklistControllerSpec {
             new Document()
                 .append("supply", new Document()
                     .append("item", Arrays.asList("Markers"))
-                    .append("brand", new Document().append("allOf", Arrays.asList("Crayola")).append("anyOf", new ArrayList<>())))
+                    .append("brand", new Document().append("allOf", Arrays.asList("Crayola"))
+                    .append("anyOf", new ArrayList<>())))
                 .append("completed", false)
                 .append("unreceived", false)
                 .append("selectedOption", null)));

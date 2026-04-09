@@ -118,7 +118,9 @@ public class SupplyList {
 
   // Helper to format allOf as comma-separated with 'and' before last
   private String formatAllOf(AttributeOptions attr, String prefix) {
-    if (attr == null || attr.allOf == null || attr.allOf.isEmpty()) return "";
+    if (attr == null || attr.allOf == null || attr.allOf.isEmpty()) {
+      return "";
+    }
     StringBuilder sb = new StringBuilder(prefix);
     int n = attr.allOf.size();
     for (int i = 0; i < n; i++) {
@@ -134,7 +136,9 @@ public class SupplyList {
 
   // Helper to format anyOf as (a, b, or c) per category
   private String formatAnyOf(AttributeOptions attr) {
-    if (attr == null || attr.anyOf == null || attr.anyOf.isEmpty()) return "";
+    if (attr == null || attr.anyOf == null || attr.anyOf.isEmpty()) {
+      return "";
+    }
     StringBuilder sb = new StringBuilder(" (");
     int n = attr.anyOf.size();
     for (int i = 0; i < n; i++) {

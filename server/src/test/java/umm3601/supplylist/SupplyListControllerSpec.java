@@ -137,9 +137,15 @@ public class SupplyListControllerSpec {
             .append("size", "N/A")
             .append("quantity", 10)
             .append("notes", "N/A")
-            .append("type", new Document().append("allOf", Arrays.asList("#2")).append("anyOf", new ArrayList<>()))
-            .append("material", new Document().append("allOf", Arrays.asList("wood")).append("anyOf", new ArrayList<>()))
-            .append("style", new Document().append("allOf", Arrays.asList("hexagonal")).append("anyOf", new ArrayList<>())));
+            .append("type", new Document()
+                .append("allOf", Arrays.asList("#2"))
+                .append("anyOf", new ArrayList<>()))
+            .append("material", new Document()
+                .append("allOf", Arrays.asList("wood"))
+                .append("anyOf", new ArrayList<>()))
+            .append("style", new Document()
+              .append("allOf", Arrays.asList("hexagonal"))
+              .append("anyOf", new ArrayList<>())));
     testSupplyList.add(
         new Document()
             .append("school", "CHS")
@@ -628,7 +634,8 @@ public class SupplyListControllerSpec {
       supplylistController.addSupplyList(ctx);
     });
 
-    assertTrue(exception.getErrors().get("REQUEST_BODY").get(0).toString().contains("quantity must be a positive integer"));
+    assertTrue(exception.getErrors().get("REQUEST_BODY")
+    .get(0).toString().contains("quantity must be a positive integer"));
   }
 
   @Test
@@ -871,15 +878,25 @@ public class SupplyListControllerSpec {
             .append("grade", "PreK")
             .append("teacher", "Smith")
             .append("item", Arrays.asList("Ruler"))
-            .append("brand", new Document().append("allOf", Arrays.asList("Westcott")).append("anyOf", new ArrayList<>()))
-            .append("color", new Document().append("allOf", Arrays.asList("clear")).append("anyOf", new ArrayList<>()))
+            .append("brand", new Document()
+              .append("allOf", Arrays.asList("Westcott"))
+              .append("anyOf", new ArrayList<>()))
+            .append("color", new Document()
+              .append("allOf", Arrays.asList("clear"))
+              .append("anyOf", new ArrayList<>()))
             .append("count", 1)
             .append("size", "12 inch")
             .append("quantity", 1)
             .append("notes", "N/A")
-            .append("type", new Document().append("allOf", new ArrayList<>()).append("anyOf", new ArrayList<>()))
-            .append("material", new Document().append("allOf", Arrays.asList("plastic")).append("anyOf", new ArrayList<>()))
-            .append("style", new Document().append("allOf", new ArrayList<>()).append("anyOf", new ArrayList<>())));
+            .append("type", new Document()
+              .append("allOf", new ArrayList<>())
+              .append("anyOf", new ArrayList<>()))
+            .append("material", new Document()
+              .append("allOf", Arrays.asList("plastic"))
+              .append("anyOf", new ArrayList<>()))
+            .append("style", new Document()
+              .append("allOf", new ArrayList<>())
+              .append("anyOf", new ArrayList<>())));
 
     when(ctx.queryParamMap()).thenReturn(Map.of("teacher", List.of("Smith")));
     when(ctx.queryParam("teacher")).thenReturn("Smith");
@@ -900,15 +917,25 @@ public class SupplyListControllerSpec {
             .append("grade", "PreK")
             .append("academicYear", "2025-2026")
             .append("item", Arrays.asList("Scissors"))
-            .append("brand", new Document().append("allOf", Arrays.asList("Fiskars")).append("anyOf", new ArrayList<>()))
-            .append("color", new Document().append("allOf", Arrays.asList("orange")).append("anyOf", new ArrayList<>()))
+            .append("brand", new Document()
+                .append("allOf", Arrays.asList("Fiskars"))
+                .append("anyOf", new ArrayList<>()))
+            .append("color", new Document()
+                .append("allOf", Arrays.asList("orange"))
+                .append("anyOf", new ArrayList<>()))
             .append("count", 1)
             .append("size", "5 inch")
             .append("quantity", 1)
             .append("notes", "N/A")
-            .append("type", new Document().append("allOf", new ArrayList<>()).append("anyOf", new ArrayList<>()))
-            .append("material", new Document().append("allOf", Arrays.asList("metal")).append("anyOf", new ArrayList<>()))
-            .append("style", new Document().append("allOf", new ArrayList<>()).append("anyOf", new ArrayList<>())));
+            .append("type", new Document()
+                .append("allOf", new ArrayList<>())
+                .append("anyOf", new ArrayList<>()))
+            .append("material", new Document()
+              .append("allOf", Arrays.asList("metal"))
+              .append("anyOf", new ArrayList<>()))
+            .append("style", new Document()
+            .append("allOf", new ArrayList<>())
+            .append("anyOf", new ArrayList<>())));
 
     when(ctx.queryParamMap()).thenReturn(Map.of("academicYear", List.of("2025-2026")));
     when(ctx.queryParam("academicYear")).thenReturn("2025-2026");

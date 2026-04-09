@@ -20,8 +20,6 @@ import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 // Java Imports
 import java.util.ArrayList;
 import java.util.List;
@@ -88,13 +86,17 @@ public class ChecklistController implements Controller {
 
   // Normalizes a school name for matching: lowercase, strip trailing " school"
   static String normalizeSchool(String s) {
-    if (s == null) return "";
+    if (s == null) {
+      return "";
+    }
     return s.trim().toLowerCase().replaceAll("\\s+school$", "");
   }
 
   // Normalizes a grade for matching: lowercase, remove hyphens and spaces
   static String normalizeGrade(String g) {
-    if (g == null) return "";
+    if (g == null) {
+      return "";
+    }
     return g.trim().toLowerCase().replaceAll("[\\s\\-]", "");
   }
 
@@ -124,7 +126,8 @@ public class ChecklistController implements Controller {
     List<Checklist> checklists = familyCollection.find()
         .into(new ArrayList<>())
         .stream()
-        .flatMap(f -> f.students.stream().map(s -> createChecklist(s, supplyListCollection.find().into(new ArrayList<>()))))
+        .flatMap(f -> f.students.stream().map(s -> createChecklist(s, supplyListCollection
+          .find().into(new ArrayList<>()))))
         .collect(Collectors.toList());
 
     // Build PDF content manually
@@ -142,7 +145,11 @@ public class ChecklistController implements Controller {
     for (Checklist c : checklists) {
         text.append("(")
             .append("Student: ").append(c.studentName)
-            .append(" (").append(c.school).append(", Grade ").append(c.grade).append(")")
+            .append(" (")
+            .append(c.school)
+            .append(", Grade ")
+            .append(c.grade)
+            .append(")")
             .append(") Tj T* ");
 
         for (ChecklistItem item : c.checklist) {
@@ -160,7 +167,8 @@ public class ChecklistController implements Controller {
     text.append("ET");
 
     // PDF page object
-    pdf.append("3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj\n");
+    pdf.append("3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792]")
+       .append(" /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj\n");
 
     // PDF content stream
     byte[] textBytes = text.toString().getBytes();
