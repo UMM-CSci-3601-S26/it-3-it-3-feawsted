@@ -20,6 +20,14 @@ mat-toolbar.mat-primary {
   padding-left: 16px;
 }
 
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+mat-toolbar .mat-mdc-button,
+mat-toolbar .mat-mdc-icon-button {
+  color: inherit;
+}
 
 .main-content {
   margin: auto;

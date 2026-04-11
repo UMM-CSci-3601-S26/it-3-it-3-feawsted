@@ -130,6 +130,14 @@ body {
   @include mat.all-component-colors($dark-theme);
   // Sets up theming for our custom components with the dark theme
   @include app-theming($dark-theme);
+
+  // In dark mode the primary palette uses indigo-200 (a light hue) so Material
+  // picks black contrast text. Force white so raised primary buttons are legible.
+  .mat-mdc-raised-button.mat-primary,
+  .mat-mdc-unelevated-button.mat-primary {
+    --mdc-filled-button-label-text-color: #fff;
+    --mdc-protected-button-label-text-color: #fff;
+  }
 }
 
 // Use uppercase text on buttons

@@ -2,12 +2,22 @@
   <div class="flex-1">
     <mat-card class="home-card">
       <mat-card-header>
-        <mat-card-title>
-          Home
-        </mat-card-title>
+        <mat-card-title>Ready For Supplies</mat-card-title>
+        <mat-card-subtitle>Choose how you would like to sign up</mat-card-subtitle>
       </mat-card-header>
-      <mat-card-content>
-        This is a home page! It doesn't do anything!
+      <mat-card-content class="login-buttons">
+        <a mat-raised-button color="primary" routerLink="/sign-up">
+          <mat-icon>badge</mat-icon>
+          Volunteer Sign Up
+        </a>
+        <a mat-raised-button color="accent" routerLink="/guardian-sign-up">
+          <mat-icon>family_restroom</mat-icon>
+          Guardian Sign Up
+        </a>
+        <a mat-stroked-button routerLink="/login">
+          <mat-icon>login</mat-icon>
+          Already have an account? Log in
+        </a>
       </mat-card-content>
     </mat-card>
   </div>

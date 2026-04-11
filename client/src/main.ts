@@ -1,5 +1,5 @@
 import { LayoutModule } from '@angular/cdk/layout';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { enableProdMode, importProvidersFrom } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -22,6 +22,7 @@ import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { AppRoutingModule } from './app/app-routing.module';
 import { AppComponent } from './app/app.component';
+import { AuthInterceptor } from './app/auth/auth.interceptor';
 import { environment } from './environments/environment';
 
 const MATERIAL_MODULES = [
@@ -51,7 +52,8 @@ bootstrapApplication(AppComponent, {
   providers: [
     importProvidersFrom(BrowserModule, AppRoutingModule, FormsModule, ReactiveFormsModule, MATERIAL_MODULES, LayoutModule),
     provideAnimations(),
-    provideHttpClient(withInterceptorsFromDi())
+    provideHttpClient(withInterceptorsFromDi()),
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
   ]
 })
   .catch(err => console.error(err));
