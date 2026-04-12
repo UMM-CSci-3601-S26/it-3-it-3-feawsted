@@ -13,6 +13,7 @@
 mat-toolbar.mat-primary {
   position: sticky;
   top: 0;
+  border-left: 25px solid rgb(243, 111, 155);
   z-index: 1;
 }
 
@@ -32,4 +33,11 @@ mat-toolbar.mat-primary {
     // adds padding to the main content container on larger screens (above 1280px wide)
     max-width: 1280px;
   }
+}
+
+.toolbar-pencil {
+  height: 100%;
+  margin-left: auto;
+  margin-right: -16px;
+  object-fit: contain;
 }
