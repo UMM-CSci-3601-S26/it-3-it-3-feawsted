@@ -8,7 +8,7 @@ import { InventoryService } from 'src/app/inventory/inventory.service';
   providedIn: AppComponent
 })
 
-export class MockInventoryService implements Pick<InventoryService, 'getInventory' | 'deleteInventory' | 'addInventory'> {
+export class MockInventoryService implements Pick<InventoryService, 'getInventory' | 'deleteInventory' | 'addInventory' | 'editInventory'> {
   static testInventory: Inventory[] = [
     {
       item: "Markers",
@@ -59,5 +59,9 @@ export class MockInventoryService implements Pick<InventoryService, 'getInventor
 
   addInventory(newInventory: Partial<Inventory>): Observable<string> {
     return of('mock-id');
+  }
+
+  editInventory(_id: string, _updatedInventory: Partial<Inventory>): Observable<void> {
+    return of(undefined);
   }
 }

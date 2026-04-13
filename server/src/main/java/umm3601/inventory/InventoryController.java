@@ -52,6 +52,7 @@ public class InventoryController implements Controller {
 
   private static final String API_INVENTORY = "/api/inventory";
   private static final String API_INVENTORY_BY_ID = "/api/inventory/{id}";
+  private static final String API_INVENTORY_BY_ITEM = "/api/inventory/item/{item}";
 
   static final String ITEM_KEY = "item";
   static final String BRAND_KEY = "brand";
@@ -210,6 +211,39 @@ public class InventoryController implements Controller {
     ctx.status(HttpStatus.CREATED);
   }
 
+  /**
+   * PUT /api/inventory/{id}
+   * Replaces an existing inventory item with the request body.
+   *
+   * Returns 200 OK on success, 400 Bad Request for invalid input,
+   * or 404 Not Found if the item does not exist.
+   */
+  public void editInventory(Context ctx) {
+    String id = ctx.pathParam("id");
+
+    Inventory updatedItem = ctx.bodyValidator(Inventory.class)
+      .check(inventory -> inventory.quantity >= 0,
+        "Quantity must be >= 0")
+      .check(inventory -> inventory.count >= 1,
+        "Count must be >= 1")
+      .check(inventory -> inventory.item != null && inventory.item.length() > 0,
+        "Inventory must have a non-empty item key")
+      .get();
+
+    long matchedCount;
+    try {
+      matchedCount = inventoryCollection.replaceOne(
+        eq("_id", new ObjectId(id)), updatedItem
+      ).getMatchedCount();
+    } catch (IllegalArgumentException e) {
+      throw new BadRequestResponse("The requested inventory id wasn't a legal Mongo Object ID.");
+    }
+
+    if (matchedCount == 0) {
+      throw new NotFoundResponse("The requested inventory item was not found");
+    }
+    ctx.status(HttpStatus.OK);
+  }
 
   /**
    * DELETE /api/inventory/{id}
@@ -241,6 +275,7 @@ public class InventoryController implements Controller {
     server.get(API_INVENTORY, this::getInventories);
     server.get(API_INVENTORY_BY_ID, this::getInventoryItem);
     server.post(API_INVENTORY, this::addInventory);
+    server.put(API_INVENTORY_BY_ID, this::editInventory);
     server.delete(API_INVENTORY_BY_ID, this::deleteInventory);
   }
 }

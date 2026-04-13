@@ -270,6 +270,134 @@ describe('InventoryService', () => {
       });
     });
 
+    // Tests to ensure addInventory() sends a POST to the correct URL with the inventory body, and returns the new item's ID
+    describe('When addInventory() is called', () => {
+      it('correctly POST-s the inventory body to api/inventory', () => {
+        const mockedMethod = spyOn(httpClient, 'post').and.returnValue(of({ id: 'new-id' }));
+        const newItem: Partial<Inventory> = {
+          item: 'Markers',
+          description: '8 Pack of Washable Wide Markers',
+          brand: 'Crayola',
+          color: 'Black',
+          count: 8,
+          size: 'Wide',
+          type: 'Washable',
+          material: 'N/A',
+          quantity: 0,
+          notes: 'N/A'
+        };
+
+        inventoryService.addInventory(newItem).subscribe(() => {
+          expect(mockedMethod)
+            .withContext('one call')
+            .toHaveBeenCalledTimes(1);
+          expect(mockedMethod)
+            .withContext('talks to the correct endpoint')
+            .toHaveBeenCalledWith(inventoryService.inventoryUrl, newItem);
+        });
+      });
+
+      it('returns the ID string extracted from the server response', () => {
+        spyOn(httpClient, 'post').and.returnValue(of({ id: 'abc-123' }));
+        const newItem: Partial<Inventory> = {
+          item: 'Notebook',
+          description: 'Yellow Wide Ruled Spiral Notebook',
+          brand: 'N/A',
+          color: 'Yellow',
+          count: 1,
+          size: 'Wide Ruled',
+          type: 'Spiral',
+          material: 'N/A',
+          quantity: 3,
+          notes: 'N/A'
+        };
+
+        inventoryService.addInventory(newItem).subscribe(returnedId => {
+          expect(returnedId)
+            .withContext('unwraps the id from the response object')
+            .toEqual('abc-123');
+        });
+      });
+
+      it('sends only the fields provided in the partial inventory', () => {
+        const mockedMethod = spyOn(httpClient, 'post').and.returnValue(of({ id: 'partial-id' }));
+        const partialItem: Partial<Inventory> = { item: 'Folder', quantity: 2 };
+
+        inventoryService.addInventory(partialItem).subscribe(() => {
+          const [url, body] = mockedMethod.calls.argsFor(0);
+          expect(url).toEqual(inventoryService.inventoryUrl);
+          expect(body).toEqual(partialItem);
+        });
+      });
+    });
+
+    // Tests to ensure editInventory() sends a PUT to the correct URL with the updated inventory body
+    describe('When editInventory() is called', () => {
+      it('correctly PUT-s the updated inventory to api/inventory/{id}', () => {
+        const mockedMethod = spyOn(httpClient, 'put').and.returnValue(of(null));
+        const idToEdit = '12345';
+        const updatedItem: Partial<Inventory> = {
+          item: 'Markers',
+          description: '8 Pack of Washable Wide Markers',
+          brand: 'Crayola',
+          color: 'Black',
+          count: 8,
+          size: 'Wide',
+          type: 'Washable',
+          material: 'N/A',
+          quantity: 5,
+          notes: 'N/A'
+        };
+
+        inventoryService.editInventory(idToEdit, updatedItem).subscribe(() => {
+          expect(mockedMethod)
+            .withContext('one call')
+            .toHaveBeenCalledTimes(1);
+          expect(mockedMethod)
+            .withContext('talks to the correct endpoint with ID')
+            .toHaveBeenCalledWith(`${inventoryService.inventoryUrl}/${idToEdit}`, updatedItem);
+        });
+      });
+
+      it('calls PUT with the right URL including the ID', () => {
+        const mockedMethod = spyOn(httpClient, 'put').and.returnValue(of(undefined));
+        const idToEdit = 'item-abc-789';
+        const updatedItem: Partial<Inventory> = { item: 'Folder', quantity: 2 };
+
+        inventoryService.editInventory(idToEdit, updatedItem).subscribe(() => {
+          expect(mockedMethod)
+            .withContext('one call')
+            .toHaveBeenCalledTimes(1);
+          expect(mockedMethod)
+            .withContext('URL must include the item ID')
+            .toHaveBeenCalledWith(`${inventoryService.inventoryUrl}/${idToEdit}`, updatedItem);
+        });
+      });
+
+      it('correctly sends all updated fields in the request body', () => {
+        const mockedMethod = spyOn(httpClient, 'put').and.returnValue(of(undefined));
+        const idToEdit = 'update-full-id';
+        const updatedItem: Partial<Inventory> = {
+          item: 'Notebook',
+          description: 'Yellow Wide Ruled Spiral Notebook',
+          brand: 'Five Star',
+          color: 'Yellow',
+          count: 1,
+          size: 'Wide Ruled',
+          type: 'Spiral',
+          material: 'N/A',
+          quantity: 10,
+          notes: 'Updated notes'
+        };
+
+        inventoryService.editInventory(idToEdit, updatedItem).subscribe(() => {
+          const [url, body] = mockedMethod.calls.argsFor(0);
+          expect(url).toEqual(`${inventoryService.inventoryUrl}/${idToEdit}`);
+          expect(body).toEqual(updatedItem);
+        });
+      });
+    });
+
     // Test to ensure deleteInventory() correctly calls the API endpoint to delete an inventory item by ID, and that it is called exactly once with the correct URL
     describe('When deleteInventory() is called', () => {
       it('correctly deletes an inventory item by ID', () => {

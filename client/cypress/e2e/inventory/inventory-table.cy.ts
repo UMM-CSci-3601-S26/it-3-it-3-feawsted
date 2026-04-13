@@ -61,6 +61,7 @@ describe('Inventory', () => {
     cy.get('@headers').should('contain', 'Count');
     cy.get('@headers').should('contain', 'Quantity');
     cy.get('@headers').should('contain', 'Notes');
+    cy.get('@headers').should('contain', 'Actions');
   });
 
   // Cypress tests to ensure the filter boxes (including clear button) are there
@@ -166,6 +167,131 @@ describe('Inventory', () => {
       cy.get('[data-cy="inventory-type"]').should('not.contain', Filters_Test.Type);
       cy.get('[data-cy="inventory-size"]').should('not.contain', Filters_Test.Size);
     });
+
+    it('deletes an item when confirmed', () => {
+      // Intercept the delete API call
+      cy.intercept('DELETE', '/api/inventory*').as('deleteInventory');
+      // cy.intercept('DELETE', '/api/inventory*', {
+      //   statusCode: 200,
+      //   body: { success: true },
+      // }).as('deleteInventory');
+
+      // Simulate user confirming the deletion
+      cy.on('window:confirm', () => true); // Simulate user clicking "OK" on confirmation prompt
+
+      // Click the delete button for the first item
+      page.getInventoryRow().first().within(() => {
+        cy.get('[data-cy="delete-button"]').click();
+      });
+
+      cy.wait('@deleteInventory').its('request.body').should('contain', '/api/inventory');
+      // Optionally, check that the item is removed from the UI after deletion
+
+      page.getInventoryRow().should('have.length.lessThan', 1); // Assuming there were initially 1 item, adjust as needed
+
+    });
+
+    it('delete does not occur when user cancels confirmation prompt', () => {
+      // Intercept the delete API call
+      cy.intercept('DELETE', '/api/inventory*').as('deleteInventory');
+
+      // Simulate user cancelling the deletion
+      cy.on('window:confirm', () => false); // Simulate user clicking "Cancel" on confirmation prompt
+
+      // Click the delete button for the first item
+      page.getInventoryRow().first().within(() => {
+        cy.get('[data-cy="delete-button"]').click();
+      });
+
+      // Ensure the delete API call was not made
+      cy.wait(500); // Wait briefly to ensure any API calls would have been made
+      cy.get('@deleteInventory.all').should('have.length', 0); // Assert that no delete API calls were made
+
+      // Optionally, check that the item is still present in the UI after cancellation
+      page.getInventoryRow().first().within(() => {
+        cy.get('[data-cy="inventory-item"]').should('exist');
+      });
+    })
+  });
+
+  it('Should show Edit option in the row actions menu', () => {
+    page.getInventoryRow().first()
+      .find('button[aria-label="Row actions menu"]').click();
+
+    page.getEditAction().should('exist').and('be.visible');
+  });
+
+  it('Should switch to edit mode when Edit is clicked', () => {
+    page.getInventoryRow().first()
+      .find('button[aria-label="Row actions menu"]').click();
+
+    page.getEditAction().click();
+
+    // The inline input for item should now be visible, the display span hidden
+    page.getInventoryRow().first().within(() => {
+      cy.get('[data-cy="inventory-item"] input.inline-edit-input').should('be.visible');
+      cy.get('[data-cy="inventory-item"] span').should('not.be.visible');
+    });
+  });
+
+  it('Should show Save and Cancel (not Edit) in the menu while editing', () => {
+    // Re-query the row fresh each time to avoid Cypress chain variable issues
+    page.getInventoryRow().first().find('button[aria-label="Row actions menu"]').click();
+    page.getEditAction().click();
+
+    // Re-open the menu on the same row
+    page.getInventoryRow().first().find('button[aria-label="Row actions menu"]').click();
+
+    page.getSaveAction().should('exist').and('be.visible');
+    page.getCancelAction().should('exist').and('be.visible');
+    page.getEditAction().should('not.exist');
+  });
+
+  it('Should save an edited item and show the new value in the table', () => {
+    cy.intercept('PUT', '/api/inventory/*').as('editInventory');
+
+    // Enter edit mode — re-query the row fresh each time to avoid Cypress chain variable issues
+    page.getInventoryRow().first().find('button[aria-label="Row actions menu"]').click();
+    page.getEditAction().click();
+
+    // Clear the item input and type a new value
+    page.getInventoryRow().first()
+      .find('[data-cy="inventory-item"] input.inline-edit-input')
+      .should('be.visible')
+      .clear()
+      .type('Edited Item Name');
+
+    // Open the menu again and click Save
+    page.getInventoryRow().first().find('button[aria-label="Row actions menu"]').click();
+    page.getSaveAction().click();
+
+    cy.wait('@editInventory').its('response.statusCode').should('eq', 200);
+
+    // The row should now display the updated value
+    page.getInventoryRow().first()
+      .find('[data-cy="inventory-item"] span').should('contain', 'Edited Item Name');
+  });
+
+  it('Should revert changes when Cancel is clicked', () => {
+    // Enter edit mode — re-query the row fresh each time to avoid Cypress chain variable issues
+    page.getInventoryRow().first().find('button[aria-label="Row actions menu"]').click();
+    page.getEditAction().click();
+
+    // Type a different value
+    page.getInventoryRow().first()
+      .find('[data-cy="inventory-item"] input.inline-edit-input')
+      .should('be.visible')
+      .clear()
+      .type('Should Not Be Saved');
+
+    // Open the menu again and click Cancel
+    page.getInventoryRow().first().find('button[aria-label="Row actions menu"]').click();
+    page.getCancelAction().click();
+
+    // The row should show the original value, not the typed one
+    page.getInventoryRow().first().find('[data-cy="inventory-item"] span')
+      .should('not.contain', 'Should Not Be Saved')
+      .and('be.visible');
   });
 
   // Note: The below test should remain empty until a finalized inventory list JSON is used to seed the database.

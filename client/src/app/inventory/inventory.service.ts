@@ -77,4 +77,9 @@ export class InventoryService {
   addInventory(newInventory: Partial<Inventory>): Observable<string> {
     return this.httpClient.post<{ id: string }>(this.inventoryUrl, newInventory).pipe(map(response => response.id));
   }
+
+  // Method to edit an existing inventory item in the database by sending a PUT request to the API with the item's ID and the updated inventory data. It returns an Observable that can be subscribed to for handling the response.
+  editInventory(id: string, updatedInventory: Partial<Inventory>): Observable<void> {
+    return this.httpClient.put<void>(`${this.inventoryUrl}/${id}`, updatedInventory);
+  }
 }

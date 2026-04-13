@@ -78,64 +78,91 @@
   <!-- Item Column -->
   <ng-container matColumnDef="item">
     <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by item">Item</th>
-    <td mat-cell *matCellDef="let element" class="inventory-item" data-cy="inventory-item">{{element.item}}</td>
+    <td mat-cell *matCellDef="let element" class="inventory-item" data-cy="inventory-item">
+      <span [hidden]="editingRowId === element._id">{{element.item}}</span>
+      <input class="inline-edit-input" [hidden]="editingRowId !== element._id" [(ngModel)]="element.item" />
+    </td>
   </ng-container>
 
   <!-- Description Column -->
   <ng-container matColumnDef="description">
     <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by description">Description</th>
     <td mat-cell *matCellDef="let element" class="inventory-description" data-cy="inventory-description">
-      {{element.description}}</td>
+      <span [hidden]="editingRowId === element._id">{{element.description}}</span>
+      <input class="inline-edit-input" [hidden]="editingRowId !== element._id" [(ngModel)]="element.description" />
+    </td>
   </ng-container>
 
   <!-- Brand Column -->
   <ng-container matColumnDef="brand">
     <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by brand">Brand</th>
-    <td mat-cell *matCellDef="let element" class="inventory-brand" data-cy="inventory-brand">{{element.brand}}</td>
+    <td mat-cell *matCellDef="let element" class="inventory-brand" data-cy="inventory-brand">
+      <span [hidden]="editingRowId === element._id">{{element.brand}}</span>
+      <input class="inline-edit-input" [hidden]="editingRowId !== element._id" [(ngModel)]="element.brand" />
+    </td>
   </ng-container>
 
   <!-- Color Column -->
   <ng-container matColumnDef="color">
     <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by color">Color</th>
-    <td mat-cell *matCellDef="let element" class="inventory-color" data-cy="inventory-color">{{element.color}}</td>
+    <td mat-cell *matCellDef="let element" class="inventory-color" data-cy="inventory-color">
+      <span [hidden]="editingRowId === element._id">{{element.color}}</span>
+      <input class="inline-edit-input" [hidden]="editingRowId !== element._id" [(ngModel)]="element.color" />
+    </td>
   </ng-container>
 
   <!-- Size Column -->
   <ng-container matColumnDef="size">
     <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by size">Size</th>
-    <td mat-cell *matCellDef="let element" class="inventory-size" data-cy="inventory-size">{{element.size}}</td>
+    <td mat-cell *matCellDef="let element" class="inventory-size" data-cy="inventory-size">
+      <span [hidden]="editingRowId === element._id">{{element.size}}</span>
+      <input class="inline-edit-input" [hidden]="editingRowId !== element._id" [(ngModel)]="element.size" />
+    </td>
   </ng-container>
 
   <!-- Type Column -->
   <ng-container matColumnDef="type">
     <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by type">Type</th>
-    <td mat-cell *matCellDef="let element" class="inventory-type" data-cy="inventory-type">{{element.type}}</td>
+    <td mat-cell *matCellDef="let element" class="inventory-type" data-cy="inventory-type">
+      <span [hidden]="editingRowId === element._id">{{element.type}}</span>
+      <input class="inline-edit-input" [hidden]="editingRowId !== element._id" [(ngModel)]="element.type" />
+    </td>
   </ng-container>
 
   <!-- Material Column -->
   <ng-container matColumnDef="material">
     <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by material">Material</th>
-    <td mat-cell *matCellDef="let element" class="inventory-material" data-cy="inventory-material">{{element.material}}
+    <td mat-cell *matCellDef="let element" class="inventory-material" data-cy="inventory-material">
+      <span [hidden]="editingRowId === element._id">{{element.material}}</span>
+      <input class="inline-edit-input" [hidden]="editingRowId !== element._id" [(ngModel)]="element.material" />
     </td>
   </ng-container>
 
   <!-- Count Column -->
   <ng-container matColumnDef="count">
     <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by count">Count</th>
-    <td mat-cell *matCellDef="let element" class="inventory-count" data-cy="inventory-count">{{element.count}}</td>
+    <td mat-cell *matCellDef="let element" class="inventory-count" data-cy="inventory-count">
+      <span [hidden]="editingRowId === element._id">{{element.count}}</span>
+      <input class="inline-edit-input" type="number" min="1" [hidden]="editingRowId !== element._id" [(ngModel)]="element.count" />
+    </td>
   </ng-container>
 
   <!-- Quantity Column -->
   <ng-container matColumnDef="quantity">
     <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by quantity">Quantity</th>
-    <td mat-cell *matCellDef="let element" class="inventory-quantity" data-cy="inventory-quantity">{{element.quantity}}
+    <td mat-cell *matCellDef="let element" class="inventory-quantity" data-cy="inventory-quantity">
+      <span [hidden]="editingRowId === element._id">{{element.quantity}}</span>
+      <input class="inline-edit-input" type="number" min="0" [hidden]="editingRowId !== element._id" [(ngModel)]="element.quantity" />
     </td>
   </ng-container>
 
   <!-- Notes Column -->
   <ng-container matColumnDef="notes">
     <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by notes">Notes</th>
-    <td mat-cell *matCellDef="let element" class="inventory-notes" data-cy="inventory-notes">{{element.notes}}</td>
+    <td mat-cell *matCellDef="let element" class="inventory-notes" data-cy="inventory-notes">
+      <span [hidden]="editingRowId === element._id">{{element.notes}}</span>
+      <input class="inline-edit-input" [hidden]="editingRowId !== element._id" [(ngModel)]="element.notes" />
+    </td>
   </ng-container>
 
   <!-- Action Column -->
@@ -160,11 +187,31 @@
 
 <!-- Row Actions Menu -->
 <mat-menu #rowMenu="matMenu">
+  <!-- Edit: shown only when row is NOT being edited -->
+  <button mat-menu-item *ngIf="editingRowId !== currentRow?._id"
+    class="inventory-action edit-action"
+    (click)="startEdit(currentRow!)" data-cy="edit-action">
+    <mat-icon>edit</mat-icon>
+    <span>Edit</span>
+  </button>
+  <!-- Save: shown only when this row IS being edited -->
+  <button mat-menu-item *ngIf="editingRowId === currentRow?._id && editingRowId !== null"
+    class="inventory-action save-action"
+    (click)="saveEdit(currentRow!)" data-cy="save-action">
+    <mat-icon>save</mat-icon>
+    <span>Save</span>
+  </button>
+  <!-- Cancel: shown only when this row IS being edited -->
+  <button mat-menu-item *ngIf="editingRowId === currentRow?._id && editingRowId !== null"
+    class="inventory-action cancel-action"
+    (click)="cancelEdit(currentRow!)" data-cy="cancel-action">
+    <mat-icon>cancel</mat-icon>
+    <span>Cancel</span>
+  </button>
   <button mat-menu-item class="inventory-action delete-action" (click)="confirmDelete(currentRow?._id!)">
     <mat-icon>delete</mat-icon>
     <span>Delete</span>
   </button>
-  <!-- Add more options in the future -->
 </mat-menu>
 
 <!-- Add Inventory Button -->

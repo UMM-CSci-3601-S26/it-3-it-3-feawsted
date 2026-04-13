@@ -1,5 +1,6 @@
 // Angular Imports
 import { Component, effect, inject, signal, viewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -33,6 +34,7 @@ import { MatMenu } from "@angular/material/menu";
   templateUrl: './inventory-table.component.html',
   styleUrls: ['./inventory-table.component.scss'],
   imports: [
+    CommonModule,
     MatTableModule,
     MatSortModule,
     MatCardModule,
@@ -165,6 +167,49 @@ export class InventoryTableComponent {
         }
       });
     }
+  }
+
+  // Tracks which row is currently being edited (by _id), and a backup for cancel
+  editingRowId: string | null = null;
+  private editingBackup: Inventory | null = null;
+
+  /**
+   * Enters edit mode for a row.
+   * Stores a deep copy so changes can be reverted on cancel.
+   */
+  startEdit(row: Inventory) {
+    this.editingRowId = row._id ?? null;
+    this.editingBackup = JSON.parse(JSON.stringify(row));
+  }
+
+  /**
+   * Saves the edited row by calling the PUT endpoint,
+   * then exits edit mode.
+   */
+  saveEdit(row: Inventory) {
+    if (!row._id) {
+      return;
+    }
+    this.inventoryService.editInventory(row._id, row).subscribe({
+      next: () => {
+        this.editingRowId = null;
+        this.editingBackup = null;
+      },
+      error: (err) => {
+        this.errMsg.set(`Problem saving item – Error Code: ${err.status}\nMessage: ${err.message}`);
+      }
+    });
+  }
+
+  /**
+   * Cancels editing, reverting the row to its original values.
+   */
+  cancelEdit(row: Inventory) {
+    if (this.editingBackup) {
+      Object.assign(row, this.editingBackup);
+    }
+    this.editingRowId = null;
+    this.editingBackup = null;
   }
 
   /**

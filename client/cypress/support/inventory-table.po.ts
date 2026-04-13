@@ -60,4 +60,20 @@ export class InventoryPage {
   getInventoryFilterClear() {
     return cy.get('[data-cy="inventory-clear"]');
   }
+
+  getRowMenuButton(row: Cypress.Chainable) {
+    return row.find('button[aria-label="Row actions menu"]');
+  }
+
+  getEditAction() {
+    return cy.get('[data-cy="edit-action"]');
+  }
+
+  getSaveAction() {
+    return cy.get('[data-cy="save-action"]');
+  }
+
+  getCancelAction() {
+    return cy.get('[data-cy="cancel-action"]');
+  }
 }

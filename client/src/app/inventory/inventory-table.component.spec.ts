@@ -278,6 +278,104 @@ describe('Inventory Table', () => {
     expect(inventoryTable.errMsg()).toContain('');
     expect(inventoryTable.dataSource.data.length).toBe(1);
   }));
+
+  // Test to verify that startEdit sets the editingRowId to the row's _id
+  it('should enter edit mode and set editingRowId when startEdit is called', () => {
+    const row = {
+      _id: 'edit-id-1', item: 'Markers', description: 'test', brand: 'Crayola',
+      color: 'Black', count: 1, size: 'Wide', type: 'Washable', material: 'Plastic',
+      quantity: 0, notes: 'n/a'
+    } as unknown as Inventory;
+
+    inventoryTable.startEdit(row);
+
+    expect(inventoryTable.editingRowId).toBe('edit-id-1');
+  });
+
+  // Test to verify that cancelEdit reverts the row to its original values and clears editingRowId
+  it('should revert row values and clear editingRowId when cancelEdit is called', () => {
+    const row = {
+      _id: 'edit-id-2', item: 'Original', description: 'original desc', brand: 'Brand',
+      color: 'Blue', count: 2, size: 'Small', type: 'Regular', material: 'Wood',
+      quantity: 3, notes: 'notes here'
+    } as unknown as Inventory;
+
+    inventoryTable.startEdit(row);
+    row.item = 'Modified';
+    inventoryTable.cancelEdit(row);
+
+    expect(inventoryTable.editingRowId).toBeNull();
+    expect(row.item).toBe('Original');
+  });
+
+  // Test to verify that saveEdit calls editInventory with the correct ID and row data, and clears editing state on success
+  it('should call editInventory and clear editing state on successful saveEdit', fakeAsync(() => {
+    const row = {
+      _id: 'edit-id-3', item: 'Notebook', description: 'desc', brand: 'Five Star',
+      color: 'Yellow', count: 1, size: 'Wide', type: 'Spiral', material: 'Paper',
+      quantity: 5, notes: ''
+    } as unknown as Inventory;
+
+    const editSpy = spyOn(inventoryService, 'editInventory').and.returnValue(of(undefined));
+    inventoryTable.startEdit(row);
+    inventoryTable.saveEdit(row);
+    tick();
+
+    expect(editSpy).toHaveBeenCalledWith('edit-id-3', row);
+    expect(inventoryTable.editingRowId).toBeNull();
+  }));
+
+  // Test to verify that saveEdit sets an error message when editInventory fails
+  it('should set errMsg when saveEdit fails', fakeAsync(() => {
+    const row = {
+      _id: 'edit-id-4', item: 'Folder', description: 'desc', brand: 'N/A',
+      color: 'Red', count: 1, size: 'N/A', type: 'Prong', material: 'Plastic',
+      quantity: 2, notes: ''
+    } as unknown as Inventory;
+
+    spyOn(inventoryService, 'editInventory').and.returnValue(
+      throwError(() => ({ status: 500, message: 'Server error' }))
+    );
+    inventoryTable.startEdit(row);
+    inventoryTable.saveEdit(row);
+    tick();
+
+    expect(inventoryTable.errMsg()).toContain('Problem saving item');
+  }));
+
+  // Test to verify that saveEdit does nothing when the row has no _id
+  it('should do nothing when saveEdit is called on a row without an _id', fakeAsync(() => {
+    const row = {
+      item: 'No ID item', description: 'desc', brand: 'N/A',
+      color: 'Red', count: 1, size: 'N/A', type: 'Prong', material: 'Plastic',
+      quantity: 1, notes: ''
+    } as unknown as Inventory;
+
+    const editSpy = spyOn(inventoryService, 'editInventory').and.returnValue(of(undefined));
+    inventoryTable.saveEdit(row);
+    tick();
+
+    expect(editSpy).not.toHaveBeenCalled();
+  }));
+
+  // Test to verify that resetFilters clears all filter signals back to undefined
+  it('should reset all filter signals to undefined when resetFilters is called', fakeAsync(() => {
+    inventoryTable.item.set('Markers');
+    inventoryTable.brand.set('Crayola');
+    inventoryTable.color.set('Black');
+    inventoryTable.size.set('Wide');
+    inventoryTable.type.set('Washable');
+    inventoryTable.material.set('Plastic');
+
+    inventoryTable.resetFilters();
+
+    expect(inventoryTable.item()).toBeUndefined();
+    expect(inventoryTable.brand()).toBeUndefined();
+    expect(inventoryTable.color()).toBeUndefined();
+    expect(inventoryTable.size()).toBeUndefined();
+    expect(inventoryTable.type()).toBeUndefined();
+    expect(inventoryTable.material()).toBeUndefined();
+  }));
 });
 
 // Tests for the InventoryTableComponent when the InventoryService is not set up properly, ensuring that appropriate error messages are shown and that the component handles the error gracefully

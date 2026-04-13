@@ -11,7 +11,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-// Jave Imports
+// Java Imports
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,13 +55,13 @@ import io.javalin.validation.ValidationException;
  *
  * These tests make sure the controller behaves the way the rest of the app
  * expects it to. They cover:
- *  - Getting all inventory items or a single item by ID
- *  - Handling bad or nonexistent IDs correctly
- *  - Filtering inventory by different fields (item, brand, color, etc.)
- *    and making sure filters work even with weird capitalization
- *  - Validating new inventory items before saving them
- *  - Making sure delete and add operations actually change the database
- *  - Checking that the controller registers its routes with Javalin
+ * - Getting all inventory items or a single item by ID
+ * - Handling bad or nonexistent IDs correctly
+ * - Filtering inventory by different fields (item, brand, color, etc.)
+ * and making sure filters work even with weird capitalization
+ * - Validating new inventory items before saving them
+ * - Making sure delete and add operations actually change the database
+ * - Checking that the controller registers its routes with Javalin
  *
  * Each test starts with a clean set of inventory documents so results are
  * predictable and easy to reason about.
@@ -125,14 +125,14 @@ public class InventoryControllerSpec {
     List<Document> testInventory = new ArrayList<>();
     testInventory.add(
         new Document()
-            .append("item",  "Pencil")
-            .append("brand",  "Ticonderoga")
-            .append("color",  "yellow")
-            .append("count",  1)
-            .append("size",  "N/A")
-            .append("description",  "A standard pencil")
+            .append("item", "Pencil")
+            .append("brand", "Ticonderoga")
+            .append("color", "yellow")
+            .append("count", 1)
+            .append("size", "N/A")
+            .append("description", "A standard pencil")
             .append("quantity", 10)
-            .append("notes",  "N/A")
+            .append("notes", "N/A")
             .append("type", "#2")
             .append("material", "wood"));
     testInventory.add(
@@ -180,7 +180,8 @@ public class InventoryControllerSpec {
     inventoryController = new InventoryController(db);
   }
 
-  // Checks that asking for all inventory items actually returns everything in the DB.
+  // Checks that asking for all inventory items actually returns everything in the
+  // DB.
   // Makes sure the controller sends back a list and a 200 OK status.
   @Test
   void canGetAllInventory() throws IOException {
@@ -196,7 +197,8 @@ public class InventoryControllerSpec {
         inventoryArrayListCaptor.getValue().size());
   }
 
-  // Makes sure that looking up an item by a real ID returns the correct inventory entry.
+  // Makes sure that looking up an item by a real ID returns the correct inventory
+  // entry.
   // Confirms the controller sends the right item and a 200 OK.
   @Test
   void getInventoryItemWithExistentId() throws IOException {
@@ -211,7 +213,8 @@ public class InventoryControllerSpec {
     assertEquals(inventoryId.toHexString(), inventoryCaptor.getValue()._id);
   }
 
-  // If the ID in the URL isn’t even a valid MongoDB ObjectId, the controller should
+  // If the ID in the URL isn’t even a valid MongoDB ObjectId, the controller
+  // should
   // immediately reject it. This test makes sure it throws the right error.
   @Test
   void getInventoryItemWithBadId() throws IOException {
@@ -225,7 +228,8 @@ public class InventoryControllerSpec {
   }
 
   // The ID format is valid, but nothing in the database matches it.
-  // The controller should respond with a “not found” error instead of pretending it’s fine.
+  // The controller should respond with a “not found” error instead of pretending
+  // it’s fine.
   @Test
   void getInventoryItemWithNonexistentId() throws IOException {
     String id = "588935f5c668650dc77df581";
@@ -238,7 +242,8 @@ public class InventoryControllerSpec {
     assertEquals("The requested inventory item was not found", exception.getMessage());
   }
 
-  // Checks that filtering by quantity works. Only items with quantity = 5 should show up.
+  // Checks that filtering by quantity works. Only items with quantity = 5 should
+  // show up.
   // Makes sure the filter logic is doing what we expect.
   @Test
   void canFilterInventoryByQuantity() throws IOException {
@@ -263,12 +268,13 @@ public class InventoryControllerSpec {
 
     BadRequestResponse ex = assertThrows(BadRequestResponse.class, () -> {
       inventoryController.getInventories(ctx);
-  });
+    });
 
     assertEquals("quantity must be an integer.", ex.getMessage());
   }
 
-  // Each of these following tests checks that filtering works even if the user types the value
+  // Each of these following tests checks that filtering works even if the user
+  // types the value
   // in weird capitalization. The controller should treat filters like “pEnCiL”
   // the same as “pencil”.
   @Test
@@ -380,8 +386,7 @@ public class InventoryControllerSpec {
     assertEquals("shoulder bag", inventoryArrayListCaptor.getValue().get(0).type);
   }
 
-
-  //Makes sure that multiple filters can be applied at once
+  // Makes sure that multiple filters can be applied at once
   @Test
   void canFilterInventoryByItemMultipleCaseInsensitive() {
     when(ctx.queryParamMap()).thenReturn(Map.of("item", List.of("pEnCiL, NoTeBook")));
@@ -496,19 +501,21 @@ public class InventoryControllerSpec {
   }
 
   // Deletes an inventory item that really exists. After calling delete,
-  // the item should be gone from the database and the controller should return 200 OK.
+  // the item should be gone from the database and the controller should return
+  // 200 OK.
   @Test
-    void deleteFoundInventory() throws IOException {
-      String testID = inventoryId.toString();
-      when(ctx.pathParam("id")).thenReturn(testID);
-      assertEquals(1, db.getCollection("inventory").countDocuments(eq("_id", new ObjectId(testID))));
+  void deleteFoundInventory() throws IOException {
+    String testID = inventoryId.toString();
+    when(ctx.pathParam("id")).thenReturn(testID);
+    assertEquals(1, db.getCollection("inventory").countDocuments(eq("_id", new ObjectId(testID))));
 
-      inventoryController.deleteInventory(ctx);
-      verify(ctx).status(HttpStatus.OK);
-      assertEquals(0, db.getCollection("inventory").countDocuments(eq("_id", new ObjectId(testID))));
-    }
+    inventoryController.deleteInventory(ctx);
+    verify(ctx).status(HttpStatus.OK);
+    assertEquals(0, db.getCollection("inventory").countDocuments(eq("_id", new ObjectId(testID))));
+  }
 
-  // First deletes an item, then tries deleting it again. The second delete should fail
+  // First deletes an item, then tries deleting it again. The second delete should
+  // fail
   // with a “not found” error since the item is already gone.
   @Test
   void tryToDeleteNotFoundInventory() throws IOException {
@@ -536,7 +543,8 @@ public class InventoryControllerSpec {
     });
   }
 
-  // Adds a brand‑new inventory item using valid JSON. After the controller inserts it,
+  // Adds a brand‑new inventory item using valid JSON. After the controller
+  // inserts it,
   // we check the database to make sure all the fields were saved correctly.
   // Also checks that the controller returns 201 CREATED.
   @Test
@@ -557,8 +565,8 @@ public class InventoryControllerSpec {
         """;
 
     when(ctx.bodyValidator(Inventory.class))
-      .thenReturn(new BodyValidator<Inventory>(newInventoryJson, Inventory.class,
-                    () -> javalinJackson.fromJsonString(newInventoryJson, Inventory.class)));
+        .thenReturn(new BodyValidator<Inventory>(newInventoryJson, Inventory.class,
+            () -> javalinJackson.fromJsonString(newInventoryJson, Inventory.class)));
 
     inventoryController.addInventory(ctx);
     verify(ctx).json(mapCaptor.capture());
@@ -579,7 +587,8 @@ public class InventoryControllerSpec {
   }
 
   // Tries to add an item where “count” is invalid (like zero or wrong type).
-  // The controller should reject it and give a validation error instead of saving bad data.
+  // The controller should reject it and give a validation error instead of saving
+  // bad data.
   @Test
   void addInventoryWithInvalidCount() throws IOException {
     String newInventoryJson = """
@@ -599,8 +608,8 @@ public class InventoryControllerSpec {
 
     when(ctx.body()).thenReturn(newInventoryJson);
     when(ctx.bodyValidator(Inventory.class))
-      .thenReturn(new BodyValidator<Inventory>(newInventoryJson, Inventory.class,
-                    () -> javalinJackson.fromJsonString(newInventoryJson, Inventory.class)));
+        .thenReturn(new BodyValidator<Inventory>(newInventoryJson, Inventory.class,
+            () -> javalinJackson.fromJsonString(newInventoryJson, Inventory.class)));
 
     ValidationException exception = assertThrows(ValidationException.class, () -> {
       inventoryController.addInventory(ctx);
@@ -610,7 +619,8 @@ public class InventoryControllerSpec {
     assertTrue(exceptionMessage.contains("Quantity must be 1 or more"));
   }
 
-  // Tries to add an item with a negative quantity. Since quantity can’t be negative,
+  // Tries to add an item with a negative quantity. Since quantity can’t be
+  // negative,
   // the controller should throw a validation error.
   @Test
   void addInventoryWithInvalidQuantity() throws IOException {
@@ -631,8 +641,8 @@ public class InventoryControllerSpec {
 
     when(ctx.body()).thenReturn(newInventoryJson);
     when(ctx.bodyValidator(Inventory.class))
-      .thenReturn(new BodyValidator<Inventory>(newInventoryJson, Inventory.class,
-                    () -> javalinJackson.fromJsonString(newInventoryJson, Inventory.class)));
+        .thenReturn(new BodyValidator<Inventory>(newInventoryJson, Inventory.class,
+            () -> javalinJackson.fromJsonString(newInventoryJson, Inventory.class)));
 
     ValidationException exception = assertThrows(ValidationException.class, () -> {
       inventoryController.addInventory(ctx);
@@ -642,7 +652,8 @@ public class InventoryControllerSpec {
     assertTrue(exceptionMessage.contains("Quantity must be >= 0"));
   }
 
-  // Tries to add an item with an empty item name. The controller should reject it,
+  // Tries to add an item with an empty item name. The controller should reject
+  // it,
   // because every inventory entry needs a real item name.
   @Test
   void addInventoryWithInvalidItem() throws IOException {
@@ -663,8 +674,8 @@ public class InventoryControllerSpec {
 
     when(ctx.body()).thenReturn(newInventoryJson);
     when(ctx.bodyValidator(Inventory.class))
-      .thenReturn(new BodyValidator<Inventory>(newInventoryJson, Inventory.class,
-                    () -> javalinJackson.fromJsonString(newInventoryJson, Inventory.class)));
+        .thenReturn(new BodyValidator<Inventory>(newInventoryJson, Inventory.class,
+            () -> javalinJackson.fromJsonString(newInventoryJson, Inventory.class)));
 
     ValidationException exception = assertThrows(ValidationException.class, () -> {
       inventoryController.addInventory(ctx);
@@ -673,4 +684,222 @@ public class InventoryControllerSpec {
     String exceptionMessage = exception.getErrors().get("REQUEST_BODY").get(0).toString();
     assertTrue(exceptionMessage.contains("Inventory must have a non-empty item key"));
   }
+
+  @Test
+  void editInventorySuccessfully() throws IOException {
+    String id = inventoryId.toHexString();
+    when(ctx.pathParam("id")).thenReturn(id);
+
+    String body = """
+        {
+          "item": "Crayons",
+          "brand": "Crayola",
+          "color": "multicolor",
+          "count": 1,
+          "size": "N/A",
+          "description": "A box of crayons",
+          "quantity": 6,
+          "notes": "N/A",
+          "type": "wax",
+          "material": "wax"
+        }
+        """;
+
+    when(ctx.bodyValidator(Inventory.class))
+        .thenReturn(new BodyValidator<>(
+            body,
+            Inventory.class,
+            () -> javalinJackson.fromJsonString(body, Inventory.class)));
+    inventoryController.editInventory(ctx);
+
+    verify(ctx).status(HttpStatus.OK);
+    // editInventory does not call ctx.json(), so query by the known inventoryId directly
+    Document editedInventory = db.getCollection("inventory")
+        .find(eq("_id", inventoryId)).first();
+
+    assertEquals("Crayons", editedInventory.get("item"));
+    assertEquals("Crayola", editedInventory.get("brand"));
+    assertEquals("multicolor", editedInventory.get("color"));
+    assertEquals(1, editedInventory.get("count"));
+    assertEquals("N/A", editedInventory.get("size"));
+    assertEquals("A box of crayons", editedInventory.get("description"));
+    assertEquals(6, editedInventory.get("quantity"));
+    assertEquals("N/A", editedInventory.get("notes"));
+    assertEquals("wax", editedInventory.get("type"));
+  }
+
+  // A well-formed request body but the ID in the URL is not a valid ObjectId.
+  // The controller should immediately reject it with a 400 Bad Request.
+  @Test
+  void editInventoryWithBadId() {
+    when(ctx.pathParam("id")).thenReturn("bad");
+
+    String body = """
+        {
+          "item": "Crayons",
+          "brand": "Crayola",
+          "color": "multicolor",
+          "count": 1,
+          "size": "N/A",
+          "description": "A box of crayons",
+          "quantity": 6,
+          "notes": "N/A",
+          "type": "wax",
+          "material": "wax"
+        }
+        """;
+
+    when(ctx.bodyValidator(Inventory.class))
+        .thenReturn(new BodyValidator<>(
+            body,
+            Inventory.class,
+            () -> javalinJackson.fromJsonString(body, Inventory.class)));
+
+    Throwable exception = assertThrows(BadRequestResponse.class, () -> {
+      inventoryController.editInventory(ctx);
+    });
+
+    assertEquals("The requested inventory id wasn't a legal Mongo Object ID.", exception.getMessage());
+  }
+
+  // A valid ObjectId format, but no document with that ID exists.
+  // The controller should respond with a 404 Not Found.
+  @Test
+  void editInventoryWithNonexistentId() {
+    when(ctx.pathParam("id")).thenReturn("588935f5c668650dc77df581");
+
+    String body = """
+        {
+          "item": "Crayons",
+          "brand": "Crayola",
+          "color": "multicolor",
+          "count": 1,
+          "size": "N/A",
+          "description": "A box of crayons",
+          "quantity": 6,
+          "notes": "N/A",
+          "type": "wax",
+          "material": "wax"
+        }
+        """;
+
+    when(ctx.bodyValidator(Inventory.class))
+        .thenReturn(new BodyValidator<>(
+            body,
+            Inventory.class,
+            () -> javalinJackson.fromJsonString(body, Inventory.class)));
+
+    Throwable exception = assertThrows(NotFoundResponse.class, () -> {
+      inventoryController.editInventory(ctx);
+    });
+
+    assertEquals("The requested inventory item was not found", exception.getMessage());
+  }
+
+  // Tries to edit with an empty item name. The controller should reject it
+  // before touching the database.
+  @Test
+  void editInventoryWithInvalidItem() {
+    String id = inventoryId.toHexString();
+    when(ctx.pathParam("id")).thenReturn(id);
+
+    String body = """
+        {
+          "item": "",
+          "brand": "Crayola",
+          "color": "multicolor",
+          "count": 1,
+          "size": "N/A",
+          "description": "A box of crayons",
+          "quantity": 6,
+          "notes": "N/A",
+          "type": "wax",
+          "material": "wax"
+        }
+        """;
+
+    when(ctx.bodyValidator(Inventory.class))
+        .thenReturn(new BodyValidator<>(
+            body,
+            Inventory.class,
+            () -> javalinJackson.fromJsonString(body, Inventory.class)));
+
+    ValidationException exception = assertThrows(ValidationException.class, () -> {
+      inventoryController.editInventory(ctx);
+    });
+
+    String exceptionMessage = exception.getErrors().get("REQUEST_BODY").get(0).toString();
+    assertTrue(exceptionMessage.contains("Inventory must have a non-empty item key"));
+  }
+
+  // Tries to edit with count = 0, which violates the "count must be >= 1" rule.
+  @Test
+  void editInventoryWithInvalidCount() {
+    String id = inventoryId.toHexString();
+    when(ctx.pathParam("id")).thenReturn(id);
+
+    String body = """
+        {
+          "item": "Crayons",
+          "brand": "Crayola",
+          "color": "multicolor",
+          "count": 0,
+          "size": "N/A",
+          "description": "A box of crayons",
+          "quantity": 6,
+          "notes": "N/A",
+          "type": "wax",
+          "material": "wax"
+        }
+        """;
+
+    when(ctx.bodyValidator(Inventory.class))
+        .thenReturn(new BodyValidator<>(
+            body,
+            Inventory.class,
+            () -> javalinJackson.fromJsonString(body, Inventory.class)));
+
+    ValidationException exception = assertThrows(ValidationException.class, () -> {
+      inventoryController.editInventory(ctx);
+    });
+
+    String exceptionMessage = exception.getErrors().get("REQUEST_BODY").get(0).toString();
+    assertTrue(exceptionMessage.contains("Count must be >= 1"));
+  }
+
+  // Tries to edit with a negative quantity. The controller should reject it.
+  @Test
+  void editInventoryWithInvalidQuantity() {
+    String id = inventoryId.toHexString();
+    when(ctx.pathParam("id")).thenReturn(id);
+
+    String body = """
+        {
+          "item": "Crayons",
+          "brand": "Crayola",
+          "color": "multicolor",
+          "count": 1,
+          "size": "N/A",
+          "description": "A box of crayons",
+          "quantity": -1,
+          "notes": "N/A",
+          "type": "wax",
+          "material": "wax"
+        }
+        """;
+
+    when(ctx.bodyValidator(Inventory.class))
+        .thenReturn(new BodyValidator<>(
+            body,
+            Inventory.class,
+            () -> javalinJackson.fromJsonString(body, Inventory.class)));
+
+    ValidationException exception = assertThrows(ValidationException.class, () -> {
+      inventoryController.editInventory(ctx);
+    });
+
+    String exceptionMessage = exception.getErrors().get("REQUEST_BODY").get(0).toString();
+    assertTrue(exceptionMessage.contains("Quantity must be >= 0"));
+  }
+
 }

@@ -118,3 +118,20 @@ th.mat-sort-header-sorted {
   bottom: 15px;
   right: 30px;
 }
+
+// Inline edit input — matches cell text style and fills the cell width
+.inline-edit-input {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #9e9e9e;
+  background: transparent;
+  font-size: inherit;
+  font-family: inherit;
+  padding: 2px 0;
+  outline: none;
+  box-sizing: border-box;
+
+  &:focus {
+    border-bottom-color: #1976d2;
+  }
+}
