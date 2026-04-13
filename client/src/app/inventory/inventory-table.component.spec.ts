@@ -358,6 +358,53 @@ describe('Inventory Table', () => {
     expect(editSpy).not.toHaveBeenCalled();
   }));
 
+  // Test to verify that addRow is a no-op when already editing a new row
+  it('should not add a second new row when addRow is called while already editing a new row', () => {
+    inventoryTable.addRow();
+    const lengthAfterFirst = inventoryTable.dataSource.data.length;
+    inventoryTable.addRow(); // second call should be no-op
+    expect(inventoryTable.dataSource.data.length).toBe(lengthAfterFirst);
+  });
+
+  // Test to verify that saveEdit handles new row via addInventory (POST path)
+  it('should call addInventory when saveEdit is called on a new row', fakeAsync(() => {
+    const addSpy = spyOn(inventoryService, 'addInventory').and.returnValue(of('new-server-id'));
+    inventoryTable.addRow();
+    const newRow = inventoryTable.dataSource.data.find(r => r._id === '__new__')!;
+
+    inventoryTable.saveEdit(newRow);
+    tick();
+
+    expect(addSpy).toHaveBeenCalled();
+    expect(inventoryTable.editingRowId).toBeNull();
+    expect(newRow._id).toBe('new-server-id');
+  }));
+
+  // Test to verify that addInventory error sets errMsg
+  it('should set errMsg when addInventory fails on a new row', fakeAsync(() => {
+    spyOn(inventoryService, 'addInventory').and.returnValue(
+      throwError(() => ({ status: 500, message: 'Server error' }))
+    );
+    inventoryTable.addRow();
+    const newRow = inventoryTable.dataSource.data.find(r => r._id === '__new__')!;
+
+    inventoryTable.saveEdit(newRow);
+    tick();
+
+    expect(inventoryTable.errMsg()).toContain('Problem adding item');
+  }));
+
+  // Test to verify that cancelEdit removes the new row from the data source
+  it('should remove the new row from dataSource when cancelEdit is called on a new row', () => {
+    inventoryTable.addRow();
+    expect(inventoryTable.dataSource.data.some(r => r._id === '__new__')).toBeTrue();
+
+    const newRow = inventoryTable.dataSource.data.find(r => r._id === '__new__')!;
+    inventoryTable.cancelEdit(newRow);
+
+    expect(inventoryTable.dataSource.data.some(r => r._id === '__new__')).toBeFalse();
+  });
+
   // Test to verify that resetFilters clears all filter signals back to undefined
   it('should reset all filter signals to undefined when resetFilters is called', fakeAsync(() => {
     inventoryTable.item.set('Markers');

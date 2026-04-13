@@ -32,26 +32,26 @@ import umm3601.supplylist.SupplyList;
 
 // Define the Checklist class if it doesn't exist elsewhere
 
-
 /**
  * Controller for handling Checklist-related API routes.
  *
  * Routes include:
- *  - GET /api/checklist             → list all checklist items (with optional filters)
- *  - GET /api/checklist/{id}         → get a single checklist item
+ * - GET /api/checklist → list all checklist items (with optional filters)
+ * - GET /api/checklist/{id} → get a single checklist item
  *
- * Checklist is the core data model for tracking what supplies students, and will be used
+ * Checklist is the core data model for tracking what supplies students, and
+ * will be used
  * help calculate supplies demands.
  */
 
 public class ChecklistController implements Controller {
 
   private static final String API_CHECKLIST = "/api/checklist";
-  private static final String API_CHECKLIST_PRINT = "/api/checklist/print";
-  private static final String API_CHECKLIST_BY_NAME = "/api/checklist/student/{name}";
-  private static final String API_CHECKLIST_FAMILY = "/api/checklist/family/{guardianName}";
-  private static final String API_CHECKLIST_BY_ID = "/api/checklist/{id}";
-  private static final String API_CHECKLIST_ITEM = "/api/checklist/{id}/item/{index}";
+  // private static final String API_CHECKLIST_PRINT = "/api/checklist/print";
+  // private static final String API_CHECKLIST_BY_NAME = "/api/checklist/student/{name}";
+  // private static final String API_CHECKLIST_FAMILY = "/api/checklist/family/{guardianName}";
+  // private static final String API_CHECKLIST_BY_ID = "/api/checklist/{id}";
+  // private static final String API_CHECKLIST_ITEM = "/api/checklist/{id}/item/{index}";
 
   static final String SCHOOL_KEY = "school";
   static final String GRADE_KEY = "grade";
@@ -62,35 +62,35 @@ public class ChecklistController implements Controller {
   private final JacksonMongoCollection<SupplyList> supplyListCollection;
   private final JacksonMongoCollection<Checklist> checklistCollection;
 
-//constructor used for testing:
+  // constructor used for testing:
   public ChecklistController(JacksonMongoCollection<Family> familyCollection,
-                           JacksonMongoCollection<SupplyList> supplyListCollection,
-                           JacksonMongoCollection<Checklist> checklistCollection) {
+      JacksonMongoCollection<SupplyList> supplyListCollection,
+      JacksonMongoCollection<Checklist> checklistCollection) {
     this.familyCollection = familyCollection;
     this.supplyListCollection = supplyListCollection;
     this.checklistCollection = checklistCollection;
   }
 
-//constructor used in server:
+  // constructor used in server:
   public ChecklistController(MongoDatabase db) {
     familyCollection = JacksonMongoCollection.builder().build(
-      db, "families", Family.class, UuidRepresentation.STANDARD);
+        db, "families", Family.class, UuidRepresentation.STANDARD);
     supplyListCollection = JacksonMongoCollection.builder().build(
-      db, "supply-list", SupplyList.class, UuidRepresentation.STANDARD);
+        db, "supply-list", SupplyList.class, UuidRepresentation.STANDARD);
     checklistCollection = JacksonMongoCollection.builder().build(
-      db, "checklists", Checklist.class, UuidRepresentation.STANDARD);
+        db, "checklists", Checklist.class, UuidRepresentation.STANDARD);
   }
 
   // Builds a Checklist for a single student from the supply list (not persisted)
   public Checklist createChecklist(StudentInfo student, List<SupplyList> allSupplies) {
     List<Checklist.ChecklistItem> items = allSupplies.stream()
-      .filter(s -> s.school != null && s.school.equals(student.school)
-        && s.grade != null && s.grade.equals(student.grade))
-      .map(Checklist.ChecklistItem::new)
-      .collect(Collectors.toList());
+        .filter(s -> s.school != null && s.school.equals(student.school)
+            && s.grade != null && s.grade.equals(student.grade))
+        .map(Checklist.ChecklistItem::new)
+        .collect(Collectors.toList());
 
     Checklist checklist = new Checklist();
-    checklist.studentName = student.name;   //can't display last name, so maybe guardian name instead?
+    checklist.studentName = student.name; // can't display last name, so maybe guardian name instead?
     checklist.school = student.school;
     checklist.grade = student.grade;
     checklist.requestedSupplies = student.requestedSupplies;
@@ -100,17 +100,17 @@ public class ChecklistController implements Controller {
 
   // --- PRINT ROUTES (on-the-fly, not persisted) ---
 
-  // GET /api/checklist/print — all students
+  // // GET /api/checklist/print — all students
   // public void printAllChecklists(Context ctx) {
   //   List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
   //   List<Checklist> checklists = familyCollection.find().into(new ArrayList<>()).stream()
-  //     .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
-  //     .collect(Collectors.toList());
+  //       .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
+  //       .collect(Collectors.toList());
   //   ctx.json(checklists);
   //   ctx.status(HttpStatus.OK);
   // }
 
-  // GET /api/checklist/student/{name} — single student by full name
+  // // GET /api/checklist/student/{name} — single student by full name
   // public void printChecklistByStudent(Context ctx) {
   //   String name = ctx.pathParam("name");
   //   List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
@@ -126,18 +126,18 @@ public class ChecklistController implements Controller {
   //   throw new NotFoundResponse("No student found with name: " + name);
   // }
 
-  // GET /api/checklist/family/{guardianName} — all students in a family
+  // // GET /api/checklist/family/{guardianName} — all students in a family
   // public void printChecklistsByFamily(Context ctx) {
   //   String guardianName = ctx.pathParam("guardianName");
   //   List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
   //   List<Family> families = familyCollection.find(
-  //     Filters.regex("guardianFirstName", guardianName, "i")).into(new ArrayList<>());
+  //       Filters.regex("guardianFirstName", guardianName, "i")).into(new ArrayList<>());
   //   if (families.isEmpty()) {
   //     throw new NotFoundResponse("No family found for guardian: " + guardianName);
   //   }
   //   List<Checklist> checklists = families.stream()
-  //     .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
-  //     .collect(Collectors.toList());
+  //       .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
+  //       .collect(Collectors.toList());
   //   ctx.json(checklists);
   //   ctx.status(HttpStatus.OK);
   // }
@@ -148,14 +148,15 @@ public class ChecklistController implements Controller {
   public void generateDigitalChecklists(Context ctx) {
     List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
     List<Checklist> checklists = familyCollection.find().into(new ArrayList<>()).stream()
-      .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
-      .collect(Collectors.toList());
+        .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
+        .collect(Collectors.toList());
     checklistCollection.insertMany(checklists);
     ctx.json(checklists);
     ctx.status(HttpStatus.CREATED);
   }
 
-  // GET /api/checklist — query stored digital checklists (optional ?school= and ?grade= filters)
+  // GET /api/checklist — query stored digital checklists (optional ?school= and
+  // ?grade= filters)
   public void getStoredChecklists(Context ctx) {
     Bson filter = constructFilter(ctx);
     ctx.json(checklistCollection.find(filter).into(new ArrayList<>()));
@@ -179,7 +180,7 @@ public class ChecklistController implements Controller {
     return filters.isEmpty() ? new Document() : and(filters);
   }
 
-  // GET /api/checklist/{id} — get a single stored checklist by id
+  // // GET /api/checklist/{id} — get a single stored checklist by id
   // public void getStoredChecklistById(Context ctx) {
   //   String id = ctx.pathParam("id");
   //   Checklist checklist;
@@ -195,7 +196,8 @@ public class ChecklistController implements Controller {
   //   ctx.status(HttpStatus.OK);
   // }
 
-  // PATCH /api/checklist/{id}/item/{index} — update a single item (completed, unreceived, selectedOption)
+  // // PATCH /api/checklist/{id}/item/{index} — update a single item (completed,
+  // // unreceived, selectedOption)
   // public void updateChecklistItem(Context ctx) {
   //   String id = ctx.pathParam("id");
   //   int index;
@@ -221,16 +223,19 @@ public class ChecklistController implements Controller {
   //   // Parse only the fields present in the request body
   //   var body = ctx.bodyAsClass(ItemUpdateRequest.class);
   //   Checklist.ChecklistItem item = checklist.checklist.get(index);
-  //   if (body.completed != null)       item.completed = body.completed;
-  //   if (body.unreceived != null)      item.unreceived = body.unreceived;
-  //   if (body.selectedOption != null)  item.selectedOption = body.selectedOption;
+  //   if (body.completed != null)
+  //     item.completed = body.completed;
+  //   if (body.unreceived != null)
+  //     item.unreceived = body.unreceived;
+  //   if (body.selectedOption != null)
+  //     item.selectedOption = body.selectedOption;
 
   //   checklistCollection.save(checklist);
   //   ctx.json(checklist);
   //   ctx.status(HttpStatus.OK);
   // }
 
-  // Request body for PATCH item update
+  // // Request body for PATCH item update
   // public static class ItemUpdateRequest {
   //   public Boolean completed;
   //   public Boolean unreceived;
@@ -240,14 +245,14 @@ public class ChecklistController implements Controller {
   @Override
   public void addRoutes(Javalin server) {
     // Print routes (on-the-fly, no persistence)
-    // server.get(API_CHECKLIST_PRINT,   this::printAllChecklists);
+    // server.get(API_CHECKLIST_PRINT, this::printAllChecklists);
     // server.get(API_CHECKLIST_BY_NAME, this::printChecklistByStudent);
-    // server.get(API_CHECKLIST_FAMILY,  this::printChecklistsByFamily);
+    // server.get(API_CHECKLIST_FAMILY, this::printChecklistsByFamily);
 
     // Digital drive-day routes (persisted)
-    server.post(API_CHECKLIST,        this::generateDigitalChecklists);
-    server.get(API_CHECKLIST,         this::getStoredChecklists);
-    // server.get(API_CHECKLIST_BY_ID,   this::getStoredChecklistById);
-    // server.patch(API_CHECKLIST_ITEM,  this::updateChecklistItem);
+    server.post(API_CHECKLIST, this::generateDigitalChecklists);
+    server.get(API_CHECKLIST, this::getStoredChecklists);
+    // server.get(API_CHECKLIST_BY_ID, this::getStoredChecklistById);
+    // server.patch(API_CHECKLIST_ITEM, this::updateChecklistItem);
   }
 }

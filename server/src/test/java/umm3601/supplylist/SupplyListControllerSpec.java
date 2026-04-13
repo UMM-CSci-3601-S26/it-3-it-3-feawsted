@@ -4,6 +4,7 @@ package umm3601.supplylist;
 // Static Imports
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -44,18 +45,22 @@ import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 import io.javalin.http.NotFoundResponse;
+import io.javalin.json.JavalinJackson;
+import io.javalin.validation.BodyValidator;
+import io.javalin.validation.ValidationException;
 
 /**
  * Tests for the SupplyListController using a real MongoDB "test" database.
  *
  * These tests make sure the controller behaves the way the rest of the app
  * expects it to. They cover:
- *  - Getting all supply list items or a single item by ID
- *  - Handling bad or nonexistent IDs
- *  - Filtering supply list items by lots of fields (item, brand, school, grade, etc.)
- *    and making sure filters work even with weird capitalization
- *  - Rejecting invalid numeric filters
- *  - Making sure the controller registers its routes with Javalin
+ * - Getting all supply list items or a single item by ID
+ * - Handling bad or nonexistent IDs
+ * - Filtering supply list items by lots of fields (item, brand, school, grade,
+ * etc.)
+ * and making sure filters work even with weird capitalization
+ * - Rejecting invalid numeric filters
+ * - Making sure the controller registers its routes with Javalin
  *
  * Each test starts with a clean set of supply list documents so results are
  * predictable and easy to understand.
@@ -64,6 +69,8 @@ import io.javalin.http.NotFoundResponse;
 // Tests for the Supply List Controller
 @SuppressWarnings({ "MagicNumber" })
 public class SupplyListControllerSpec {
+
+  private static JavalinJackson javalinJackson = new JavalinJackson();
 
   private SupplyListController supplylistController;
   private ObjectId samsId;
@@ -119,14 +126,14 @@ public class SupplyListControllerSpec {
         new Document()
             .append("school", "MHS")
             .append("grade", "PreK")
-            .append("item",  "Pencil")
-            .append("brand",  "Ticonderoga")
-            .append("color",  "yellow")
-            .append("count",  1)
-            .append("size",  "N/A")
-            .append("description",  "A standard pencil")
+            .append("item", "Pencil")
+            .append("brand", "Ticonderoga")
+            .append("color", "yellow")
+            .append("count", 1)
+            .append("size", "N/A")
+            .append("description", "A standard pencil")
             .append("quantity", 10)
-            .append("notes",  "N/A")
+            .append("notes", "N/A")
             .append("type", "#2")
             .append("material", "wood"));
     testSupplyList.add(
@@ -180,7 +187,8 @@ public class SupplyListControllerSpec {
     supplylistController = new SupplyListController(db);
   }
 
-  // Checks that asking for all supply list items returns everything in the database.
+  // Checks that asking for all supply list items returns everything in the
+  // database.
   // Also makes sure the controller responds with a 200 OK.
   @Test
   void canGetAllSupplyList() throws IOException {
@@ -225,7 +233,8 @@ public class SupplyListControllerSpec {
   }
 
   // The ID format is valid, but nothing in the database matches it.
-  // The controller should return a “not found” error instead of pretending it’s fine.
+  // The controller should return a “not found” error instead of pretending it’s
+  // fine.
   @Test
   void getListWithNonexistentId() throws IOException {
     String id = "588935f5c668650dc77df581";
@@ -247,7 +256,7 @@ public class SupplyListControllerSpec {
 
     BadRequestResponse ex = assertThrows(BadRequestResponse.class, () -> {
       supplylistController.getSupplyLists(ctx);
-  });
+    });
 
     assertEquals("quantity must be an integer.", ex.getMessage());
   }
@@ -364,7 +373,6 @@ public class SupplyListControllerSpec {
     assertEquals("shoulder bag", supplylistArrayCaptor.getValue().get(0).type);
   }
 
-
   @Test
   void canFilterSupplyListBySchoolCaseInsensitive() {
     when(ctx.queryParamMap()).thenReturn(Map.of("school", List.of("MHS")));
@@ -392,7 +400,7 @@ public class SupplyListControllerSpec {
   }
 
   // The following test checks that multiple tags can be inserted in a filter
- @Test
+  @Test
   void canFilterSupplyListByItemMultipleCaseInsensitive() {
     when(ctx.queryParamMap()).thenReturn(Map.of("item", List.of("pEnCiL, Notebook")));
     when(ctx.queryParam("item")).thenReturn("pEnCiL, Notebook");
@@ -496,7 +504,6 @@ public class SupplyListControllerSpec {
     assertEquals("shoulder bag", supplylistArrayCaptor.getValue().get(1).type);
   }
 
-
   @Test
   void canFilterSupplyListBySchoolMultipleCaseInsensitive() {
     when(ctx.queryParamMap()).thenReturn(Map.of("school", List.of("MHS, CHS")));
@@ -526,6 +533,257 @@ public class SupplyListControllerSpec {
 
   }
 
+  @Test
+  void addSupplyItemSuccessfully() {
+    String newSupplyList = """
+        {
+          "school": "MHS",
+          "grade": "PreK",
+          "item": "Marker",
+          "brand": "Crayola",
+          "color": "red",
+          "count": 1,
+          "size": "N/A",
+          "description": "A standard marker",
+          "quantity": 10,
+          "notes": "N/A",
+          "type": "dry erase",
+          "material": "plastic"
+        }
+        """;
+
+    when(ctx.body()).thenReturn(newSupplyList);
+    when(ctx.bodyValidator(SupplyList.class))
+        .thenReturn(new BodyValidator<SupplyList>(
+            newSupplyList,
+            SupplyList.class,
+              () -> javalinJackson.fromJsonString(newSupplyList, SupplyList.class)
+          ));
+
+    supplylistController.addSupplyList(ctx);
+
+    verify(ctx).status(HttpStatus.CREATED);
+  }
+
+  @Test
+  void addSupplyItemWithInvalidQuantity() {
+    String invalidSupplyList = """
+        {
+          "school": "MHS",
+          "grade": "PreK",
+          "item": "Marker",
+          "brand": "Crayola",
+          "color": "red",
+          "count": 1,
+          "size": "N/A",
+          "description": "A standard marker",
+          "quantity": -5,
+          "notes": "N/A",
+          "type": "dry erase",
+          "material": "plastic"
+        }
+        """;
+
+    when(ctx.body()).thenReturn(invalidSupplyList);
+    when(ctx.bodyValidator(SupplyList.class))
+        .thenReturn(new BodyValidator<SupplyList>(
+            invalidSupplyList,
+            SupplyList.class,
+              () -> javalinJackson.fromJsonString(invalidSupplyList, SupplyList.class)
+          ));
+
+    ValidationException exception = assertThrows(ValidationException.class, () -> {
+      supplylistController.addSupplyList(ctx);
+    });
+
+    assertTrue(exception.getErrors().get("REQUEST_BODY").get(0).toString().contains("quantity must be a positive integer"));
+  }
+
+  @Test
+  void addSupplyItemWithInvalidCount() {
+    String invalidSupplyList = """
+        {
+          "school": "MHS",
+          "grade": "PreK",
+          "item": "Marker",
+          "brand": "Crayola",
+          "color": "red",
+          "count": 0,
+          "size": "N/A",
+          "description": "A standard marker",
+          "quantity": 10,
+          "notes": "N/A",
+          "type": "dry erase",
+          "material": "plastic"
+        }
+        """;
+
+    when(ctx.body()).thenReturn(invalidSupplyList);
+    when(ctx.bodyValidator(SupplyList.class))
+        .thenReturn(new BodyValidator<SupplyList>(
+            invalidSupplyList,
+            SupplyList.class,
+              () -> javalinJackson.fromJsonString(invalidSupplyList, SupplyList.class)
+          ));
+
+    ValidationException exception = assertThrows(ValidationException.class, () -> {
+      supplylistController.addSupplyList(ctx);
+    });
+
+    assertTrue(exception.getErrors().get("REQUEST_BODY").get(0).toString().contains("count must be a positive integer"));
+  }
+
+  @Test
+  void addSupplyItemWithMissingItemName() {
+    String invalidSupplyList = """
+        {
+          "school": "MHS",
+          "grade": "PreK",
+          "brand": "Crayola",
+          "color": "red",
+          "count": 1,
+          "size": "N/A",
+          "description": "A standard marker",
+          "quantity": 10,
+          "notes": "N/A",
+          "type": "dry erase",
+          "material": "plastic"
+        }
+        """;
+
+    when(ctx.body()).thenReturn(invalidSupplyList);
+    when(ctx.bodyValidator(SupplyList.class))
+        .thenReturn(new BodyValidator<SupplyList>(
+            invalidSupplyList,
+            SupplyList.class,
+              () -> javalinJackson.fromJsonString(invalidSupplyList, SupplyList.class)
+          ));
+
+    ValidationException exception = assertThrows(ValidationException.class, () -> {
+      supplylistController.addSupplyList(ctx);
+    });
+
+    assertTrue(exception.getErrors().get("REQUEST_BODY").get(0).toString().contains("item must be a non-empty string"));
+  }
+
+  @Test
+  void addSupplyItemWithMissingSchool() {
+    String invalidSupplyList = """
+        {
+          "grade": "PreK",
+          "item": "Marker",
+          "brand": "Crayola",
+          "color": "red",
+          "count": 1,
+          "size": "N/A",
+          "description": "A standard marker",
+          "quantity": 10,
+          "notes": "N/A",
+          "type": "dry erase",
+          "material": "plastic"
+        }
+        """;
+
+    when(ctx.body()).thenReturn(invalidSupplyList);
+    when(ctx.bodyValidator(SupplyList.class))
+        .thenReturn(new BodyValidator<SupplyList>(
+            invalidSupplyList,
+            SupplyList.class,
+              () -> javalinJackson.fromJsonString(invalidSupplyList, SupplyList.class)
+          ));
+
+    ValidationException exception = assertThrows(ValidationException.class, () -> {
+      supplylistController.addSupplyList(ctx);
+    });
+
+    assertTrue(exception.getErrors().get("REQUEST_BODY").get(0).toString().contains("school must be a non-empty string"));
+  }
+
+  @Test
+  void addSupplyItemWithMissingGrade() {
+    String invalidSupplyList = """
+        {
+          "school": "MHS",
+          "item": "Marker",
+          "brand": "Crayola",
+          "color": "red",
+          "count": 1,
+          "size": "N/A",
+          "description": "A standard marker",
+          "quantity": 10,
+          "notes": "N/A",
+          "type": "dry erase",
+          "material": "plastic"
+        }
+        """;
+
+    when(ctx.body()).thenReturn(invalidSupplyList);
+    when(ctx.bodyValidator(SupplyList.class))
+        .thenReturn(new BodyValidator<SupplyList>(
+            invalidSupplyList,
+            SupplyList.class,
+              () -> javalinJackson.fromJsonString(invalidSupplyList, SupplyList.class)
+          ));
+
+    ValidationException exception = assertThrows(ValidationException.class, () -> {
+      supplylistController.addSupplyList(ctx);
+    });
+
+    assertTrue(exception.getErrors().get("REQUEST_BODY").get(0).toString().contains("grade must be a non-empty string"));
+  }
+
+  @Test
+  void deleteSupplyListWithExistentId() throws IOException {
+    String id = samsId.toHexString();
+    when(ctx.pathParam("id")).thenReturn(id);
+
+    supplylistController.deleteSupplyList(ctx);
+
+    verify(ctx).status(HttpStatus.NO_CONTENT);
+  }
+
+  @Test
+  void deleteSupplyListWithBadId() throws IOException {
+    when(ctx.pathParam("id")).thenReturn("bad");
+
+    Throwable exception = assertThrows(BadRequestResponse.class, () -> {
+      supplylistController.deleteSupplyList(ctx);
+    });
+
+    assertEquals("The requested supply list id wasn't a legal Mongo Object ID.", exception.getMessage());
+  }
+
+  @Test
+  void deleteSupplyListWithNonexistentId() throws IOException {
+    String id = "588935f5c668650dc77df581";
+    when(ctx.pathParam("id")).thenReturn(id);
+
+    Throwable exception = assertThrows(NotFoundResponse.class, () -> {
+      supplylistController.deleteSupplyList(ctx);
+    });
+
+    assertEquals("The requested supply list item was not found", exception.getMessage());
+  }
+
+  @Test
+  void deleteSupplyListActuallyDeletes() throws IOException {
+    String id = samsId.toHexString();
+    when(ctx.pathParam("id")).thenReturn(id);
+
+    supplylistController.deleteSupplyList(ctx);
+
+    verify(ctx).status(HttpStatus.NO_CONTENT);
+
+    // Make sure the item is actually gone from the database
+    when(ctx.pathParam("id")).thenReturn(id);
+    Throwable exception = assertThrows(NotFoundResponse.class, () -> {
+      supplylistController.getList(ctx);
+    });
+
+    assertEquals("The requested supply list item was not found", exception.getMessage());
+  }
+
+
   // Makes sure the controller actually registers its routes with Javalin.
   // If someone accidentally removes or renames a route, this test will catch it.
   @Test
@@ -535,4 +793,3 @@ public class SupplyListControllerSpec {
     verify(mockServer, Mockito.atLeast(1)).get(any(), any());
   }
 }
-

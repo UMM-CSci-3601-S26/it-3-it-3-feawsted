@@ -137,30 +137,98 @@
           <h2 class="school-heading" data-cy="supplylist-school">{{ schoolGroup.school }}</h2>
 
           @for (gradeGroup of schoolGroup.grades; track gradeGroup.grade) {
-            <section class="grade-group">
-              <h3 class="grade-heading" data-cy="supplylist-grade"><strong>Grade(s):</strong> {{ gradeGroup.grade }}</h3>
+            <mat-expansion-panel class="grade-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title data-cy="supplylist-grade">{{ gradeGroup.grade }}</mat-panel-title>
+                <mat-panel-description>{{ gradeGroup.teachers[0]?.items?.length ?? 0 }} item(s)</mat-panel-description>
+              </mat-expansion-panel-header>
+
+              <div class="grade-add-row">
+                <button
+                  mat-stroked-button
+                  color="primary"
+                  [routerLink]="['/supplylist/new']"
+                  [queryParams]="{ school: schoolGroup.school, grade: gradeGroup.grade }"
+                  data-cy="add-item-button">
+                  <mat-icon>add</mat-icon> Add Item
+                </button>
+              </div>
 
               @for (teacherGroup of gradeGroup.teachers; track teacherGroup.teacher) {
                 <section class="teacher-group">
                   <h4 class="teacher-heading"><strong>Teacher(s):</strong> {{ teacherGroup.teacher }}</h4>
 
-                  <div class="item-grid">
-                    @for (element of teacherGroup.items; track $index) {
-                      <article>
-                        <div class="field" data-cy="supplylist-item"><strong>Item:</strong> {{ element.item }}</div>
-                        <div class="field" data-cy="supplylist-brand"><strong>Brand:</strong> {{ element.brand }}</div>
-                        <div class="field" data-cy="supplylist-color"><strong>Color:</strong> {{ element.color }}</div>
-                        <div class="field" data-cy="supplylist-size"><strong>Size:</strong> {{ element.size }}</div>
-                        <div class="field" data-cy="supplylist-type"><strong>Type:</strong> {{ element.type }}</div>
-                        <div class="field" data-cy="supplylist-material"><strong>Material:</strong> {{ element.material }}</div>
-                        <div class="field" data-cy="supplylist-quantity"><strong>Quantity:</strong> {{ element.quantity }}</div>
-                        <div class="field" data-cy="supplylist-notes"><strong>Notes:</strong> {{ element.notes }}</div>
-                      </article>
+                  <ul class="item-list">
+                    @for (element of teacherGroup.items; track element._id) {
+                      <li class="item-row">
+
+                        @if (editingItemId === element._id) {
+                          <!-- Inline edit mode -->
+                          <div class="item-edit-grid">
+                            <mat-form-field appearance="outline" class="edit-field">
+                              <mat-label>Item</mat-label>
+                              <input matInput [(ngModel)]="element.item" />
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="edit-field">
+                              <mat-label>Brand</mat-label>
+                              <input matInput [(ngModel)]="element.brand" />
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="edit-field">
+                              <mat-label>Color</mat-label>
+                              <input matInput [(ngModel)]="element.color" />
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="edit-field">
+                              <mat-label>Size</mat-label>
+                              <input matInput [(ngModel)]="element.size" />
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="edit-field">
+                              <mat-label>Type</mat-label>
+                              <input matInput [(ngModel)]="element.type" />
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="edit-field">
+                              <mat-label>Material</mat-label>
+                              <input matInput [(ngModel)]="element.material" />
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="edit-field">
+                              <mat-label>Count</mat-label>
+                              <input matInput type="number" [(ngModel)]="element.count" />
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="edit-field">
+                              <mat-label>Quantity</mat-label>
+                              <input matInput type="number" [(ngModel)]="element.quantity" />
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="edit-field">
+                              <mat-label>Notes</mat-label>
+                              <input matInput [(ngModel)]="element.notes" />
+                            </mat-form-field>
+                          </div>
+                          <div class="item-actions">
+                            <button mat-icon-button color="primary" matTooltip="Save" (click)="saveEdit(element)" data-cy="save-item">
+                              <mat-icon>check</mat-icon>
+                            </button>
+                            <button mat-icon-button matTooltip="Cancel" (click)="cancelEdit()" data-cy="cancel-edit">
+                              <mat-icon>close</mat-icon>
+                            </button>
+                          </div>
+                        } @else {
+                          <!-- Display mode -->
+                          <span class="item-label" data-cy="supplylist-item-label">{{ toLabel(element) }}</span>
+                          <div class="item-actions">
+                            <button mat-icon-button matTooltip="Edit" (click)="startEdit(element)" data-cy="edit-item">
+                              <mat-icon>edit</mat-icon>
+                            </button>
+                            <button mat-icon-button color="warn" matTooltip="Delete" (click)="confirmDelete(element._id)" data-cy="delete-item">
+                              <mat-icon>delete</mat-icon>
+                            </button>
+                          </div>
+                        }
+
+                      </li>
                     }
-                  </div>
+                  </ul>
                 </section>
               }
-            </section>
+            </mat-expansion-panel>
           }
         </section>
       }

@@ -6,11 +6,11 @@ import org.mongojack.Id;
 import org.mongojack.ObjectId;
 
 // Inventory Class
-@SuppressWarnings({"VisibilityModifier"})
+@SuppressWarnings({ "VisibilityModifier" })
 public class Inventory {
 
   @ObjectId @Id
-  @SuppressWarnings({"MemberName"})
+  @SuppressWarnings({ "MemberName" })
   public String _id; // MongoDB ObjectId stored as a string
 
   // Inventory fields
@@ -44,6 +44,60 @@ public class Inventory {
   // Override toString for easier debugging and logging
   @Override
   public String toString() {
-    return item + " " + brand + " " + description;
+    StringBuilder sb = new StringBuilder();
+
+    // Quantity
+    sb.append(quantity).append("x ");
+
+    // Count
+    if (count > 0) {
+      sb.append(count).append("ct. ");
+    }
+
+    // Size
+    if (size != null && !size.isEmpty()) {
+      sb.append(size);
+      if (quantity > 1) {
+        sb.append("s");
+      }
+      sb.append(" of ");
+    }
+
+    // Item (pluralize if quantity > 1)
+    if (item != null && !item.isEmpty()) {
+      sb.append(item);
+      // Pluralize if needed
+      if (quantity > 1 && !item.endsWith("s")) {
+        sb.append("s");
+      }
+      sb.append(" ");
+    }
+
+    // Brand
+    if (brand != null && !brand.isEmpty()) {
+      sb.append(brand).append(" ");
+    }
+
+    // Color
+    if (color != null && !color.isEmpty()) {
+      sb.append(color).append(" ");
+    }
+
+    // Type
+    if (type != null && type.length() > 0) {
+      sb.append(String.join(", ", type)).append(" ");
+    }
+
+    // Material
+    if (material != null && material.length() > 0) {
+      sb.append(String.join(", ", material)).append(" ");
+    }
+
+    // Notes
+    if (notes != null && !notes.isEmpty()) {
+      sb.append("- ").append(notes);
+    }
+
+    return sb.toString().trim();
   }
 }

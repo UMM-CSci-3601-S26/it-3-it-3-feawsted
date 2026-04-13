@@ -40,19 +40,19 @@ import umm3601.Controller;
  * Controller for handling Inventory-related API routes.
  *
  * Routes include:
- *  - GET /api/inventory              → list all inventory items (with optional filters)
- *  - GET /api/inventory/{id}         → get a single inventory item
- *  - POST /api/inventory             → add a new inventory item
- *  - DELETE /api/inventory/{id}      → delete an inventory item
+ * - GET /api/inventory → list all inventory items (with optional filters)
+ * - GET /api/inventory/{id} → get a single inventory item
+ * - POST /api/inventory → add a new inventory item
+ * - DELETE /api/inventory/{id} → delete an inventory item
  *
- * Inventory is the core data model for tracking available school supplies, and is used for both
- * display and fulfillment.
+ * Inventory is the core data model for tracking available school supplies, and
+ * is used for both display and fulfillment.
  */
 public class InventoryController implements Controller {
 
   private static final String API_INVENTORY = "/api/inventory";
   private static final String API_INVENTORY_BY_ID = "/api/inventory/{id}";
-  private static final String API_INVENTORY_BY_ITEM = "/api/inventory/item/{item}";
+  // private  static final String API_INVENTORY_BY_ITEM = "/api/inventory/item/{item}";
 
   static final String ITEM_KEY = "item";
   static final String BRAND_KEY = "brand";
@@ -71,11 +71,10 @@ public class InventoryController implements Controller {
   public InventoryController(MongoDatabase database) {
     // Connects to the "inventory" collection using Jackson for serialization
     inventoryCollection = JacksonMongoCollection.builder().build(
-      database,
-      "inventory",
-      Inventory.class,
-      UuidRepresentation.STANDARD
-    );
+        database,
+        "inventory",
+        Inventory.class,
+        UuidRepresentation.STANDARD);
   }
 
   /**
@@ -116,10 +115,10 @@ public class InventoryController implements Controller {
   // "Crayons,,pencils"
   private Bson multipleIntakeFilter(String field, String raw) {
     List<Pattern> patterns = Arrays.stream(raw.split(","))
-      .map(String::trim)
-      .filter(s -> !s.isEmpty())
-      .map(s -> Pattern.compile(Pattern.quote(s), Pattern.CASE_INSENSITIVE))
-      .toList();
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .map(s -> Pattern.compile(Pattern.quote(s), Pattern.CASE_INSENSITIVE))
+        .toList();
 
     return Filters.in(field, patterns);
   }
@@ -180,7 +179,8 @@ public class InventoryController implements Controller {
       filters.add(multipleIntakeFilter(TYPE_KEY, ctx.queryParam(TYPE_KEY)));
     }
 
-    // If no filters, return an empty Document to match all; otherwise combine with $and
+    // If no filters, return an empty Document to match all; otherwise combine with
+    // $and
     return filters.isEmpty() ? new Document() : and(filters);
   }
 
@@ -189,21 +189,21 @@ public class InventoryController implements Controller {
    * Adds a new inventory item.
    *
    * Validation ensures:
-   *  - quantity is non-negative
-   *  - count is at least 1
-   *  - item name is present
+   * - quantity is non-negative
+   * - count is at least 1
+   * - item name is present
    */
   public void addInventory(Context ctx) {
-    //String body = ctx.body();
+    // String body = ctx.body();
     Inventory newItem = ctx.bodyValidator(Inventory.class)
-      .check(inventory -> inventory.quantity >= 0,
-        "Quantity must be >= 0")
-      .check(inventory -> inventory.count >= 1,
-        "Quantity must be 1 or more")
-      .check(inventory -> inventory.item != null && inventory.item.length() > 0,
-        "Inventory must have a non-empty item key")
-      // Additional validation can be added here
-      .get();
+        .check(inventory -> inventory.quantity >= 0,
+            "Quantity must be >= 0")
+        .check(inventory -> inventory.count >= 1,
+            "Quantity must be 1 or more")
+        .check(inventory -> inventory.item != null && inventory.item.length() > 0,
+            "Inventory must have a non-empty item key")
+        // Additional validation can be added here
+        .get();
 
     inventoryCollection.insertOne(newItem);
 
@@ -222,19 +222,18 @@ public class InventoryController implements Controller {
     String id = ctx.pathParam("id");
 
     Inventory updatedItem = ctx.bodyValidator(Inventory.class)
-      .check(inventory -> inventory.quantity >= 0,
-        "Quantity must be >= 0")
-      .check(inventory -> inventory.count >= 1,
-        "Count must be >= 1")
-      .check(inventory -> inventory.item != null && inventory.item.length() > 0,
-        "Inventory must have a non-empty item key")
-      .get();
+        .check(inventory -> inventory.quantity >= 0,
+            "Quantity must be >= 0")
+        .check(inventory -> inventory.count >= 1,
+            "Count must be >= 1")
+        .check(inventory -> inventory.item != null && inventory.item.length() > 0,
+            "Inventory must have a non-empty item key")
+        .get();
 
     long matchedCount;
     try {
       matchedCount = inventoryCollection.replaceOne(
-        eq("_id", new ObjectId(id)), updatedItem
-      ).getMatchedCount();
+          eq("_id", new ObjectId(id)), updatedItem).getMatchedCount();
     } catch (IllegalArgumentException e) {
       throw new BadRequestResponse("The requested inventory id wasn't a legal Mongo Object ID.");
     }
@@ -250,9 +249,9 @@ public class InventoryController implements Controller {
    * Deletes an inventory item by its MongoDB ObjectId.
    *
    * Returns 200 OK if deletion was successful, or 404 Not Found if:
-   *  - the ID is invalid
-   *  - no inventory item with that ID exists
-  */
+   * - the ID is invalid
+   * - no inventory item with that ID exists
+   */
   public void deleteInventory(Context ctx) {
     String id = ctx.pathParam("id");
     DeleteResult deleteResult = inventoryCollection.deleteOne(eq("_id", new ObjectId(id)));
@@ -260,9 +259,9 @@ public class InventoryController implements Controller {
     if (deleteResult.getDeletedCount() != 1) {
       ctx.status(HttpStatus.NOT_FOUND);
       throw new NotFoundResponse(
-        "Was unable to delete ID "
-          + id
-          + "; perhaps illegal ID or an ID for an item not in the system?");
+          "Was unable to delete ID "
+              + id
+              + "; perhaps illegal ID or an ID for an item not in the system?");
     }
     ctx.status(HttpStatus.OK);
   }

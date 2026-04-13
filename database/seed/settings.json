@@ -1,0 +1,16 @@
+[
+  {
+    "_id": "app-settings",
+    "schools": [
+      { "name": "Morris Area High School", "abbreviation": "MAHS" },
+      { "name": "Morris Area Elementary School", "abbreviation": "MAES" },
+      { "name": "Hancock High School", "abbreviation": "HHS" }
+    ],
+    "timeAvailability": {
+      "earlyMorning": "8:00–9:00 AM",
+      "lateMorning": "9:00–10:00 AM",
+      "earlyAfternoon": "12:00–1:00 PM",
+      "lateAfternoon": "1:00–2:00 PM"
+    }
+  }
+]

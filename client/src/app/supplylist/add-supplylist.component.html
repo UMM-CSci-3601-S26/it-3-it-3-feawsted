@@ -1,0 +1,95 @@
+<div class="flex-row">
+  <div class="flex-1">
+    <form [formGroup]="addSupplyListForm" (ngSubmit)="submitForm()">
+      <mat-card class="add-supplylist-card">
+
+        <mat-card-header>
+          <mat-card-title>New Supply List Item</mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="flex-col">
+
+            <mat-form-field>
+              <mat-label>School</mat-label>
+              <input matInput type="text" formControlName="school" required>
+              <mat-error *ngIf="formControlHasError('school')">{{ getErrorMessage('school') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Grade</mat-label>
+              <input matInput type="text" formControlName="grade" required>
+              <mat-error *ngIf="formControlHasError('grade')">{{ getErrorMessage('grade') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Item</mat-label>
+              <input matInput type="text" formControlName="item" required>
+              <mat-error *ngIf="formControlHasError('item')">{{ getErrorMessage('item') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Brand</mat-label>
+              <input matInput type="text" formControlName="brand" required>
+              <mat-error *ngIf="formControlHasError('brand')">{{ getErrorMessage('brand') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Color</mat-label>
+              <input matInput type="text" formControlName="color" required>
+              <mat-error *ngIf="formControlHasError('color')">{{ getErrorMessage('color') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Size</mat-label>
+              <input matInput type="text" formControlName="size" required>
+              <mat-error *ngIf="formControlHasError('size')">{{ getErrorMessage('size') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Type</mat-label>
+              <input matInput type="text" formControlName="type" required>
+              <mat-error *ngIf="formControlHasError('type')">{{ getErrorMessage('type') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Material</mat-label>
+              <input matInput type="text" formControlName="material" required>
+              <mat-error *ngIf="formControlHasError('material')">{{ getErrorMessage('material') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Count</mat-label>
+              <input matInput type="number" formControlName="count" required min="1">
+              <mat-error *ngIf="formControlHasError('count')">{{ getErrorMessage('count') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Quantity</mat-label>
+              <input matInput type="number" formControlName="quantity" required min="1">
+              <mat-error *ngIf="formControlHasError('quantity')">{{ getErrorMessage('quantity') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Description</mat-label>
+              <input matInput type="text" formControlName="description" required>
+              <mat-error *ngIf="formControlHasError('description')">{{ getErrorMessage('description') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Notes</mat-label>
+              <input matInput type="text" formControlName="notes" placeholder="Optional">
+            </mat-form-field>
+
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions>
+          <button mat-flat-button color="primary" type="submit" [disabled]="addSupplyListForm.invalid">Add Item</button>
+          <button mat-stroked-button type="button" routerLink="/supplylist">Cancel</button>
+        </mat-card-actions>
+
+      </mat-card>
+    </form>
+  </div>
+</div>

@@ -1,8 +1,8 @@
 // Packages
 package umm3601.family;
 
-import static com.mongodb.client.model.Filters.eq;
 // Static Imports
+import static com.mongodb.client.model.Filters.eq;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -204,7 +204,7 @@ class FamilyControllerSpec {
   }
 
   // Checks that the controller actually registers all its routes with Javalin.
-  // If someone removes or renames a route by accident, this test will catch it.  @Test
+  // If someone removes or renames a route by accident, this test will catch it.
   @Test
   void addsRoutes() {
     Javalin mockServer = mock(Javalin.class);
@@ -217,7 +217,7 @@ class FamilyControllerSpec {
   }
 
   // Makes sure that asking for all families returns everything in the database.
-  // Also checks that the controller responds with a 200 OK.  @Test
+  // Also checks that the controller responds with a 200 OK.
   @Test
   void canGetAllFamilies() throws IOException {
     when(ctx.queryParamMap()).thenReturn(Collections.emptyMap());
@@ -232,7 +232,7 @@ class FamilyControllerSpec {
   }
 
   // Looks up a family using a real ID and makes sure the controller returns the
-  // correct family and a 200 OK status.  @Test
+  // correct family and a 200 OK status.
   @Test
   void getFamilyWithExistentId() {
     String id = testFamilyId.toString();
@@ -247,7 +247,7 @@ class FamilyControllerSpec {
   }
 
   // If the ID in the URL isn’t even shaped like a real MongoDB ObjectId,
-  // the controller should reject it right away. This test checks that.  @Test
+  // the controller should reject it right away. This test checks that
   @Test
   void getFamilyWithBadId() {
     when(ctx.pathParam("id")).thenReturn("bad");
@@ -262,7 +262,7 @@ class FamilyControllerSpec {
   }
 
   // The ID format is valid, but nothing in the database matches it.
-  // The controller should return a “not found” error instead of pretending it’s fine.  @Test
+  // The controller should return a “not found” error instead of pretending it’s fine.
   @Test
   void getFamiliesWithNonexistentId() throws IOException {
     String id = "588935f5c668650dc77df581";
@@ -277,7 +277,7 @@ class FamilyControllerSpec {
 
   // Adds a brand‑new family using valid JSON. After the controller inserts it,
   // we check the database to make sure the fields were saved correctly.
-  // Also checks that the controller returns 201 CREATED.  @Test
+  // Also checks that the controller returns 201 CREATED
   @Test
   void addNewFamily() {
     Family newFamily = new Family();
@@ -311,7 +311,7 @@ class FamilyControllerSpec {
   }
 
   // Tries to add a family with an invalid email address. The controller should
-  // reject it with a validation error instead of saving bad data.  @Test
+  // reject it with a validation error instead of saving bad data
   @Test
   void addInvalidEmail() {
     String json = """
@@ -346,7 +346,7 @@ class FamilyControllerSpec {
   }
 
   // Deletes a family that actually exists. After calling delete, the family
-  // should be gone from the database and the controller should return 200 OK.  @Test
+  // should be gone from the database and the controller should return 200 OK
   @Test
   void deleteFoundFamily() {
     when(ctx.pathParam("id"))
@@ -362,7 +362,7 @@ class FamilyControllerSpec {
   }
 
   // Tries to delete a family that isn’t in the database. The controller should
-  // return a “not found” error and not pretend the delete worked.  @Test
+  // return a “not found” error and not pretend the delete worked
   @Test
   void deleteFamilyNotFound() {
 
@@ -382,7 +382,7 @@ class FamilyControllerSpec {
   }
 
   // Makes sure the dashboard stats include all the expected fields and that the
-  // total family count matches what’s in the database.  @Test
+  // total family count matches what’s in the database
   @Test
   void getDashboardStats() {
     familyController.getDashboardStats(ctx);
@@ -400,7 +400,7 @@ class FamilyControllerSpec {
   }
 
   // Checks that the CSV export endpoint produces a properly formatted CSV string,
-  // including the header and the correct student counts for each family.  @Test
+  // including the header and the correct student counts for each family
   @Test
   void exportFamiliesAsCSVProducesCorrectCSV() {
     familyController.exportFamiliesAsCSV(ctx);

@@ -14,6 +14,8 @@ import { of, throwError } from 'rxjs';
 import { MockFamilyService } from 'src/testing/family-service.mock';
 import { AddFamilyComponent } from './add-family.component';
 import { FamilyService } from './family.service';
+import { SettingsService } from '../settings/settings.service';
+import { AppSettings } from '../settings/settings';
 
 // Tests for the AddFamilyComponent
 describe('AddFamilyComponent', () => {
@@ -35,6 +37,10 @@ describe('AddFamilyComponent', () => {
         {
           provide: FamilyService,
           useClass: MockFamilyService
+        },
+        {
+          provide: SettingsService,
+          useValue: { getSettings: () => of({ schools: [{ name: 'Test School', abbreviation: 'TS' }] } as unknown as AppSettings) }
         }
       ]
       // error handling for async compilation of components
@@ -310,14 +316,14 @@ describe('AddFamilyComponent', () => {
   describe('Error messages', () => {
     it('should return the correct error message', () => {
       const controlName: keyof typeof addFamilyComponent.addFamilyValidationMessages = 'guardianName';
-      addFamilyComponent.addFamilyForm.get(controlName).setValue('');
-      addFamilyComponent.addFamilyForm.get(controlName).markAsTouched();
+      addFamilyComponent.addFamilyForm.get(controlName)!.setValue('');
+      addFamilyComponent.addFamilyForm.get(controlName)!.markAsTouched();
       expect(addFamilyComponent.getErrorMessage(controlName)).toEqual('Guardian name is required');
     });
 
     it('should return "Unknown error" if no error message is found', () => {
       const controlName: keyof typeof addFamilyComponent.addFamilyValidationMessages = 'guardianName';
-      addFamilyComponent.addFamilyForm.get(controlName).setErrors({ 'unknown': true });
+      addFamilyComponent.addFamilyForm.get(controlName)!.setErrors({ 'unknown': true });
       expect(addFamilyComponent.getErrorMessage(controlName)).toEqual('Unknown error');
     });
 
@@ -368,12 +374,8 @@ describe('AddFamilyComponent', () => {
         address: '123 Avenue',
         timeSlot: '9:00-10:00',
         email: 'csmith@email.com',
-        students: [{
-          name: 'Jimmy',
-          grade: '3',
-          school: 'Morris Elementary',
-          requestedSupplies: ['pencil', 'eraser', 'notebook']
-        }]
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        students: [{ name: 'Jimmy', grade: '3', school: 'Morris Elementary', requestedSupplies: ['pencil', 'eraser', 'notebook'] }] as any
       });
 
       addFamilyComponent.submitForm();
@@ -422,12 +424,8 @@ describe('AddFamilyComponent', () => {
         address: '123 Avenue',
         timeSlot: '9:00-10:00',
         email: 'csmith@email.com',
-        students: [{
-          name: 'Jimmy',
-          grade: '3',
-          school: 'Morris Elementary',
-          requestedSupplies: 'pencil, eraser , notebook '
-        }]
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        students: [{ name: 'Jimmy', grade: '3', school: 'Morris Elementary', requestedSupplies: 'pencil, eraser , notebook ' }] as any
       });
 
       addFamilyComponent.submitForm();
@@ -441,6 +439,106 @@ describe('AddFamilyComponent', () => {
           ]
         })
       );
+    });
+
+    it('should show snackBar on unexpected error status', () => {
+      const familyService = TestBed.inject(FamilyService);
+      spyOn(familyService, 'addFamily').and.returnValue(throwError(() => ({ status: 409, message: 'Conflict' })));
+      const snackBar = TestBed.inject(MatSnackBar);
+      const snackBarSpy = spyOn(snackBar, 'open');
+
+      addFamilyComponent.submitForm();
+
+      expect(snackBarSpy).toHaveBeenCalledWith(
+        jasmine.stringMatching(/unexpected error/i),
+        'OK',
+        { duration: 5000 }
+      );
+    });
+
+    it('should handle null requestedSupplies with empty array fallback', () => {
+      const familyService = TestBed.inject(FamilyService);
+      const addFamilySpy = spyOn(familyService, 'addFamily').and.returnValue(of('1'));
+
+      addFamilyComponent.addStudent();
+      addFamilyComponent.addFamilyForm.patchValue({
+        guardianName: 'Chris Smith',
+        address: '123 Avenue',
+        timeSlot: '9:00-10:00',
+        email: 'csmith@email.com',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        students: [{ name: 'Jimmy', grade: '3', school: 'Morris Elementary', requestedSupplies: null }] as any
+      });
+
+      addFamilyComponent.submitForm();
+
+      expect(addFamilySpy).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          students: [jasmine.objectContaining({ requestedSupplies: [] })]
+        })
+      );
+    });
+
+    it('should use undefined for null form fields via nullish coalescing', () => {
+      const familyService = TestBed.inject(FamilyService);
+      const addFamilySpy = spyOn(familyService, 'addFamily').and.returnValue(of('1'));
+
+      addFamilyComponent.addStudent();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const setNull = (path: string) => (addFamilyComponent.addFamilyForm.get(path) as any).setValue(null);
+      setNull('guardianName');
+      setNull('email');
+      setNull('address');
+      setNull('timeSlot');
+      setNull('students.0.name');
+      setNull('students.0.grade');
+      setNull('students.0.school');
+
+      addFamilyComponent.submitForm();
+
+      const call = addFamilySpy.calls.mostRecent().args[0];
+      expect(call.guardianName).toBeUndefined();
+      expect(call.email).toBeUndefined();
+      expect(call.address).toBeUndefined();
+      expect(call.timeSlot).toBeUndefined();
+    });
+  });
+
+  describe('formControlHasError edge cases', () => {
+    it('should return false for a non-existent control name', () => {
+      expect(addFamilyComponent.formControlHasError('nonExistentControl')).toBeFalse();
+    });
+
+    it('should return true if control is invalid and dirty (not touched)', () => {
+      const nameControl = addFamilyForm.controls.guardianName;
+      nameControl.setValue('');
+      nameControl.markAsDirty();
+      nameControl.markAsUntouched();
+
+      expect(addFamilyComponent.formControlHasError('guardianName')).toBeTrue();
+    });
+  });
+
+  describe('ngOnInit with settings', () => {
+    it('should use empty array when settings.schools is null', () => {
+      const settingsService = TestBed.inject(SettingsService);
+      spyOn(settingsService, 'getSettings').and.returnValue(of({ schools: undefined } as unknown as AppSettings));
+
+      addFamilyComponent.ngOnInit();
+
+      expect(addFamilyComponent.schools).toEqual([]);
+    });
+
+    it('should populate schools from settings', () => {
+      const settingsService = TestBed.inject(SettingsService);
+      spyOn(settingsService, 'getSettings').and.returnValue(
+        of({ schools: [{ name: 'Test School', abbreviation: 'TS' }] } as unknown as AppSettings)
+      );
+
+      addFamilyComponent.ngOnInit();
+
+      expect(addFamilyComponent.schools.length).toBe(1);
+      expect(addFamilyComponent.schools[0].name).toBe('Test School');
     });
   });
 });

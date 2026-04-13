@@ -17,7 +17,6 @@ import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatMenuModule } from '@angular/material/menu';
-import { RouterLink } from '@angular/router';
 
 // RxJS Imports
 import { catchError, combineLatest, debounceTime, of, switchMap } from 'rxjs';
@@ -51,7 +50,6 @@ import { MatMenu } from "@angular/material/menu";
     MatPaginatorModule,
     MatMenu,
     MatMenuModule,
-    RouterLink
   ],
 })
 
@@ -172,6 +170,24 @@ export class InventoryTableComponent {
   // Tracks which row is currently being edited (by _id), and a backup for cancel
   editingRowId: string | null = null;
   private editingBackup: Inventory | null = null;
+  private readonly NEW_ROW_ID = '__new__';
+
+  /**
+   * Inserts a blank row at the top of the table and enters edit mode on it.
+   * Calling again while a new row is already pending is a no-op.
+   */
+  addRow() {
+    if (this.editingRowId === this.NEW_ROW_ID) {
+      return;
+    }
+    const blank: Inventory = {
+      _id: this.NEW_ROW_ID,
+      item: '', description: '', brand: '', color: '',
+      count: 1, size: '', type: '', material: '', quantity: 0, notes: ''
+    };
+    this.dataSource.data = [blank, ...this.dataSource.data];
+    this.startEdit(blank);
+  }
 
   /**
    * Enters edit mode for a row.
@@ -190,22 +206,40 @@ export class InventoryTableComponent {
     if (!row._id) {
       return;
     }
-    this.inventoryService.editInventory(row._id, row).subscribe({
-      next: () => {
-        this.editingRowId = null;
-        this.editingBackup = null;
-      },
-      error: (err) => {
-        this.errMsg.set(`Problem saving item – Error Code: ${err.status}\nMessage: ${err.message}`);
-      }
-    });
+    if (row._id === this.NEW_ROW_ID) {
+      // New row: POST to create it, then store the real _id assigned by the server
+      const { _id: _discarded, ...newItem } = row; // eslint-disable-line @typescript-eslint/no-unused-vars
+      this.inventoryService.addInventory(newItem).subscribe({
+        next: (id) => {
+          row._id = id;
+          this.editingRowId = null;
+          this.editingBackup = null;
+        },
+        error: (err) => {
+          this.errMsg.set(`Problem adding item – Error Code: ${err.status}\nMessage: ${err.message}`);
+        }
+      });
+    } else {
+      this.inventoryService.editInventory(row._id, row).subscribe({
+        next: () => {
+          this.editingRowId = null;
+          this.editingBackup = null;
+        },
+        error: (err) => {
+          this.errMsg.set(`Problem saving item – Error Code: ${err.status}\nMessage: ${err.message}`);
+        }
+      });
+    }
   }
 
   /**
    * Cancels editing, reverting the row to its original values.
    */
   cancelEdit(row: Inventory) {
-    if (this.editingBackup) {
+    if (row._id === this.NEW_ROW_ID) {
+      // Discard the unsaved new row entirely
+      this.dataSource.data = this.dataSource.data.filter(i => i._id !== this.NEW_ROW_ID);
+    } else if (this.editingBackup) {
       Object.assign(row, this.editingBackup);
     }
     this.editingRowId = null;

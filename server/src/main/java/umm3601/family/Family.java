@@ -9,22 +9,23 @@ import org.mongojack.Id;
 import org.mongojack.ObjectId;
 
 /**
- * The Family model represents a single household registering for school supplies.
+ * The Family model represents a single household registering for school
+ * supplies.
  *
  * Each Family document contains:
- *  - Guardian contact info
- *  - A list of students in the household
- *  - Each student's grade, school, and requested supplies
+ * - Guardian contact info
+ * - A list of students in the household
+ * - Each student's grade, school, and requested supplies
  *
  * Families register together, so storing them as a single MongoDB document
  * keeps reads simple and avoids joins.
  */
 
-@SuppressWarnings({"VisibilityModifier"})
+@SuppressWarnings({ "VisibilityModifier" })
 public class Family {
 
   @ObjectId @Id
-  @SuppressWarnings({"MemberName"})
+  @SuppressWarnings({ "MemberName" })
   public String _id; // MongoDB ObjectId stored as a string
 
   // Guardian-level information (applies to the whole household)

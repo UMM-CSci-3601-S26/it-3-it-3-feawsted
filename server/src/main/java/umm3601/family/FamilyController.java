@@ -33,12 +33,12 @@ import umm3601.Controller;
  * Controller for handling Family-related API routes.
  *
  * Routes include:
- *  - GET /api/family              → list all families
- *  - GET /api/family/{id}         → get a single family
- *  - POST /api/family             → add a new family
- *  - DELETE /api/family/{id}      → delete a family
- *  - GET /api/dashboard           → aggregated student statistics
- *  - GET /api/family/export       → export families as CSV
+ * - GET /api/family → list all families
+ * - GET /api/family/{id} → get a single family
+ * - POST /api/family → add a new family
+ * - DELETE /api/family/{id} → delete a family
+ * - GET /api/dashboard → aggregated student statistics
+ * - GET /api/family/export → export families as CSV
  *
  * Families are the core registration unit, and dashboard stats
  * rely on embedded student data.
@@ -70,8 +70,8 @@ public class FamilyController implements Controller {
    * Retrieves a single family by MongoDB ObjectId.
    *
    * Includes error handling for:
-   *  - invalid ObjectId format
-   *  - non-existent family
+   * - invalid ObjectId format
+   * - non-existent family
    */
   public void getFamily(Context ctx) {
     String id = ctx.pathParam("id");
@@ -96,8 +96,8 @@ public class FamilyController implements Controller {
    */
   public void getFamilies(Context ctx) {
     ArrayList<Family> matchingFamilies = familyCollection
-      .find()
-      .into(new ArrayList<>());
+        .find()
+        .into(new ArrayList<>());
 
     ctx.json(matchingFamilies);
     ctx.status(HttpStatus.OK);
@@ -108,21 +108,21 @@ public class FamilyController implements Controller {
    * Adds a new family registration.
    *
    * Validation ensures:
-   *  - valid email format
+   * - valid email format
    *
    * Future improvements (Iteration 2):
-   *  - Validate that students list is not empty
-   *  - Validate that grade/school fields are present
-   *  - Validate requestedSupplies against Supply collection
+   * - Validate that students list is not empty
+   * - Validate that grade/school fields are present
+   * - Validate requestedSupplies against Supply collection
    */
   public void addNewFamily(Context ctx) {
     String body = ctx.body();
 
     Family newFamily = ctx.bodyValidator(Family.class)
-      .check(fam -> fam.email.matches(EMAIL_REGEX),
-        "Family must have a valid email; body was " + body)
-      // Additional validation can be added here
-      .get();
+        .check(fam -> fam.email.matches(EMAIL_REGEX),
+            "Family must have a valid email; body was " + body)
+        // Additional validation can be added here
+        .get();
 
     familyCollection.insertOne(newFamily);
 
@@ -135,8 +135,8 @@ public class FamilyController implements Controller {
    * Removes a family registration.
    *
    * Returns 200 OK if deletion was successful, or 404 Not Found if:
-   *  - the ID is invalid
-   *  - no family with that ID exists
+   * - the ID is invalid
+   * - no family with that ID exists
    */
   public void deleteFamily(Context ctx) {
     String id = ctx.pathParam("id");
@@ -145,9 +145,9 @@ public class FamilyController implements Controller {
     if (deleteResult.getDeletedCount() != 1) {
       ctx.status(HttpStatus.NOT_FOUND);
       throw new NotFoundResponse(
-        "Was unable to delete Family ID"
-          + id
-          + "; perhaps illegal Family ID or an ID for an item not in the system?");
+          "Was unable to delete Family ID"
+              + id
+              + "; perhaps illegal Family ID or an ID for an item not in the system?");
     }
     ctx.status(HttpStatus.OK);
   }
@@ -155,21 +155,21 @@ public class FamilyController implements Controller {
   /**
    * GET /api/dashboard
    * Computes summary statistics for:
-   *  - students per school
-   *  - students per grade
-   *  - total families
+   * - students per school
+   * - students per grade
+   * - total families
    *
    * Because students are embedded inside families,
    * this requires only one database query.
    *
    * Future improvements (Iteration 2):
-   *  - total students
-   *  - filterable for per district, grade, and school.
+   * - total students
+   * - filterable for per district, grade, and school.
    */
   public void getDashboardStats(Context ctx) {
     ArrayList<Family> families = familyCollection
-      .find()
-      .into(new ArrayList<>());
+        .find()
+        .into(new ArrayList<>());
 
     Map<String, Integer> studentsPerSchool = new HashMap<>();
     Map<String, Integer> studentsPerGrade = new HashMap<>();
@@ -197,8 +197,8 @@ public class FamilyController implements Controller {
    *
    * Note: This does NOT export student-level details.
    * Future teams may expand this to include:
-   *  - requested supplies
-   *  - filtering options
+   * - requested supplies
+   * - filtering options
    */
   public void exportFamiliesAsCSV(Context ctx) {
     List<Family> families = familyCollection.find().into(new ArrayList<>());
@@ -212,12 +212,11 @@ public class FamilyController implements Controller {
       int studentCount = family.students != null ? family.students.size() : 0;
 
       csv.append(String.format("\"%s\",\"%s\",\"%s\",\"%s\",%d\n",
-        family.guardianName,
-        family.email,
-        family.address,
-        family.timeSlot,
-        studentCount
-      ));
+          family.guardianName,
+          family.email,
+          family.address,
+          family.timeSlot,
+          studentCount));
     }
 
     ctx.contentType("text/csv");

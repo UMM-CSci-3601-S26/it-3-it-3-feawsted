@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { SupplyList } from './supplylist';
 import { environment } from 'src/environments/environment';
 
@@ -57,5 +57,17 @@ export class SupplyListService {
 
     }
     return this.httpClient.get<SupplyList[]>(this.supplylistUrl, { params: httpParams });
+  }
+
+  deleteSupplyList(id: string): Observable<unknown> {
+    return this.httpClient.delete<void>(`${this.supplylistUrl}/${id}`);
+  }
+
+  addSupplyList(newItem: Partial<SupplyList>): Observable<string> {
+    return this.httpClient.post<{ id: string }>(this.supplylistUrl, newItem).pipe(map(response => response.id));
+  }
+
+  editSupplyList(id: string, updatedItem: Partial<SupplyList>): Observable<void> {
+    return this.httpClient.put<void>(`${this.supplylistUrl}/${id}`, updatedItem);
   }
 }

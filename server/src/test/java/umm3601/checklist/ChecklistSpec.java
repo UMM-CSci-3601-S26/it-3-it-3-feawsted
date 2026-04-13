@@ -1,85 +1,100 @@
 package umm3601.checklist;
 
+// Static Imports
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
-
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import umm3601.supplylist.SupplyList;
+
 class ChecklistSpec {
-  private Checklist checklist;
+  private static final String FAKE_ID_STRING_1 = "fakeIdOne";
+  private static final String FAKE_ID_STRING_2 = "fakeIdTwo";
 
-  // @Test
-  // void toStringIncludesKeyFields() {
-  //   Checklist c = new Checklist();
-  //   c.studentName = "Joe";
-  //   c.school = "Morris";
-  //   c.grade = "1";
-  //   c.requestedSupplies = List.of("Backpack");
+  private Checklist checklist1;
+  private Checklist checklist2;
 
-  //   String result = c.toString();
+  @BeforeEach
+  void setupEach() {
+    checklist1 = new Checklist();
+    checklist2 = new Checklist();
 
-  //   assertTrue(result.contains("Joe"));
-  //   assertTrue(result.contains("Morris"));
-  //   assertTrue(result.contains("1"));
-  // }
+    SupplyList supply1 = new SupplyList();
+    supply1.item = "Pencil";
+    supply1.brand = "Ticonderoga";
+    supply1.description = "Ticonderoga Pencil";
 
-  // @Test
-  // void checklistListCanBeAssignedAndRead() {
-  //   Checklist c = new Checklist();
+    checklist1.studentName = "Joe";
+    checklist1.grade = "1";
+    checklist1.school = "Morris";
+    checklist1.requestedSupplies = List.of("Backpack");
+    checklist1.checklist = List.of(new Checklist.ChecklistItem(supply1));
+  }
 
-  //   Checklist.ChecklistItem item1 = new Checklist.ChecklistItem();
-  //   item1.itemName = "Notebook";
+  @Test
+  void checklistsWithEqualIdAreEqual() {
+    checklist1._id = FAKE_ID_STRING_1;
+    checklist2._id = FAKE_ID_STRING_1;
 
-  //   Checklist.ChecklistItem item2 = new Checklist.ChecklistItem();
-  //   item2.itemName = "Pencil";
+    assertTrue(checklist1.equals(checklist2));
+  }
 
-  //   c.checklist = List.of(item1, item2);
+  @Test
+  void checklistsWithDifferentIdAreNotEqual() {
+    checklist1._id = FAKE_ID_STRING_1;
+    checklist2._id = FAKE_ID_STRING_2;
 
-  //   assertEquals(2, c.checklist.size());
-  //   assertEquals("Notebook", c.checklist.get(0).itemName);
-  //   assertEquals("Pencil", c.checklist.get(1).itemName);
-  // }
+    assertFalse(checklist1.equals(checklist2));
+  }
 
-  // @Test
-  // void checklistItemBooleanDefaultsAndAssignment() {
-  //   Checklist.ChecklistItem item = new Checklist.ChecklistItem();
+  @Test
+  void checklistsWithNullIdAreNotEqual() {
+    checklist1._id = null;
+    checklist2._id = FAKE_ID_STRING_1;
 
-  //   assertFalse(item.completed);
-  //   assertFalse(item.unreceived);
+    assertFalse(checklist1.equals(checklist2));
+  }
 
-  //   item.completed = true;
-  //   item.unreceived = true;
+  @Test
+  void hashCodesAreBasedOnId() {
+    checklist1._id = FAKE_ID_STRING_1;
+    checklist2._id = FAKE_ID_STRING_1;
 
-  //   assertTrue(item.completed);
-  //   assertTrue(item.unreceived);
-  // }
+    assertTrue(checklist1.hashCode() == checklist2.hashCode());
+  }
 
-  // @Test
-  // void checklistItemConstructorCopiesItemName() {
-  //   SupplyList supply = new SupplyList();
-  //   supply.item = "Pencil";
+  @SuppressWarnings("unlikely-arg-type")
+  @Test
+  void checklistsAreNotEqualToOtherKindsOfThings() {
+    checklist1._id = FAKE_ID_STRING_1;
+    // a Checklist is not equal to its id even though id is used for checking equality
+    assertFalse(checklist1.equals(FAKE_ID_STRING_1));
+  }
 
-  //   Checklist.ChecklistItem item = new Checklist.ChecklistItem(supply);
+  @Test
+  void nullId() {
+    checklist1._id = null;
+    checklist2._id = FAKE_ID_STRING_2;
 
-  //   assertEquals("Pencil", item.itemName);
-  // }
+    assertEquals(checklist1.hashCode(), 0);
+    assertFalse(checklist1.equals(checklist2));
+  }
 
   @Test
   void fieldsCanBeAssignedAndRead() {
-    Checklist c = new Checklist();
 
-    c.studentName = "Joe";
-    c.grade = "1";
-    c.school = "Morris";
-    c.requestedSupplies = List.of("Backpack");
-    //c.checklist = "Notebook, Crayola, Wide ruled";
-
-    assertEquals("Joe", c.studentName);
-    assertEquals("1", c.grade);
-    assertEquals("Morris", c.school);
-    assertEquals(List.of("Backpack"), c.requestedSupplies);
-    //assertEquals("Notebook, Crayola, Wide ruled", c.checklist);
+    assertEquals("Joe", checklist1.studentName);
+    assertEquals("1", checklist1.grade);
+    assertEquals("Morris", checklist1.school);
+    assertEquals(List.of("Backpack"), checklist1.requestedSupplies);
+    assertEquals(1, checklist1.checklist.size());
+    assertEquals("Pencil", checklist1.checklist.get(0).supply.item);
+    assertEquals("Ticonderoga", checklist1.checklist.get(0).supply.brand);
+    assertEquals("Ticonderoga Pencil", checklist1.checklist.get(0).supply.description);
   }
 }

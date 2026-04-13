@@ -30,7 +30,7 @@ import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 import io.javalin.http.NotFoundResponse;
-//import io.javalin.http.SwitchingProtocolsResponse;
+
 // Misc Imports
 import umm3601.Controller;
 
@@ -38,10 +38,11 @@ import umm3601.Controller;
  * Controller for handling SupplList-related API routes.
  *
  * Routes include:
- *  - GET /api/inventory              → list all supply list items (with optional filters)
- *  - GET /api/inventory/{id}         → get a single supply list item
+ * - GET /api/inventory → list all supply list items (with optional filters)
+ * - GET /api/inventory/{id} → get a single supply list item
  *
- * Supply List is the core data model for tracking what supplies students, and will be used
+ * Supply List is the core data model for tracking what supplies students, and
+ * will be used
  * help calculate supply demands.
  */
 
@@ -71,11 +72,10 @@ public class SupplyListController implements Controller {
   public SupplyListController(MongoDatabase database) {
     // Connects to the "supplylist" collection using Jackson for serialization
     supplyListCollection = JacksonMongoCollection.builder().build(
-      database,
-      "supplylist",
-      SupplyList.class,
-      UuidRepresentation.STANDARD
-    );
+        database,
+        "supplylist",
+        SupplyList.class,
+        UuidRepresentation.STANDARD);
   }
 
   /**
@@ -103,17 +103,18 @@ public class SupplyListController implements Controller {
   // "Crayons,,pencils"
   private Bson multipleIntakeFilter(String field, String raw) {
     List<Pattern> patterns = Arrays.stream(raw.split(","))
-      .map(String::trim)
-      .filter(s -> !s.isEmpty())
-      .map(s -> Pattern.compile(Pattern.quote(s), Pattern.CASE_INSENSITIVE))
-      .toList();
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .map(s -> Pattern.compile(Pattern.quote(s), Pattern.CASE_INSENSITIVE))
+        .toList();
 
     return Filters.in(field, patterns);
   }
 
   /**
    * GET /api/supplylist
-   * Retrieves all supply list items, with optional query parameters for filtering.
+   * Retrieves all supply list items, with optional query parameters for
+   * filtering.
    */
   public void getSupplyLists(Context ctx) {
     Bson filter = constructFilter(ctx);
@@ -196,6 +197,54 @@ public class SupplyListController implements Controller {
     return filters.isEmpty() ? new Document() : and(filters);
   }
 
+  public void addSupplyList(Context ctx) {
+    SupplyList newSupplyList = ctx.bodyValidator(SupplyList.class)
+    .check(s -> s.school != null && !s.school.isBlank(), "school must be a non-empty string")
+    .check(s -> s.grade != null && !s.grade.isBlank(), "grade must be a non-empty string")
+    .check(s -> s.item != null && !s.item.isBlank(), "item must be a non-empty string")
+    .check(s -> s.count > 0, "count must be a positive integer")
+    .check(s -> s.quantity > 0, "quantity must be a positive integer")
+    .get();
+
+    supplyListCollection.insertOne(newSupplyList);
+    ctx.status(HttpStatus.CREATED);
+  }
+
+  public void deleteSupplyList(Context ctx) {
+    String id = ctx.pathParam("id");
+    try {
+      long deletedCount = supplyListCollection.deleteOne(eq("_id", new ObjectId(id))).getDeletedCount();
+      if (deletedCount == 0) {
+        throw new NotFoundResponse("The requested supply list item was not found");
+      }
+      ctx.status(HttpStatus.NO_CONTENT);
+    } catch (IllegalArgumentException e) {
+      throw new BadRequestResponse("The requested supply list id wasn't a legal Mongo Object ID.");
+    }
+  }
+
+  public void editSupplyList(Context ctx) {
+    String id = ctx.pathParam("id");
+    SupplyList updatedSupplyList = ctx.bodyValidator(SupplyList.class)
+      .check(s -> s.school != null && !s.school.isBlank(), "school must be a non-empty string")
+      .check(s -> s.grade != null && !s.grade.isBlank(), "grade must be a non-empty string")
+      .check(s -> s.item != null && !s.item.isBlank(), "item must be a non-empty string")
+      .check(s -> s.count > 0, "count must be a positive integer")
+      .check(s -> s.quantity > 0, "quantity must be a positive integer")
+      .get();
+
+    try {
+      updatedSupplyList._id = id; // Ensure the ID is set for the update
+      long modifiedCount = supplyListCollection.replaceOne(eq("_id", new ObjectId(id)), updatedSupplyList).getModifiedCount();
+      if (modifiedCount == 0) {
+        throw new NotFoundResponse("The requested supply list item was not found");
+      }
+      ctx.status(HttpStatus.OK);
+    } catch (IllegalArgumentException e) {
+      throw new BadRequestResponse("The requested supply list id wasn't a legal Mongo Object ID.");
+    }
+  }
+
   /**
    * Registers API routes for this controller.
    */
@@ -203,5 +252,8 @@ public class SupplyListController implements Controller {
   public void addRoutes(Javalin server) {
     server.get(API_SUPPLYLIST, this::getSupplyLists);
     server.get(API_SUPPLYLIST_BY_ID, this::getList);
+    server.post(API_SUPPLYLIST, this::addSupplyList);
+    server.delete(API_SUPPLYLIST_BY_ID, this::deleteSupplyList);
+    server.put(API_SUPPLYLIST_BY_ID, this::editSupplyList);
   }
 }
