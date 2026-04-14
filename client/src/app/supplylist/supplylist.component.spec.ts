@@ -573,18 +573,18 @@ describe('SupplyListComponent#toLabel()', () => {
 
   it('should handle undefined brand gracefully (attrStr ?? [] fallback for allOf/anyOf)', () => {
     // When brand is undefined, a?.allOf and a?.anyOf are undefined → ?? [] kicks in
-    const label = supplylistTable.toLabel({ ...base, brand: undefined } as SupplyList);
+    const label = supplylistTable.toLabel({ ...base, brand: undefined } as unknown as SupplyList);
     expect(typeof label).toBe('string');
     expect(label).toBeTruthy();
   });
 
   it('should handle undefined color gracefully', () => {
-    const label = supplylistTable.toLabel({ ...base, color: undefined } as SupplyList);
+    const label = supplylistTable.toLabel({ ...base, color: undefined } as unknown as SupplyList);
     expect(typeof label).toBe('string');
   });
 
   it('should handle undefined type gracefully', () => {
-    const label = supplylistTable.toLabel({ ...base, type: undefined } as SupplyList);
+    const label = supplylistTable.toLabel({ ...base, type: undefined } as unknown as SupplyList);
     expect(typeof label).toBe('string');
   });
 });
