@@ -206,13 +206,14 @@ public class FamilyController implements Controller {
     StringBuilder csv = new StringBuilder();
 
     // CSV header row
-    csv.append("Guardian Name,Email,Address,Time Slot,Number of Students\n");
+    csv.append("Guardian Name,Alternate Pick Up,Email,Address,Time Slot,Number of Students\n");
 
     for (Family family : families) {
       int studentCount = family.students != null ? family.students.size() : 0;
 
-      csv.append(String.format("\"%s\",\"%s\",\"%s\",\"%s\",%d\n",
+      csv.append(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d\n",
           family.guardianName,
+          family.altPickUp,
           family.email,
           family.address,
           family.timeSlot,

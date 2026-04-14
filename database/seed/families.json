@@ -1,6 +1,7 @@
 [
   {
     "guardianName": "Jane Doe",
+    "altPickUp":"",
     "email": "jane@email.com",
     "address": "123 Street",
     "timeAvailability": {
@@ -30,6 +31,7 @@
   },
   {
     "guardianName": "John Doe",
+    "altPickUp":"Joe Hogan",
     "email": "john@email.com",
     "address": "1232 Street",
     "timeAvailability": {
@@ -68,6 +70,7 @@
   },
   {
     "guardianName": "Janis Dorothy",
+    "altPickUp":"Noplace Likehome",
     "email": "janis@email.com",
     "address": "123 Street",
     "timeAvailability": {
@@ -95,6 +98,7 @@
   },
   {
     "guardianName": "Michael Thompson",
+    "altPickUp":"Michael Jackson",
     "email": "michael.t@email.com",
     "address": "987 Spruce Drive",
     "timeAvailability": {
@@ -114,6 +118,7 @@
   },
   {
     "guardianName": "Priya Singh",
+    "altPickUp":"",
     "email": "priya.singh@email.com",
     "address": "246 Willow Way",
     "timeAvailability": {
@@ -139,6 +144,7 @@
   },
   {
     "guardianName": "Linda Wu",
+    "altPickUp":"Lao Wu",
     "email": "linda.wu@email.com",
     "address": "135 Birch Blvd",
     "timeAvailability": {
@@ -164,6 +170,7 @@
   },
   {
     "guardianName": "Omar Al-Farsi",
+    "altPickUp":"",
     "email": "omar.alfarsi@email.com",
     "address": "753 Poplar Court",
     "timeAvailability": {
@@ -183,6 +190,7 @@
   },
   {
     "guardianName": "Sophia Rossi",
+    "altPickUp":"",
     "email": "sophia.rossi@email.com",
     "address": "159 Aspen Lane",
     "timeAvailability": {
