@@ -12,44 +12,47 @@ export class MockInventoryService implements Pick<InventoryService, 'getInventor
   static testInventory: Inventory[] = [
     {
       item: "Markers",
-      description: "8 Pack of Washable Wide Markers",
       brand: "Crayola",
       color: "N/A",
       count: 8,
       size: "Wide",
-      type: "Washable",
-      material: "N/A",
+      type: ["Washable"],
+      style: [],
+      material: [],
+      bin: [1],
       quantity: 0,
       notes: "N/A"
     },
     {
       item: "Folder",
-      description: "Red 2 Prong Plastic Pocket Folder",
       brand: "N/A",
       color: "Red",
       count: 1,
       size: "N/A",
-      type: "2 Prong",
-      material: "Plastic",
+      type: ["2 Prong"],
+      style: [],
+      material: ["Plastic"],
+      bin: [2],
       quantity: 0,
       notes: "N/A"
     },
     {
       item: "Notebook",
-      description: "Yellow Wide Ruled Spiral Notebook",
       brand: "Five Star",
       color: "Yellow",
       count: 1,
       size: "Wide Ruled",
-      type: "Spiral",
-      material: "N/A",
+      type: ["Spiral"],
+      style: [],
+      material: [],
+      bin: [3],
       quantity: 0,
       notes: "N/A"
     }
   ];
 
   /* eslint-disable @typescript-eslint/no-unused-vars */
-  getInventory(_filters: { item?: string, brand?: string, color?: string, size?: string, type?: string, material?: string }): Observable<Inventory[]> {
+  getInventory(_filters: { item?: string, brand?: string, color?: string, size?: string, type?: string, style?: string, material?: string, bin?: number, quantity?: number, notes?: string, count?: number }): Observable<Inventory[]> {
     return of(MockInventoryService.testInventory);
   }
 

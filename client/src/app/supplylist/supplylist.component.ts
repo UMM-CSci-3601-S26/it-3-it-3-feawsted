@@ -21,11 +21,12 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 // RxJS Imports
-import { catchError, combineLatest, debounceTime, of, switchMap } from 'rxjs';
+import { catchError, combineLatest, debounceTime, map, of, switchMap } from 'rxjs';
 
 // Supply List Imports
-import { SupplyList } from './supplylist';
+import { SupplyList, AttributeOptions } from './supplylist';
 import { SupplyListService } from './supplylist.service';
+import { SettingsService } from '../settings/settings.service';
 
 @Component({
   selector: 'app-supplylist-component',
@@ -62,11 +63,11 @@ export class SupplyListComponent {
     'school',
     'grade',
     'item',
-    'description',
     'brand',
     'color',
     'size',
     'type',
+    'style',
     'material',
     'count',
     'quantity',
@@ -80,12 +81,18 @@ export class SupplyListComponent {
   // Inject the MatSnackBar for displaying error messages and the InventoryService for fetching inventory data
   private snackBar = inject(MatSnackBar);
   private supplylistService = inject(SupplyListService);
+  private settingsService = inject(SettingsService);
 
   // Constructor sets up an effect to update the table data whenever the serverFilteredInventory signal changes, and assigns the sorting and pagination components to the data source
   constructor() {
     effect(() => {
       this.dataSource.data = this.serverFilteredSupplyList();
     });
+    // Reset grade when school changes so the grade dropdown stays valid
+    effect(() => {
+      this.school();
+      this.grade.set(undefined);
+    }, { allowSignalWrites: true });
   }
 
   // Define signals for each filterable field in the inventory, and create observables from these signals to be used in the serverFilteredInventory effect
@@ -97,10 +104,28 @@ export class SupplyListComponent {
   size = signal<string | undefined>(undefined);
   type = signal<string | undefined>(undefined);
   material = signal<string | undefined>(undefined);
-  description = signal<string | undefined>(undefined);
-  quantity = signal<number | undefined>(undefined);
+  style = signal<string | undefined>(undefined);
 
   errMsg = signal<string | undefined>(undefined);
+
+  // Schools loaded from settings for the school dropdown
+  availableSchools = toSignal(
+    this.settingsService.getSettings().pipe(
+      map(settings => settings.schools.map(s => s.name)),
+      catchError(() => of([] as string[]))
+    ),
+    { initialValue: [] as string[] }
+  );
+
+  // Unique sorted grades derived from the currently visible grouped list
+  availableGrades = computed(() =>
+    [...new Set(
+      this.groupedSupplyList().flatMap(sg => sg.grades.map(g => g.grade))
+    )].sort((a, b) => a.localeCompare(b))
+  );
+
+  // Incrementing this signal forces a re-fetch from the server (e.g. after a delete).
+  private refreshTrigger = signal(0);
 
   // Create observables from the filter signals to be used in the serverFilteredInventory effect, which combines the latest values of the filters and fetches the filtered inventory data from the server
   private school$ = toObservable(this.school);
@@ -111,14 +136,14 @@ export class SupplyListComponent {
   private size$ = toObservable(this.size);
   private type$ = toObservable(this.type);
   private material$ = toObservable(this.material);
-  private description$ = toObservable(this.description);
-  private quantity$ = toObservable(this.quantity);
+  private style$ = toObservable(this.style);
+  private refresh$ = toObservable(this.refreshTrigger);
 
   serverFilteredSupplyList = toSignal(
-    combineLatest([this.school$, this.grade$, this.item$, this.brand$, this.color$, this.size$, this.type$, this.material$, this.description$, this.quantity$]).pipe(
+    combineLatest([this.school$, this.grade$, this.item$, this.brand$, this.color$, this.size$, this.type$, this.material$, this.style$, this.refresh$]).pipe(
       debounceTime(300),
-      switchMap(([ school, grade, item, brand, color, size, type, material]) =>
-        this.supplylistService.getSupplyList({ school, grade, item, brand, color, size, type, material})
+      switchMap(([ school, grade, item, brand, color, size, type, material, style]) =>
+        this.supplylistService.getSupplyList({ school, grade, item, brand, color, size, type, material, style})
       ),
       catchError((err) => {
         const msg = `Problem contacting the server - Error Code: ${err.status}\nMessage: ${err.message}`;
@@ -201,25 +226,35 @@ export class SupplyListComponent {
     this.size.set(undefined);
     this.type.set(undefined);
     this.material.set(undefined);
+    this.style.set(undefined);
     this.school.set(undefined);
     this.grade.set(undefined);
   }
 
+  parseStringArray(value: string): string[] {
+    return value.split(',').map(s => s.trim()).filter(s => s.length > 0);
+  }
+
   /** Builds a compact human-readable label for an item, mirroring the server-side toString(). */
   toLabel(s: SupplyList): string {
+    const attrStr = (a: AttributeOptions | undefined) =>
+      [...(a?.allOf ?? []), ...(a?.anyOf ?? [])].filter(Boolean).join('/');
     const parts: string[] = [];
-    parts.push(`${s.quantity}x`);
-    if (s.count > 0) parts.push(`${s.count}ct.`);
+    const qty = s.quantity > 0 ? s.quantity : null;
+    if (qty) parts.push(`${qty}x`);
+    if (s.count > 1) parts.push(`${s.count}ct.`);
     if (s.size && s.size !== 'N/A') {
-      parts.push(`${s.size}${s.quantity > 1 ? 's' : ''} of`);
+      parts.push(`${s.size}${(qty ?? 0) > 1 ? 's' : ''} of`);
     }
-    if (s.item) {
-      parts.push(s.quantity > 1 && !s.item.endsWith('s') ? `${s.item}s` : s.item);
+    const itemStr = s.item?.join(' or ') ?? '';
+    if (itemStr) {
+      const plural = (qty === null || (qty ?? 0) > 1) && !itemStr.endsWith('s');
+      parts.push(plural ? `${itemStr}s` : itemStr);
     }
-    if (s.brand) parts.push(s.brand);
-    if (s.color) parts.push(s.color);
-    if (s.type) parts.push(s.type);
-    if (s.material) parts.push(s.material);
+    const brandStr = attrStr(s.brand); if (brandStr) parts.push(brandStr);
+    const colorStr = attrStr(s.color); if (colorStr) parts.push(colorStr);
+    const typeStr = attrStr(s.type); if (typeStr) parts.push(typeStr);
+    const matStr = attrStr(s.material); if (matStr) parts.push(matStr);
     if (s.notes && s.notes !== 'N/A') parts.push(`(${s.notes})`);
     return parts.join(' ');
   }
@@ -230,8 +265,8 @@ export class SupplyListComponent {
     if (!confirm('Are you sure you want to delete this item?')) return;
     this.supplylistService.deleteSupplyList(id).subscribe({
       next: () => {
-        // Remove from the data source — the computed groupedSupplyList will recalculate
-        this.dataSource.data = this.dataSource.data.filter(item => item._id !== id);
+        // Trigger a re-fetch so groupedSupplyList (which reads serverFilteredSupplyList) updates.
+        this.refreshTrigger.update(n => n + 1);
       },
       error: (err) => {
         this.errMsg.set(`Problem deleting item – Error Code: ${err.status}\nMessage: ${err.message}`);
@@ -243,6 +278,13 @@ export class SupplyListComponent {
   // Track which item is currently being edited
   editingItemId: string | null = null;
   private editingBackup: SupplyList | null = null;
+
+  // Controls whether all grade panels are expanded
+  allExpanded = signal(false);
+
+  toggleAll() {
+    this.allExpanded.update(v => !v);
+  }
 
   startEdit(item: SupplyList) {
     this.editingItemId = item._id ?? null;

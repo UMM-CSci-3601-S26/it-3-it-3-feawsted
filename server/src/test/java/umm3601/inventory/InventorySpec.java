@@ -25,7 +25,6 @@ public class InventorySpec {
 
     inv1.item = "Pencil";
     inv1.brand = "Ticonderoga";
-    inv1.description = "Ticonderoga Pencil";
   }
 
   @Test
@@ -71,6 +70,8 @@ public class InventorySpec {
 
   @Test
   void inventoryToString() {
-    assertEquals(inv1.toString(), "Pencil Ticonderoga Ticonderoga Pencil");
+    assertEquals(inv1.toString(), "Out of stock: Pencil Ticonderoga");
   }
+
+
 }

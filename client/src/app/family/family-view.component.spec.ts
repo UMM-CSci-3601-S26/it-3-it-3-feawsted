@@ -63,8 +63,9 @@ describe('Family list', () => {
   // Test to verify that families are loaded from the service and that the expected family data is present
   it('should load families from service', () => {
     const families = familyList.families();
-    expect(families.length).toBe(3);
-    expect(families[0].guardianName).toBe('John Johnson');
+    expect(families).toBeDefined();
+    expect(families?.length).toBe(3);
+    expect(families?.[0].guardianName).toBe('John Johnson');
   });
 
   // Test to verify that exportFamilies() is called when the CSV download function is triggered,
@@ -76,7 +77,7 @@ describe('Family list', () => {
     spyOn(URL, 'revokeObjectURL');
 
     const click = jasmine.createSpy('click');
-    spyOn(document, 'createElement').and.returnValue({ click } as undefined);
+    spyOn(document, 'createElement').and.returnValue({ click } as unknown as HTMLElement);
 
     familyList.downloadCSV();
     expect(familyService.exportFamilies).toHaveBeenCalled();

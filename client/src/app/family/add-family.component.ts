@@ -6,6 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router, RouterLink } from '@angular/router';
@@ -14,7 +15,7 @@ import { CommonModule } from '@angular/common';
 // Family Service Import
 import { FamilyService } from './family.service';
 import { SettingsService } from '../settings/settings.service';
-import { SchoolInfo } from '../settings/settings';
+import { SchoolInfo, TimeAvailabilityLabels } from '../settings/settings';
 
 @Component({
   selector: 'app-add-family',
@@ -29,6 +30,7 @@ import { SchoolInfo } from '../settings/settings';
     MatSelectModule,
     MatOptionModule,
     MatButtonModule,
+    MatCheckboxModule,
     RouterLink,
     CommonModule
   ]
@@ -44,9 +46,20 @@ export class AddFamilyComponent implements OnInit {
   // Schools loaded from settings — used to populate the school dropdown
   schools: SchoolInfo[] = [];
 
+  // Time availability labels loaded from settings — used to label the checkboxes
+  timeAvailabilityLabels: TimeAvailabilityLabels = {
+    earlyMorning: '8:00–9:00 AM',
+    lateMorning: '9:00–10:00 AM',
+    earlyAfternoon: '12:00–1:00 PM',
+    lateAfternoon: '1:00–2:00 PM'
+  };
+
   ngOnInit(): void {
     this.settingsService.getSettings().subscribe(settings => {
       this.schools = settings.schools ?? [];
+      if (settings.timeAvailability) {
+        this.timeAvailabilityLabels = settings.timeAvailability;
+      }
     });
   }
 
@@ -68,8 +81,14 @@ export class AddFamilyComponent implements OnInit {
       Validators.email,
     ])),
     address: new FormControl('', Validators.required),
-    timeSlot: new FormControl('', Validators.required),
-    students: new FormArray([], Validators.required)
+    timeSlot: new FormControl('to be assigned', Validators.required),
+    students: new FormArray([], Validators.required),
+    timeAvailability: new FormGroup({
+      earlyMorning: new FormControl(false),
+      lateMorning: new FormControl(false),
+      earlyAfternoon: new FormControl(false),
+      lateAfternoon: new FormControl(false)
+    })
   });
 
   // Getter for the students FormArray to manage dynamic student entries
@@ -185,13 +204,13 @@ export class AddFamilyComponent implements OnInit {
 
     this.familyService.addFamily(payload).subscribe({
       // On success, show a confirmation message and navigate to the new family's detail page
-      next: (newId) => {
+      next: () => {
         this.snackBar.open(
           `Added family ${rawForm.guardianName}`,
           undefined,
           { duration: 2000 }
         );
-        this.router.navigate(['/families', newId]);
+        this.router.navigate(['/families']);
       },
       // On error, show an appropriate error message based on the status code
       error: err => {

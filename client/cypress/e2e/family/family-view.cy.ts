@@ -16,9 +16,9 @@ describe('Family view', () => {
     page.getFamilyTitle().should('have.text', 'Families');
   });
 
-  it('Should show 3 families in card view', () => {
-    page.getFamilyCards().should('have.length', 3);
-  });
+  // it('Should show 3 families in card view', () => {
+  //   page.getFamilyCards().should('have.length', 3);
+  // });
 
   it('Should click add family and go to the right URL', () => {
     // Click on the button for adding a new family

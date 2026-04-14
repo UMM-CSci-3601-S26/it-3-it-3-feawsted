@@ -1,5 +1,5 @@
 // Angular Imports
-import { ComponentFixture, TestBed, waitForAsync, tick, fakeAsync } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync, tick, fakeAsync, flushMicrotasks } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { InventoryService } from './inventory.service';
 import { provideHttpClient } from '@angular/common/http';
@@ -46,12 +46,12 @@ describe('Inventory Table', () => {
           useClass: MockInventoryService
         },
         provideRouter([])
-      ]
+      ] // Ensure provideHttpClientTesting is always present
     });
   });
 
   // Compile the component and its template before running tests, and initialize the component instance and loader
-  beforeEach(waitForAsync(() => {
+  beforeEach(fakeAsync(() => {
     TestBed.compileComponents().then(() => {
       fixture = TestBed.createComponent(InventoryTableComponent);
       inventoryTable = fixture.componentInstance;
@@ -59,6 +59,8 @@ describe('Inventory Table', () => {
       fixture.detectChanges();
       loader = TestbedHarnessEnvironment.loader(fixture);
     });
+    flushMicrotasks(); // resolve the compileComponents promise
+    tick(300);         // advance past the initial debounceTime(300)
   }));
 
   // Test to ensure the component is created successfully
@@ -91,7 +93,7 @@ describe('Inventory Table', () => {
     inventoryTable.item.set('Markers');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ item: 'Markers', brand: undefined, color: undefined, size: undefined, type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ item: 'Markers', brand: undefined, color: undefined, size: undefined, type: undefined, style: undefined, material: undefined, bin: undefined });
   }));
 
   // Tests for brand, color, size, type, and material signals changing, ensuring that getInventory is called with the correct parameters for each case
@@ -100,7 +102,7 @@ describe('Inventory Table', () => {
     inventoryTable.brand.set('Crayola');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: 'Crayola', color: undefined, size: undefined, type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: 'Crayola', color: undefined, size: undefined, type: undefined, style: undefined, material: undefined, bin: undefined });
   }));
 
   // Test to verify that getInventory is called with the correct parameters when the color signal changes
@@ -109,7 +111,7 @@ describe('Inventory Table', () => {
     inventoryTable.color.set('Red');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: 'Red', size: undefined, type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: 'Red', size: undefined, type: undefined, style: undefined, material: undefined, bin: undefined });
   }));
 
   // Test to verify that getInventory is called with the correct parameters when the size signal changes
@@ -118,7 +120,7 @@ describe('Inventory Table', () => {
     inventoryTable.size.set('Wide Ruled');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: 'Wide Ruled', type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: 'Wide Ruled', type: undefined, style: undefined, material: undefined, bin: undefined });
   }));
 
   // Test to verify that getInventory is called with the correct parameters when the type signal changes
@@ -127,7 +129,7 @@ describe('Inventory Table', () => {
     inventoryTable.type.set('Spiral');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: undefined, type: 'Spiral', material: undefined });
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: undefined, type: 'Spiral', style: undefined, material: undefined, bin: undefined });
   }));
 
   // Test to verify that getInventory is called with the correct parameters when the material signal changes
@@ -136,7 +138,7 @@ describe('Inventory Table', () => {
     inventoryTable.material.set('Plastic');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: 'Plastic' });
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, style: undefined, material: 'Plastic', bin: undefined });
   }));
 
   // Test to verify that getInventory is called with the correct parameters when both brand and color signals change
@@ -146,7 +148,7 @@ describe('Inventory Table', () => {
     inventoryTable.brand.set('Crayola');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: 'Crayola', color: 'Black', size: undefined, type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: 'Crayola', color: 'Black', size: undefined, type: undefined, style: undefined, material: undefined, bin: undefined });
   }));
 
   //Test to verify the use of multiple filter inputs in the same filter
@@ -155,7 +157,7 @@ describe('Inventory Table', () => {
     inventoryTable.item.set('Markers, Pencil');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ item: 'Markers, Pencil', brand: undefined, color: undefined, size: undefined, type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ item: 'Markers, Pencil', brand: undefined, color: undefined, size: undefined, type: undefined, style: undefined, material: undefined, bin: undefined });
   }));
 
   it('should call getInventory() when brand signal changes', fakeAsync(() => {
@@ -163,7 +165,7 @@ describe('Inventory Table', () => {
     inventoryTable.brand.set('Crayola, Pink Pearl');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: 'Crayola, Pink Pearl', color: undefined, size: undefined, type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: 'Crayola, Pink Pearl', color: undefined, size: undefined, type: undefined, style: undefined, material: undefined, bin: undefined });
   }));
 
   it('should call getInventory() when color signal changes', fakeAsync(() => {
@@ -171,7 +173,7 @@ describe('Inventory Table', () => {
     inventoryTable.color.set('Red, Black');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: 'Red, Black', size: undefined, type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: 'Red, Black', size: undefined, type: undefined, style: undefined, material: undefined, bin: undefined });
   }));
 
   it('should call getInventory() when size signal changes', fakeAsync(() => {
@@ -179,7 +181,7 @@ describe('Inventory Table', () => {
     inventoryTable.size.set('Wide Ruled, College Ruled');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: 'Wide Ruled, College Ruled', type: undefined, material: undefined });
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: 'Wide Ruled, College Ruled', type: undefined, style: undefined, material: undefined, bin: undefined });
   }));
 
   it('should call getInventory() when type signal changes', fakeAsync(() => {
@@ -187,7 +189,7 @@ describe('Inventory Table', () => {
     inventoryTable.type.set('Spiral, Composition');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: undefined, type: 'Spiral, Composition', material: undefined });
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: undefined, type: 'Spiral, Composition', style: undefined, material: undefined, bin: undefined });
   }));
 
   it('should call getInventory() when material signal changes', fakeAsync(() => {
@@ -195,9 +197,31 @@ describe('Inventory Table', () => {
     inventoryTable.material.set('Plastic, Wood');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, material: 'Plastic, Wood' });
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, style: undefined, material: 'Plastic, Wood', bin: undefined });
+  }));
+  it('should call getInventory() when style signal changes', fakeAsync(() => {
+    const spy = spyOn(inventoryService, 'getInventory').and.callThrough();
+    inventoryTable.style.set('hexagonal');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, style: 'hexagonal', material: undefined, bin: undefined });
   }));
 
+  it('should call getInventory() when style signal changes with multiple values', fakeAsync(() => {
+    const spy = spyOn(inventoryService, 'getInventory').and.callThrough();
+    inventoryTable.style.set('hexagonal, round');
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, style: 'hexagonal, round', material: undefined, bin: undefined });
+  }));
+
+  it('should call getInventory() when bin signal changes', fakeAsync(() => {
+    const spy = spyOn(inventoryService, 'getInventory').and.callThrough();
+    inventoryTable.bin.set(1);
+    fixture.detectChanges();
+    tick(300);
+    expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, style: undefined, material: undefined, bin: 1 });
+  }));
   // Test to verify that getInventory is called with the correct parameters when item, brand, color, and type signals change
   it('should call getInventory() when item, brand, color, and material signals change', fakeAsync(() => {
     const spy = spyOn(inventoryService, 'getInventory').and.callThrough();
@@ -207,7 +231,7 @@ describe('Inventory Table', () => {
     inventoryTable.type.set('Spiral');
     fixture.detectChanges();
     tick(300);
-    expect(spy).toHaveBeenCalledWith({ item: 'Notebook', brand: 'Five Star', color: 'Yellow', size: undefined, type: 'Spiral', material: undefined });
+    expect(spy).toHaveBeenCalledWith({ item: 'Notebook', brand: 'Five Star', color: 'Yellow', size: undefined, type: 'Spiral', style: undefined, material: undefined, bin: undefined });
   }));
 
   // Test to verify that no error message is shown on successful load of inventory data
@@ -234,7 +258,7 @@ describe('Inventory Table', () => {
 
     // Matrix row pre-seeding to ensure the item to delete is present in the table's data source before deletion.
     inventoryTable.dataSource.data = [
-      { _id: idToDelete, item: 'Markers', description: 'test', brand: 'Crayola', color: 'Black', count: 1, size: 'Wide', type: 'Washable', material: 'Plastic', quantity: 0, notes: 'n/a' } as unknown as Inventory,
+      { _id: idToDelete, item: 'Markers', brand: 'Crayola', color: 'Black', count: 1, size: 'Wide', type: ['Washable'], style: [], material: ['Plastic'], bin: [1], quantity: 0, notes: 'n/a' } as Inventory,
     ];
 
     inventoryTable.confirmDelete(idToDelete);
@@ -251,7 +275,7 @@ describe('Inventory Table', () => {
     spyOn(window, 'confirm').and.returnValue(false);
 
     inventoryTable.dataSource.data = [
-      { _id: idToDelete, item: 'Markers', description: 'test', brand: 'Crayola', color: 'Black', count: 1, size: 'Wide', type: 'Washable', material: 'Plastic', quantity: 0, notes: 'n/a' } as unknown as Inventory,
+      { _id: idToDelete, item: 'Markers', brand: 'Crayola', color: 'Black', count: 1, size: 'Wide', type: ['Washable'], style: [], material: ['Plastic'], bin: [1], quantity: 0, notes: 'n/a' } as Inventory,
     ];
 
     inventoryTable.confirmDelete(idToDelete);
@@ -268,7 +292,7 @@ describe('Inventory Table', () => {
     spyOn(window, 'confirm').and.returnValue(true);
 
     inventoryTable.dataSource.data = [
-      { _id: idToDelete, item: 'Markers', description: 'test', brand: 'Crayola', color: 'Black', count: 1, size: 'Wide', type: 'Washable', material: 'Plastic', quantity: 0, notes: 'n/a' } as unknown as Inventory,
+      { _id: idToDelete, item: 'Markers', brand: 'Crayola', color: 'Black', count: 1, size: 'Wide', type: ['Washable'], style: [], material: ['Plastic'], bin: [1], quantity: 0, notes: 'n/a' } as Inventory,
     ];
 
     inventoryTable.confirmDelete(idToDelete);
@@ -281,11 +305,11 @@ describe('Inventory Table', () => {
 
   // Test to verify that startEdit sets the editingRowId to the row's _id
   it('should enter edit mode and set editingRowId when startEdit is called', () => {
-    const row = {
-      _id: 'edit-id-1', item: 'Markers', description: 'test', brand: 'Crayola',
-      color: 'Black', count: 1, size: 'Wide', type: 'Washable', material: 'Plastic',
+    const row: Inventory = {
+      _id: 'edit-id-1', item: 'Markers', brand: 'Crayola',
+      color: 'Black', count: 1, size: 'Wide', type: ['Washable'], style: [], material: ['Plastic'], bin: [1],
       quantity: 0, notes: 'n/a'
-    } as unknown as Inventory;
+    };
 
     inventoryTable.startEdit(row);
 
@@ -294,11 +318,11 @@ describe('Inventory Table', () => {
 
   // Test to verify that cancelEdit reverts the row to its original values and clears editingRowId
   it('should revert row values and clear editingRowId when cancelEdit is called', () => {
-    const row = {
-      _id: 'edit-id-2', item: 'Original', description: 'original desc', brand: 'Brand',
-      color: 'Blue', count: 2, size: 'Small', type: 'Regular', material: 'Wood',
+    const row: Inventory = {
+      _id: 'edit-id-2', item: 'Original', brand: 'Brand',
+      color: 'Blue', count: 2, size: 'Small', type: ['Regular'], style: [], material: ['Wood'], bin: [],
       quantity: 3, notes: 'notes here'
-    } as unknown as Inventory;
+    };
 
     inventoryTable.startEdit(row);
     row.item = 'Modified';
@@ -310,11 +334,11 @@ describe('Inventory Table', () => {
 
   // Test to verify that saveEdit calls editInventory with the correct ID and row data, and clears editing state on success
   it('should call editInventory and clear editing state on successful saveEdit', fakeAsync(() => {
-    const row = {
-      _id: 'edit-id-3', item: 'Notebook', description: 'desc', brand: 'Five Star',
-      color: 'Yellow', count: 1, size: 'Wide', type: 'Spiral', material: 'Paper',
+    const row: Inventory = {
+      _id: 'edit-id-3', item: 'Notebook', brand: 'Five Star',
+      color: 'Yellow', count: 1, size: 'Wide', type: ['Spiral'], style: [], material: ['Paper'], bin: [],
       quantity: 5, notes: ''
-    } as unknown as Inventory;
+    };
 
     const editSpy = spyOn(inventoryService, 'editInventory').and.returnValue(of(undefined));
     inventoryTable.startEdit(row);
@@ -327,11 +351,11 @@ describe('Inventory Table', () => {
 
   // Test to verify that saveEdit sets an error message when editInventory fails
   it('should set errMsg when saveEdit fails', fakeAsync(() => {
-    const row = {
-      _id: 'edit-id-4', item: 'Folder', description: 'desc', brand: 'N/A',
-      color: 'Red', count: 1, size: 'N/A', type: 'Prong', material: 'Plastic',
+    const row: Inventory = {
+      _id: 'edit-id-4', item: 'Folder', brand: 'N/A',
+      color: 'Red', count: 1, size: 'N/A', type: ['Prong'], style: [], material: ['Plastic'], bin: [],
       quantity: 2, notes: ''
-    } as unknown as Inventory;
+    };
 
     spyOn(inventoryService, 'editInventory').and.returnValue(
       throwError(() => ({ status: 500, message: 'Server error' }))
@@ -345,14 +369,14 @@ describe('Inventory Table', () => {
 
   // Test to verify that saveEdit does nothing when the row has no _id
   it('should do nothing when saveEdit is called on a row without an _id', fakeAsync(() => {
-    const row = {
-      item: 'No ID item', description: 'desc', brand: 'N/A',
-      color: 'Red', count: 1, size: 'N/A', type: 'Prong', material: 'Plastic',
+    const row: Partial<Inventory> = {
+      item: 'No ID item', brand: 'N/A',
+      color: 'Red', count: 1, size: 'N/A', type: ['Prong'], style: [], material: ['Plastic'], bin: [],
       quantity: 1, notes: ''
-    } as unknown as Inventory;
+    };
 
     const editSpy = spyOn(inventoryService, 'editInventory').and.returnValue(of(undefined));
-    inventoryTable.saveEdit(row);
+    inventoryTable.saveEdit(row as Inventory);
     tick();
 
     expect(editSpy).not.toHaveBeenCalled();
@@ -412,7 +436,9 @@ describe('Inventory Table', () => {
     inventoryTable.color.set('Black');
     inventoryTable.size.set('Wide');
     inventoryTable.type.set('Washable');
+    inventoryTable.style.set('hexagonal');
     inventoryTable.material.set('Plastic');
+    inventoryTable.bin.set(1);
 
     inventoryTable.resetFilters();
 
@@ -421,7 +447,9 @@ describe('Inventory Table', () => {
     expect(inventoryTable.color()).toBeUndefined();
     expect(inventoryTable.size()).toBeUndefined();
     expect(inventoryTable.type()).toBeUndefined();
+    expect(inventoryTable.style()).toBeUndefined();
     expect(inventoryTable.material()).toBeUndefined();
+    expect(inventoryTable.bin()).toBeUndefined();
   }));
 });
 
@@ -449,10 +477,12 @@ describe('Misbehaving Inventory Table', () => {
       imports: [
         InventoryTableComponent
       ],
-      providers: [{
-        provide: InventoryService,
-        useValue: inventoryServiceStub
-      }, provideRouter([])],
+      providers: [
+        { provide: InventoryService, useValue: inventoryServiceStub },
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting()
+      ],
     })
       .compileComponents();
   }));

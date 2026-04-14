@@ -19,9 +19,10 @@ public class Inventory {
   public int count;
   public String size;
   public String color;
-  public String type;
-  public String material;
-  public String description;
+  public String[] type;
+  public String[] style;
+  public String[] material;
+  public int[] bin;
   public int quantity;
   public String notes;
 
@@ -47,7 +48,12 @@ public class Inventory {
     StringBuilder sb = new StringBuilder();
 
     // Quantity
-    sb.append(quantity).append("x ");
+    if (quantity > 0) {
+      sb.append(quantity).append(" ");
+    } else {
+      sb.append("Out of stock: ");
+    }
+
 
     // Count
     if (count > 0) {
@@ -84,12 +90,17 @@ public class Inventory {
     }
 
     // Type
-    if (type != null && type.length() > 0) {
+    if (type != null && type.length > 0) {
       sb.append(String.join(", ", type)).append(" ");
     }
 
+    // Style
+    if (style != null && style.length > 0) {
+      sb.append(String.join(", ", style)).append(" ");
+    }
+
     // Material
-    if (material != null && material.length() > 0) {
+    if (material != null && material.length > 0) {
       sb.append(String.join(", ", material)).append(" ");
     }
 

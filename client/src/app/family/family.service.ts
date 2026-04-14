@@ -51,10 +51,10 @@ export class FamilyService {
     return this.httpClient.delete<void>(`${this.familyUrl}/${id}`);
   }
 
-  // Method to fetch dashboard statistics from the API. It constructs the appropriate HTTP request and returns an Observable of an array of DashboardStats objects.
-  getDashboardStats(): Observable<DashboardStats[]> {
+  // Method to fetch dashboard statistics from the API. It constructs the appropriate HTTP request and returns an Observable of a DashboardStats object.
+  getDashboardStats(): Observable<DashboardStats> {
     const httpParams: HttpParams = new HttpParams();
-    return this.httpClient.get<DashboardStats[]>(this.dashboardUrl, {
+    return this.httpClient.get<DashboardStats>(this.dashboardUrl, {
       params: httpParams,
     });
   }

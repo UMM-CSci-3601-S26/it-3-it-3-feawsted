@@ -38,13 +38,14 @@
                          *ngIf="formControlHasError('address')">{{ getErrorMessage('address') }}</mat-error>
             </mat-form-field>
 
-            <!-- Time Slot Input Field -->
-            <mat-form-field>
-              <mat-label>Time Slot</mat-label>
-              <input matInput type="timeSlot" formControlName="timeSlot" required>
-              <mat-error data-test="timeSlotError"
-                         *ngIf="formControlHasError('timeSlot')">{{ getErrorMessage('timeSlot') }}</mat-error>
-            </mat-form-field>
+            <!-- Time Availability Checklist -->
+            <h3>Available Times</h3>
+            <div formGroupName="timeAvailability">
+              <mat-checkbox formControlName="earlyMorning" data-test="earlyMorningCheckbox">{{ timeAvailabilityLabels.earlyMorning }} (Early Morning)</mat-checkbox><br>
+              <mat-checkbox formControlName="lateMorning" data-test="lateMorningCheckbox">{{ timeAvailabilityLabels.lateMorning }} (Late Morning)</mat-checkbox><br>
+              <mat-checkbox formControlName="earlyAfternoon" data-test="earlyAfternoonCheckbox">{{ timeAvailabilityLabels.earlyAfternoon }} (Early Afternoon)</mat-checkbox><br>
+              <mat-checkbox formControlName="lateAfternoon" data-test="lateAfternoonCheckbox">{{ timeAvailabilityLabels.lateAfternoon }} (Late Afternoon)</mat-checkbox>
+            </div>
 
             <!-- Student Form Group -->
             <h3>Students</h3>
@@ -52,12 +53,12 @@
 
               <!-- Multiple Student Loop -->
               @for (student of students.controls; track $index; let i = $index) {
-              <div [formGroupName]="i">
+              <div [formGroupName]="i" class="student-row">
 
                 <!-- Student Name Input Field -->
                 <mat-form-field>
                   <mat-label>Name</mat-label>
-                  <input matInput formControlName="name" form ControlName="name" required>
+                  <input matInput formControlName="name" required>
                       <mat-error data-test="nameError"
                                  *ngIf="formControlHasError('students')">{{ getErrorMessage('students') }}</mat-error>
                 </mat-form-field>
@@ -92,7 +93,7 @@
                                *ngIf="formControlHasError('students')">{{ getErrorMessage('students') }}</mat-error>
                 </mat-form-field>
 
-                <!-- Remove inputed student -->
+                <!-- Remove inputted student -->
                 <button mat-raised-button type="button" color="primary" (click)="removeStudent(i)">Remove Student</button>
               </div>
               }

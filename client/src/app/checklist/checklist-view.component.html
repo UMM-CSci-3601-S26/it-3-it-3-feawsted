@@ -1,0 +1,90 @@
+
+<div class="flex-row">
+  <div class="flex-1">
+    <mat-card class="search-card">
+      <!-- Checklist Header -->
+      <mat-card-header>
+        <mat-card-title class="checklist-view-title">Checklists</mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <p class="page-description">
+          Welcome to the checklists page! Here, you can view all checklists that have requested supplies from the organization.
+          Use the fields below to filter by student name, school, or grade. Filters are applied as you type.
+        </p>
+
+        <hr style="margin: 1rem 0;" />
+
+        <p class="filters-description">
+          Use the fields below to filter checklists by student name, school, or grade.
+        </p>
+
+        <div class="filter-container">
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">Student Name</mat-label>
+            <input matInput [ngModel]="studentName() ?? ''" (ngModelChange)="studentName.set($event?.trim() || undefined)"
+              placeholder="contains..." data-cy="filter-student-name" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">School</mat-label>
+            <input matInput [ngModel]="school() ?? ''" (ngModelChange)="school.set($event?.trim() || undefined)"
+              placeholder="exact match..." data-cy="filter-school" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">Grade</mat-label>
+            <input matInput [ngModel]="grade() ?? ''" (ngModelChange)="grade.set($event?.trim() || undefined)"
+              placeholder="exact match..." data-cy="filter-grade" />
+          </mat-form-field>
+        </div>
+
+        <div class="filter-extra">
+          <button mat-stroked-button type="button" (click)="resetFilters()" data-cy="filter-clear" class="clear-button">
+            Clear
+          </button>
+
+          <div mat-stroked-button class="count-display">
+            Count: {{ serverFilteredChecklists().length }}
+          </div>
+
+          <button mat-raised-button color="primary" (click)="generateChecklists()" data-cy="generate-checklists-button">
+            <mat-icon>refresh</mat-icon> Generate Checklists
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+
+<!-- Showing Checklists (Cards) -->
+<div class="flex-row">
+  @if (!errMsg()) {
+  <div class="flex-1">
+    <div class="checklist-cards-container flex-row gap-8 flex-wrap">
+      @for (checklist of serverFilteredChecklists(); track checklist._id) {
+      <app-checklist-card class="checklist-card" [checklist]="checklist"></app-checklist-card>
+      }
+      @if (serverFilteredChecklists().length === 0) {
+        <p>No checklists found. Click "Generate Checklists" to create them from current family data.</p>
+      }
+    </div>
+  </div>
+  } @else {
+    <!-- Error Message -->
+  <div class="flex-1" class="checklist-error">
+    <mat-error>
+      There was a problem loading the checklists. Possibly the server is down or perhaps there are network
+      issues.
+    </mat-error>
+    <mat-error>
+      Please wait a bit and try again or start the server.
+    </mat-error>
+  </div>
+  }
+</div>
+
+ <!-- Export Checklists -->
+<button mat-raised-button (click)="downloadPDF()" matTooltipPosition="left"class="export-csv-button" data-test="exportCSVButton">
+  Export All Checklists
+</button>

@@ -29,6 +29,9 @@ public class Settings {
   // Time labels for each availability slot (operator-configurable)
   public TimeAvailabilityLabels timeAvailability;
 
+  // Ordered list of supply item statuses used to sort/filter checklists on drive day
+  public List<SupplyItemOrder> supplyOrder;
+
   // Represents a single school entry
   public static class SchoolInfo {
     public String name;         // e.g. "Morris Area High School"
@@ -45,5 +48,16 @@ public class Settings {
     public String lateMorning;
     public String earlyAfternoon;
     public String lateAfternoon;
+  }
+
+  /**
+   * Records how a single supply list entry should be treated on drive day.
+   * "staged"   – included in the checklist at this exact position in the list
+   * "unstaged" – included in the checklist but appended after all staged items
+   * "notGiven" – excluded from the checklist entirely
+   */
+  public static class SupplyItemOrder {
+    public String itemTerm; // general item term, e.g. "notebook", "folder"
+    public String status;   // "staged", "unstaged", or "notGiven"
   }
 }

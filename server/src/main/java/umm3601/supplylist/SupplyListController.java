@@ -54,17 +54,18 @@ public class SupplyListController implements Controller {
   static final String SCHOOL_KEY = "school";
   static final String GRADE_KEY = "grade";
   static final String TEACHER_KEY = "teacher";
+  static final String ACADEMIC_YEAR_KEY = "academicYear";
   static final String ITEM_KEY = "item";
   static final String BRAND_KEY = "brand";
   static final String COUNT_KEY = "count";
   static final String SIZE_KEY = "size";
   static final String COLOR_KEY = "color";
-  static final String DESCRIPTION_KEY = "description";
   static final String QUANTITY_KEY = "quantity";
   static final String NOTES_KEY = "notes";
   static final String MATERIAL_KEY = "material";
   static final String TYPE_KEY = "type";
-  static final String SORT_ORDER_KEY = "sortorder";
+  static final String STYLE_KEY = "style";
+  // static final String SORT_ORDER_KEY = "sortorder";
 
   private final JacksonMongoCollection<SupplyList> supplyListCollection;
 
@@ -111,6 +112,15 @@ public class SupplyListController implements Controller {
     return Filters.in(field, patterns);
   }
 
+  // Builds a filter for AttributeOptions fields (brand, color, type, material).
+  // Searches both the allOf and anyOf sub-arrays so either can satisfy the query.
+  private Bson attributeOptionsFilter(String field, String raw) {
+    return Filters.or(
+      multipleIntakeFilter(field + ".allOf", raw),
+      multipleIntakeFilter(field + ".anyOf", raw)
+    );
+  }
+
   /**
    * GET /api/supplylist
    * Retrieves all supply list items, with optional query parameters for
@@ -141,29 +151,34 @@ public class SupplyListController implements Controller {
       filters.add(multipleIntakeFilter(GRADE_KEY, ctx.queryParam(GRADE_KEY)));
     }
 
-    // For item
+    // For teacher
+    if (ctx.queryParamMap().containsKey(TEACHER_KEY)) {
+      filters.add(multipleIntakeFilter(TEACHER_KEY, ctx.queryParam(TEACHER_KEY)));
+    }
+
+    // For academic year
+    if (ctx.queryParamMap().containsKey(ACADEMIC_YEAR_KEY)) {
+      filters.add(multipleIntakeFilter(ACADEMIC_YEAR_KEY, ctx.queryParam(ACADEMIC_YEAR_KEY)));
+    }
+
+    // For item (array field — matches any element in the list)
     if (ctx.queryParamMap().containsKey(ITEM_KEY)) {
       filters.add(multipleIntakeFilter(ITEM_KEY, ctx.queryParam(ITEM_KEY)));
     }
 
-    // For brand
+    // For brand (searches allOf and anyOf)
     if (ctx.queryParamMap().containsKey(BRAND_KEY)) {
-      filters.add(multipleIntakeFilter(BRAND_KEY, ctx.queryParam(BRAND_KEY)));
+      filters.add(attributeOptionsFilter(BRAND_KEY, ctx.queryParam(BRAND_KEY)));
     }
 
-    // For color
+    // For color (searches allOf and anyOf)
     if (ctx.queryParamMap().containsKey(COLOR_KEY)) {
-      filters.add(multipleIntakeFilter(COLOR_KEY, ctx.queryParam(COLOR_KEY)));
+      filters.add(attributeOptionsFilter(COLOR_KEY, ctx.queryParam(COLOR_KEY)));
     }
 
     // For size
     if (ctx.queryParamMap().containsKey(SIZE_KEY)) {
       filters.add(multipleIntakeFilter(SIZE_KEY, ctx.queryParam(SIZE_KEY)));
-    }
-
-    // For description
-    if (ctx.queryParamMap().containsKey(DESCRIPTION_KEY)) {
-      filters.add(multipleIntakeFilter(DESCRIPTION_KEY, ctx.queryParam(DESCRIPTION_KEY)));
     }
 
     // For quantity, which must be an integer
@@ -177,20 +192,36 @@ public class SupplyListController implements Controller {
       }
     }
 
+    // For count, which must be an integer
+    if (ctx.queryParamMap().containsKey(COUNT_KEY)) {
+      String cParam = ctx.queryParam(COUNT_KEY);
+      try {
+        int c = Integer.parseInt(cParam);
+        filters.add(Filters.eq(COUNT_KEY, c));
+      } catch (NumberFormatException e) {
+        throw new BadRequestResponse("count must be an integer.");
+      }
+    }
+
     // For notes
     if (ctx.queryParamMap().containsKey(NOTES_KEY)) {
       Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(NOTES_KEY)), Pattern.CASE_INSENSITIVE);
       filters.add(regex(NOTES_KEY, pattern));
     }
 
-    // For material
+    // For material (searches allOf and anyOf)
     if (ctx.queryParamMap().containsKey(MATERIAL_KEY)) {
-      filters.add(multipleIntakeFilter(MATERIAL_KEY, ctx.queryParam(MATERIAL_KEY)));
+      filters.add(attributeOptionsFilter(MATERIAL_KEY, ctx.queryParam(MATERIAL_KEY)));
     }
 
-    // For type
+    // For type (searches allOf and anyOf)
     if (ctx.queryParamMap().containsKey(TYPE_KEY)) {
-      filters.add(multipleIntakeFilter(TYPE_KEY, ctx.queryParam(TYPE_KEY)));
+      filters.add(attributeOptionsFilter(TYPE_KEY, ctx.queryParam(TYPE_KEY)));
+    }
+
+    // For style (searches allOf and anyOf)
+    if (ctx.queryParamMap().containsKey(STYLE_KEY)) {
+      filters.add(attributeOptionsFilter(STYLE_KEY, ctx.queryParam(STYLE_KEY)));
     }
 
     // If no filters, return an empty Document to match all; otherwise combine with $and
@@ -201,7 +232,7 @@ public class SupplyListController implements Controller {
     SupplyList newSupplyList = ctx.bodyValidator(SupplyList.class)
     .check(s -> s.school != null && !s.school.isBlank(), "school must be a non-empty string")
     .check(s -> s.grade != null && !s.grade.isBlank(), "grade must be a non-empty string")
-    .check(s -> s.item != null && !s.item.isBlank(), "item must be a non-empty string")
+    .check(s -> s.item != null && !s.item.isEmpty(), "item must be a non-empty list")
     .check(s -> s.count > 0, "count must be a positive integer")
     .check(s -> s.quantity > 0, "quantity must be a positive integer")
     .get();
@@ -228,14 +259,15 @@ public class SupplyListController implements Controller {
     SupplyList updatedSupplyList = ctx.bodyValidator(SupplyList.class)
       .check(s -> s.school != null && !s.school.isBlank(), "school must be a non-empty string")
       .check(s -> s.grade != null && !s.grade.isBlank(), "grade must be a non-empty string")
-      .check(s -> s.item != null && !s.item.isBlank(), "item must be a non-empty string")
+      .check(s -> s.item != null && !s.item.isEmpty(), "item must be a non-empty list")
       .check(s -> s.count > 0, "count must be a positive integer")
       .check(s -> s.quantity > 0, "quantity must be a positive integer")
       .get();
 
     try {
       updatedSupplyList._id = id; // Ensure the ID is set for the update
-      long modifiedCount = supplyListCollection.replaceOne(eq("_id", new ObjectId(id)), updatedSupplyList).getModifiedCount();
+      long modifiedCount = supplyListCollection.replaceOne(
+        eq("_id", new ObjectId(id)), updatedSupplyList).getModifiedCount();
       if (modifiedCount == 0) {
         throw new NotFoundResponse("The requested supply list item was not found");
       }

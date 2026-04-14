@@ -28,6 +28,7 @@ repositories {
 
 // External dependencies that our application utilizes
 dependencies {
+
   // Javalin, a simple web framework for Java
   implementation 'io.javalin:javalin:6.7.0'
 

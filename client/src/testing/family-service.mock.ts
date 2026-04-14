@@ -16,7 +16,7 @@ export class MockFamilyService implements Pick<FamilyService, 'getFamilyById' | 
       guardianName: 'John Johnson',
       email: 'jjohnson@email.com',
       address: '713 Broadway',
-      timeSlot: '8:00-9:00',
+      timeAvailability: { earlyMorning: false, lateMorning: true, earlyAfternoon: false, lateAfternoon: false },
       students: [
         {
           name: 'John Jr.',
@@ -24,7 +24,8 @@ export class MockFamilyService implements Pick<FamilyService, 'getFamilyById' | 
           school: "Morris Elementary",
           requestedSupplies: ['pencils', 'markers']
         },
-      ]
+      ],
+      timeSlot: ''
     },
     {
       //family with two kids
@@ -32,7 +33,7 @@ export class MockFamilyService implements Pick<FamilyService, 'getFamilyById' | 
       guardianName: 'Jane Doe',
       email: 'janedoe@email.com',
       address: '123 Street',
-      timeSlot: '10:00-11:00',
+      timeAvailability: { earlyMorning: false, lateMorning: true, earlyAfternoon: false, lateAfternoon: false },
       students: [
         {
           name: 'Jennifer',
@@ -46,7 +47,8 @@ export class MockFamilyService implements Pick<FamilyService, 'getFamilyById' | 
           school: "Hancock Middle School",
           requestedSupplies: ['calculator']
         },
-      ]
+      ],
+      timeSlot: ''
     },
     {
       //family with three kids
@@ -54,7 +56,7 @@ export class MockFamilyService implements Pick<FamilyService, 'getFamilyById' | 
       guardianName: 'George Peterson',
       email: 'georgepeter@email.com',
       address: '245 Acorn Way',
-      timeSlot: '1:00-2:00',
+      timeAvailability: { earlyMorning: false, lateMorning: true, earlyAfternoon: false, lateAfternoon: false },
       students: [
         {
           name: 'Harold',
@@ -74,7 +76,8 @@ export class MockFamilyService implements Pick<FamilyService, 'getFamilyById' | 
           school: "Morris Elementary",
           requestedSupplies: ['backpack', 'markers']
         },
-      ]
+      ],
+      timeSlot: ''
     },
   ];
 
@@ -92,13 +95,13 @@ export class MockFamilyService implements Pick<FamilyService, 'getFamilyById' | 
       });
     });
 
-    return of([
+    return of(
       {
         studentsPerSchool,
         studentsPerGrade,
         totalFamilies: MockFamilyService.testFamilies.length
       }
-    ]);
+    );
   }
 
   getFamilies(): Observable<Family[]> {
@@ -106,13 +109,8 @@ export class MockFamilyService implements Pick<FamilyService, 'getFamilyById' | 
   }
 
   getFamilyById(id: string): Observable<Family> {
-    if (id === MockFamilyService.testFamilies[0]._id) {
-      return of(MockFamilyService.testFamilies[0]);
-    } else if (id === MockFamilyService.testFamilies[1]._id) {
-      return of(MockFamilyService.testFamilies[1]);
-    } else {
-      return of(null);
-    }
+    const found = MockFamilyService.testFamilies.find(fam => fam._id === id);
+    return of(found ?? MockFamilyService.testFamilies[0]);
   }
 
   addFamily(newFamily: Partial<Family>): Observable<string> {

@@ -1,6 +1,6 @@
 
 @if (family()) {
-<!-- Cards for each individal family -->
+<!-- Cards for each individual family -->
 <mat-card class="family-card">
 
   <!-- Card Header -->
@@ -42,9 +42,16 @@
 
       <!-- Time Slot -->
       <mat-list-item>
-        <mat-icon matListItemIcon>clock</mat-icon>
+        <mat-icon matListItemIcon>schedule</mat-icon>
         <p matListItemTitle>Time Slot</p>
-        <p matListItemLine class="family-card-timeSlot">{{ family().timeSlot }}</p>
+        <p matListItemLine class="family-card-timeSlot">{{ family().timeSlot || 'to be assigned' }}</p>
+      </mat-list-item>
+
+      <!-- Time Availability -->
+      <mat-list-item>
+        <mat-icon matListItemIcon>schedule</mat-icon>
+        <p matListItemTitle>Available Times</p>
+        <p matListItemLine>{{ getAvailableTimes() }}</p>
       </mat-list-item>
 
       <mat-divider [inset]="true"></mat-divider>

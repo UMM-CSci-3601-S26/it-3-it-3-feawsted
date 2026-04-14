@@ -1,0 +1,69 @@
+// This sets the font size to be the same for both the Angular Material
+// list item title and list item line.
+.mat-mdc-list-item {
+  &-title,
+  &-line {
+    font-size: 1rem;
+  }
+}
+
+// Capitalize the checklist role when displaying it in the checklist card.
+.checklist-card{
+  width: 1500px;
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+}
+
+.checklist-card-content {
+  flex: 1;             /* fills remaining space */
+  overflow-y: auto;
+  overflow-x: auto;
+  min-height: 0;
+}
+
+.checklist-card-role {
+  text-transform: capitalize;
+}
+
+.student-list {
+  margin-left: 32px; /* aligns with Material icon spacing */
+  padding-bottom: 8px;
+}
+
+.student-item {
+  padding: 0;
+  min-height: 32px; /* tighter list for multiple students */
+}
+
+.student-icon {
+  font-size: 20px;
+  opacity: 0.75;
+}
+
+.student-checklist {
+  margin-left: 32px;
+  padding-bottom: 8px;
+  max-height: none;       /* let it expand freely inside scroll */
+  max-width: none;
+}
+
+.student-checklist .mat-mdc-list-item {
+  padding: 0;
+  min-height: 32px;
+}
+
+.student-checklist .student-icon {
+  font-size: 20px;
+  opacity: 0.75;
+}
+
+.scroll-area{
+  max-height: 450px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+
+
+

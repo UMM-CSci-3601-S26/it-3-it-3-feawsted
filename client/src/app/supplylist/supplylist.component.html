@@ -104,6 +104,17 @@
               data-cy="filter-material"
             />
           </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">Style</mat-label>
+            <input
+              matInput
+              [ngModel]="style() ?? ''"
+              (ngModelChange)="style.set($event?.trim() || undefined)"
+              placeholder="contains..."
+              data-cy="filter-style"
+            />
+          </mat-form-field>
         </div>
 
         <div class="filter-extra">
@@ -117,10 +128,11 @@
             >
             Clear
             </button>
-            <!--# of Current Entries Displayed-->
-            <div mat-stroked-button class="count-display">
-            Count: {{ serverFilteredSupplyList().length }}
-            </div>
+            <!-- Expand / Collapse All -->
+            <button mat-stroked-button (click)="toggleAll()" data-cy="expand-collapse-all">
+              <mat-icon>{{ allExpanded() ? 'unfold_less' : 'unfold_more' }}</mat-icon>
+              {{ allExpanded() ? 'Collapse All' : 'Expand All' }}
+            </button>
         </div>
       </mat-card-content>
     </mat-card>
@@ -137,7 +149,7 @@
           <h2 class="school-heading" data-cy="supplylist-school">{{ schoolGroup.school }}</h2>
 
           @for (gradeGroup of schoolGroup.grades; track gradeGroup.grade) {
-            <mat-expansion-panel class="grade-panel">
+            <mat-expansion-panel class="grade-panel" [expanded]="allExpanded()">
               <mat-expansion-panel-header>
                 <mat-panel-title data-cy="supplylist-grade">{{ gradeGroup.grade }}</mat-panel-title>
                 <mat-panel-description>{{ gradeGroup.teachers[0]?.items?.length ?? 0 }} item(s)</mat-panel-description>
@@ -167,15 +179,15 @@
                           <div class="item-edit-grid">
                             <mat-form-field appearance="outline" class="edit-field">
                               <mat-label>Item</mat-label>
-                              <input matInput [(ngModel)]="element.item" />
+                              <input matInput [ngModel]="element.item?.join(', ')" (ngModelChange)="element.item = parseStringArray($event)" />
                             </mat-form-field>
                             <mat-form-field appearance="outline" class="edit-field">
                               <mat-label>Brand</mat-label>
-                              <input matInput [(ngModel)]="element.brand" />
+                              <input matInput [ngModel]="element.brand?.allOf?.join(', ')" (ngModelChange)="element.brand = { allOf: parseStringArray($event), anyOf: element.brand?.anyOf ?? [] }" />
                             </mat-form-field>
                             <mat-form-field appearance="outline" class="edit-field">
                               <mat-label>Color</mat-label>
-                              <input matInput [(ngModel)]="element.color" />
+                              <input matInput [ngModel]="element.color?.allOf?.join(', ')" (ngModelChange)="element.color = { allOf: parseStringArray($event), anyOf: element.color?.anyOf ?? [] }" />
                             </mat-form-field>
                             <mat-form-field appearance="outline" class="edit-field">
                               <mat-label>Size</mat-label>
@@ -183,11 +195,15 @@
                             </mat-form-field>
                             <mat-form-field appearance="outline" class="edit-field">
                               <mat-label>Type</mat-label>
-                              <input matInput [(ngModel)]="element.type" />
+                              <input matInput [ngModel]="element.type?.allOf?.join(', ')" (ngModelChange)="element.type = { allOf: parseStringArray($event), anyOf: element.type?.anyOf ?? [] }" />
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="edit-field">
+                              <mat-label>Style</mat-label>
+                              <input matInput [ngModel]="element.style?.allOf?.join(', ')" (ngModelChange)="element.style = { allOf: parseStringArray($event), anyOf: element.style?.anyOf ?? [] }" />
                             </mat-form-field>
                             <mat-form-field appearance="outline" class="edit-field">
                               <mat-label>Material</mat-label>
-                              <input matInput [(ngModel)]="element.material" />
+                              <input matInput [ngModel]="element.material?.allOf?.join(', ')" (ngModelChange)="element.material = { allOf: parseStringArray($event), anyOf: element.material?.anyOf ?? [] }" />
                             </mat-form-field>
                             <mat-form-field appearance="outline" class="edit-field">
                               <mat-label>Count</mat-label>

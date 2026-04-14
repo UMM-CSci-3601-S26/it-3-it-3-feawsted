@@ -1,0 +1,61 @@
+
+@if (checklist()) {
+<!-- Cards for each individual checklist -->
+<mat-card class="checklist-card">
+
+  <!-- Card Header -->
+  <mat-card-header>
+    <mat-card-title class="checklist-card-studentName">{{ checklist().studentName }}</mat-card-title>
+  </mat-card-header>
+
+  <!-- Card Content -->
+  <div class="card">
+    <div class="scroll-area">
+      <mat-card-content>
+        <mat-list>
+
+          <!-- School -->
+          <mat-list-item>
+            <mat-icon matListItemIcon>home</mat-icon>
+            <p matListItemTitle>School</p>
+            <p matListItemLine class="checklist-card-school">{{ checklist().school }}</p>
+          </mat-list-item>
+
+          <mat-divider [inset]="true"></mat-divider>
+
+          <!-- Grade -->
+          <mat-list-item>
+            <mat-icon matListItemIcon>clock</mat-icon>
+            <p matListItemTitle>Grade</p>
+            <p matListItemLine class="checklist-card-grade">{{ checklist().grade }}</p>
+          </mat-list-item>
+
+          <mat-divider [inset]="true"></mat-divider>
+        </mat-list>
+
+        <!-- Requested Supplies List -->
+        <mat-list dense class="student-list">
+          @for (item of checklist().requestedSupplies ?? []; track item) {
+            <mat-list-item class="student-item">
+              <mat-icon matListItemIcon class="student-icon">requestedSupplies</mat-icon>
+              <p matListItemTitle>{{ item }}</p>
+            </mat-list-item>
+          }
+        </mat-list>
+
+        <mat-divider inset></mat-divider>
+
+    <!-- Checklist -->
+    <mat-list dense class="student-checklist">
+      @for (item of checklist().checklist ?? []; track item) {
+        <mat-list-item class="student-checklist">
+          <mat-icon matListItemIcon class="student-icon">checklist</mat-icon>
+          <p matListItemTitle>{{ toLabel(item.supply) }}</p>
+        </mat-list-item>
+      }
+    </mat-list>
+      </mat-card-content>
+    </div>
+  </div>
+</mat-card>
+}

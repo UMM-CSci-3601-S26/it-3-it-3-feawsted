@@ -3,19 +3,28 @@
     "guardianName": "Jane Doe",
     "email": "jane@email.com",
     "address": "123 Street",
-    "timeSlot": "9:00-10:00",
+    "timeAvailability": {
+      "earlyMorning": true,
+      "lateMorning": true,
+      "earlyAfternoon": true,
+      "lateAfternoon": true
+    },
     "students": [
       {
         "name": "Tim",
-        "grade": "3",
-        "school": "MAHS",
-        "requestedSupplies": ["Headphones"]
+        "grade": "1",
+        "school": "Chokio-Alberta Elementary School",
+        "requestedSupplies": [
+          "Headphones"
+        ]
       },
       {
         "name": "Sara",
-        "grade": "5",
-        "school": "MAHS",
-        "requestedSupplies": ["Backpack"]
+        "grade": "2",
+        "school": "Chokio-Alberta Elementary School",
+        "requestedSupplies": [
+          "Backpack"
+        ]
       }
     ]
   },
@@ -23,45 +32,177 @@
     "guardianName": "John Doe",
     "email": "john@email.com",
     "address": "1232 Street",
-    "timeSlot": "9:00-10:00",
+    "timeAvailability": {
+      "earlyMorning": false,
+      "lateMorning": true,
+      "earlyAfternoon": false,
+      "lateAfternoon": false
+    },
     "students": [
       {
         "name": "Johnny Jr.",
-        "grade": "8",
-        "school": "HHS",
-        "requestedSupplies": ["Headphones, Backpack"]
+        "grade": "Pre-K",
+        "school": "Herman-Norcross Elementary School",
+        "requestedSupplies": [
+          "Headphones",
+          "Backpack"
+        ]
       },
       {
         "name": "Burtrum",
-        "grade": "6",
-        "school": "HHS",
-        "requestedSupplies": ["Backpack"]
+        "grade": "4",
+        "school": "Herman-Norcross Elementary School",
+        "requestedSupplies": [
+          "Backpack"
+        ]
       },
       {
         "name": "Harold",
-        "grade": "4",
-        "school": "HHS",
-        "requestedSupplies": ["Backpack"]
+        "grade": "5",
+        "school": "Herman-Norcross Elementary School",
+        "requestedSupplies": [
+          "Backpack"
+        ]
       }
     ]
   },
   {
     "guardianName": "Janis Dorothy",
-    "email": "jane@email.com",
+    "email": "janis@email.com",
     "address": "123 Street",
-    "timeSlot": "9:00-10:00",
+    "timeAvailability": {
+      "earlyMorning": false,
+      "lateMorning": true,
+      "earlyAfternoon": true,
+      "lateAfternoon": false
+    },
     "students": [
       {
         "name": "Timothy",
-        "grade": "3",
-        "school": "MAHS",
-        "requestedSupplies": ["Headphones"]
+        "grade": "Pre-K",
+        "school": "Hancock Elementary School",
+        "requestedSupplies": [
+          "Headphones"
+        ]
       },
       {
         "name": "Sarah",
-        "grade": "5",
-        "school": "MAHS",
+        "grade": "6",
+        "school": "Hancock Elementary School",
         "requestedSupplies": []
+      }
+    ]
+  },
+  {
+    "guardianName": "Michael Thompson",
+    "email": "michael.t@email.com",
+    "address": "987 Spruce Drive",
+    "timeAvailability": {
+      "earlyMorning": false,
+      "lateMorning": true,
+      "earlyAfternoon": true,
+      "lateAfternoon": false
+    },
+    "students": [
+      {
+        "name": "Ella",
+        "grade": "K",
+        "school": "Hancock Elementary School",
+        "requestedSupplies": ["Crayons", "Glue"]
+      }
+    ]
+  },
+  {
+    "guardianName": "Priya Singh",
+    "email": "priya.singh@email.com",
+    "address": "246 Willow Way",
+    "timeAvailability": {
+      "earlyMorning": true,
+      "lateMorning": false,
+      "earlyAfternoon": false,
+      "lateAfternoon": true
+    },
+    "students": [
+      {
+        "name": "Arjun",
+        "grade": "4",
+        "school": "Herman-Norcross Elementary School",
+        "requestedSupplies": ["Notebook", "Markers"]
+      },
+      {
+        "name": "Neha",
+        "grade": "2",
+        "school": "Herman-Norcross Elementary School",
+        "requestedSupplies": ["Backpack"]
+      }
+    ]
+  },
+  {
+    "guardianName": "Linda Wu",
+    "email": "linda.wu@email.com",
+    "address": "135 Birch Blvd",
+    "timeAvailability": {
+      "earlyMorning": false,
+      "lateMorning": false,
+      "earlyAfternoon": true,
+      "lateAfternoon": true
+    },
+    "students": [
+      {
+        "name": "Kevin",
+        "grade": "3",
+        "school": "Chokio-Alberta Elementary School",
+        "requestedSupplies": ["Eraser", "Pencils"]
+      },
+      {
+        "name": "Mina",
+        "grade": "1",
+        "school": "Chokio-Alberta Elementary School",
+        "requestedSupplies": ["Scissors"]
+      }
+    ]
+  },
+  {
+    "guardianName": "Omar Al-Farsi",
+    "email": "omar.alfarsi@email.com",
+    "address": "753 Poplar Court",
+    "timeAvailability": {
+      "earlyMorning": true,
+      "lateMorning": true,
+      "earlyAfternoon": false,
+      "lateAfternoon": false
+    },
+    "students": [
+      {
+        "name": "Layla",
+        "grade": "5",
+        "school": "Hancock Elementary School",
+        "requestedSupplies": ["Markers", "Notebook"]
+      }
+    ]
+  },
+  {
+    "guardianName": "Sophia Rossi",
+    "email": "sophia.rossi@email.com",
+    "address": "159 Aspen Lane",
+    "timeAvailability": {
+      "earlyMorning": false,
+      "lateMorning": true,
+      "earlyAfternoon": false,
+      "lateAfternoon": true
+    },
+    "students": [
+      {
+        "name": "Giulia",
+        "grade": "K",
+        "school": "Chokio-Alberta Elementary School",
+        "requestedSupplies": ["Backpack", "Crayons"]
+      },
+      {
+        "name": "Marco",
+        "grade": "2",
+        "school": "Chokio-Alberta Elementary School",
+        "requestedSupplies": ["Glue"]
       }
     ]
   }

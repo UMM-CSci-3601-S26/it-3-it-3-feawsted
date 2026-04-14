@@ -3,6 +3,7 @@ package umm3601.checklist;
 
 // Static Imports
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.atLeastOnce;
@@ -49,6 +50,7 @@ import io.javalin.http.HttpStatus;
 import io.javalin.json.JavalinJackson;
 import umm3601.family.Family;
 import umm3601.family.Family.StudentInfo;
+import umm3601.settings.Settings;
 import umm3601.supplylist.SupplyList;
 
 /**
@@ -135,9 +137,10 @@ class ChecklistControllerSpec {
             .append("checklist", List.of(
                 new Document()
                     .append("supply", new Document()
-                        .append("item", "Pencils")
-                        .append("brand", "Ticonderoga")
-                        .append("description", "Ticonderoga Pencil"))
+                        .append("item", Arrays.asList("Pencils"))
+                        .append("brand", new Document()
+                        .append("allOf", Arrays.asList("Ticonderoga"))
+                        .append("anyOf", new ArrayList<>())))
                     .append("completed", false)
                     .append("unreceived", false)
                     .append("selectedOption", null))));
@@ -150,9 +153,10 @@ class ChecklistControllerSpec {
             .append("checklist", List.of(
                 new Document()
                     .append("supply", new Document()
-                        .append("item", "Notebooks")
-                        .append("brand", "Five Star")
-                        .append("description", "Five Star Notebook"))
+                        .append("item", Arrays.asList("Notebooks"))
+                        .append("brand", new Document()
+                        .append("allOf", Arrays.asList("Five Star"))
+                        .append("anyOf", new ArrayList<>())))
                     .append("completed", false)
                     .append("unreceived", false)
                     .append("selectedOption", null))));
@@ -165,9 +169,10 @@ class ChecklistControllerSpec {
             .append("checklist", List.of(
                 new Document()
                     .append("supply", new Document()
-                        .append("item", "Erasers")
-                        .append("brand", "Pink Pearl")
-                        .append("description", "Pink Pearl Eraser"))
+                        .append("item", Arrays.asList("Erasers"))
+                        .append("brand", new Document()
+                        .append("allOf", Arrays.asList("Pink Pearl"))
+                        .append("anyOf", new ArrayList<>())))
                     .append("completed", false)
                     .append("unreceived", false)
                     .append("selectedOption", null))));
@@ -183,9 +188,9 @@ class ChecklistControllerSpec {
         .append("checklist", List.of(
             new Document()
                 .append("supply", new Document()
-                    .append("item", "Markers")
-                    .append("brand", "Crayola")
-                    .append("description", "Crayola Markers"))
+                    .append("item", Arrays.asList("Markers"))
+                    .append("brand", new Document().append("allOf", Arrays.asList("Crayola"))
+                    .append("anyOf", new ArrayList<>())))
                 .append("completed", false)
                 .append("unreceived", false)
                 .append("selectedOption", null)));
@@ -229,11 +234,11 @@ class ChecklistControllerSpec {
   @Test
   void generateDigitalChecklists() {
     // mock three mongo collections
-    @SuppressWarnings("unchecked")
+    // @SuppressWarnings("unchecked")
     JacksonMongoCollection<SupplyList> supplyListCollection = mock(JacksonMongoCollection.class);
-    @SuppressWarnings("unchecked")
+    // @SuppressWarnings("unchecked")
     JacksonMongoCollection<Family> familyCollection = mock(JacksonMongoCollection.class);
-    @SuppressWarnings("unchecked")
+    // @SuppressWarnings("unchecked")
     JacksonMongoCollection<Checklist> checklistCollection = mock(JacksonMongoCollection.class);
 
     ChecklistController controller = new ChecklistController(
@@ -242,7 +247,7 @@ class ChecklistControllerSpec {
         checklistCollection);
     // Mock supply list
     SupplyList supply = new SupplyList();
-    supply.item = "Pencils";
+    supply.item = Arrays.asList("Pencils");
 
     FindIterable<SupplyList> supplyFind = mock(FindIterable.class);
     when(supplyListCollection.find()).thenReturn(supplyFind);
@@ -309,7 +314,7 @@ class ChecklistControllerSpec {
     SupplyList supply = new SupplyList();
     supply.school = "MAHS";
     supply.grade = "4";
-    supply.item = "Notebook";
+    supply.item = Arrays.asList("Notebook");
 
     List<SupplyList> supplies = List.of(supply);
 
@@ -325,7 +330,7 @@ class ChecklistControllerSpec {
     // Assert one checklist item was created for the matching supply
     assertEquals(1, result.checklist.size());
     Checklist.ChecklistItem item = result.checklist.get(0);
-    assertEquals("Notebook", item.supply.item);
+    assertTrue(item.supply.item.contains("Notebook"));
     assertEquals(false, item.completed);
     assertEquals(false, item.unreceived);
     assertEquals(null, item.selectedOption);
@@ -348,12 +353,12 @@ class ChecklistControllerSpec {
     SupplyList wrongSchool = new SupplyList();
     wrongSchool.school = "AHS";
     wrongSchool.grade = "4";
-    wrongSchool.item = "Pencils";
+    wrongSchool.item = Arrays.asList("Pencils");
 
     SupplyList wrongGrade = new SupplyList();
     wrongGrade.school = "MAHS";
     wrongGrade.grade = "8";
-    wrongGrade.item = "Notebooks";
+    wrongGrade.item = Arrays.asList("Notebooks");
 
     List<SupplyList> supplies = List.of(wrongSchool, wrongGrade);
 
@@ -412,6 +417,24 @@ class ChecklistControllerSpec {
     assertEquals("Elmo", result.get(0).studentName);
   }
 
+  @Test
+  void filterChecklistsByNameAndGrade() throws IOException {
+    when(ctx.queryParamMap()).thenReturn(Map.of(
+        "name", List.of("Elmo"),
+        "grade", List.of("4")));
+    when(ctx.queryParam("name")).thenReturn("Elmo");
+    when(ctx.queryParam("grade")).thenReturn("4");
+
+    checklistController.getStoredChecklists(ctx);
+
+    verify(ctx).json(checklistArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    List<Checklist> result = checklistArrayListCaptor.getValue();
+    assertEquals(1, result.size());
+    assertEquals("Elmo", result.get(0).studentName);
+  }
+
   // This test checks that the getStoredChecklists method returns an empty list
   // when there are no checklists matching the specified school and grade. It sets
   // up query parameters for a nonexistent school and grade, calls the method, and
@@ -454,56 +477,428 @@ class ChecklistControllerSpec {
     assertEquals("Elmo", result.get(0).studentName);
   }
 
-  // @Test
-  // void canCreateChecklist() throws IOException {
-  // when(ctx.queryParamMap()).thenReturn(Collections.emptyMap());
-  // checklistController.createChecklist(ctx);
+  @Test
+  void constructFilterAddsNameRegex() {
+    when(ctx.queryParamMap()).thenReturn(Map.of(
+        "name", List.of("Elmo")));
+    when(ctx.queryParam("name")).thenReturn("Elmo");
+    checklistController.getStoredChecklists(ctx);
 
-  // verify(ctx).json(checklistArrayListCaptor.capture());
-  // verify(ctx).status(HttpStatus.OK);
+    verify(ctx).json(checklistArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
 
-  // assertEquals(
-  // db.getCollection("checklists").countDocuments(),
-  // checklistArrayListCaptor.getValue().size());
-  // }
+    List<Checklist> result = checklistArrayListCaptor.getValue();
+    // Verify that the filter is applied and returns results with name filter
+    assertTrue(result.size() > 0);
+    assertTrue(result.get(0).studentName.equals("Elmo"));
+  }
 
-  // Looks up a checklist using a real ID and makes sure the controller returns
-  // the
-  // correct checklist and a 200 OK status. @Test
-  // Checks that the CSV export endpoint produces a properly formatted CSV string,
-  // including the header and the correct student counts for each checklist. @Test
-  /*
-   * @Test
-   * void exportFamiliesAsCSVProducesCorrectCSV() {
-   * checklistController.exportFamiliesAsCSV(ctx);
-   * ArgumentCaptor<String> resultCaptor = ArgumentCaptor.forClass(String.class);
-   *
-   * verify(ctx).result(resultCaptor.capture());
-   * verify(ctx).contentType("text/csv");
-   * verify(ctx).status(HttpStatus.OK);
-   *
-   * String csv = resultCaptor.getValue();
-   *
-   * // Check header
-   * assertTrue(csv.contains(
-   * "Guardian Name,Email,Address,Time Slot,Number of Students"));
-   *
-   * // Check Jane Doe (2 students)
-   * assertTrue(csv.contains(
-   * "\"Jane Doe\",\"jane@email.com\",\"123 Street\",\"10:00-11:00\",2"));
-   *
-   * // Check John Christensen (2 students)
-   * assertTrue(csv.contains(
-   * "\"John Christensen\",\"jchristensen@email.com\",\"713 Broadway\",\"8:00-9:00\",2"
-   * ));
-   *
-   * // Check John Johnson (1 student)
-   * assertTrue(csv.contains(
-   * "\"John Johnson\",\"jjohnson@email.com\",\"456 Avenue\",\"2:00-3:00\",1"));
-   *
-   * // Check Bob Jones (1 student)
-   * assertTrue(csv.contains(
-   * "\"Bob Jones\",\"bob@email.com\",\"456 Oak Ave\",\"2:00-3:00\",1"));
-   * }
-   */
+  // Tests for normalizeSchool static method
+  @Test
+  void normalizeSchoolHandlesNull() {
+    assertEquals("", ChecklistController.normalizeSchool(null));
+  }
+
+  @Test
+  void normalizeSchoolStripsTrailingSchool() {
+    assertEquals("morris area high", ChecklistController.normalizeSchool("Morris Area High School"));
+  }
+
+  @Test
+  void normalizeSchoolTrimsAndLowers() {
+    assertEquals("mahs", ChecklistController.normalizeSchool("  MAHS  "));
+  }
+
+  // Tests for normalizeGrade static method
+  @Test
+  void normalizeGradeHandlesNull() {
+    assertEquals("", ChecklistController.normalizeGrade(null));
+  }
+
+  @Test
+  void normalizeGradeStripsHyphensAndSpaces() {
+    assertEquals("4thgrade", ChecklistController.normalizeGrade("4th-Grade"));
+  }
+
+  @Test
+  void normalizeGradeTrimsAndLowers() {
+    assertEquals("prek", ChecklistController.normalizeGrade("  PreK  "));
+  }
+
+  // Test constructFilter with only school param
+  @Test
+  void filterChecklistsBySchoolOnly() throws IOException {
+    when(ctx.queryParamMap()).thenReturn(Map.of("school", List.of("MAHS")));
+    when(ctx.queryParam("school")).thenReturn("MAHS");
+
+    checklistController.getStoredChecklists(ctx);
+
+    verify(ctx).json(checklistArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(1, checklistArrayListCaptor.getValue().size());
+    assertEquals("Elmo", checklistArrayListCaptor.getValue().get(0).studentName);
+  }
+
+  // Test constructFilter with only grade param
+  @Test
+  void filterChecklistsByGradeOnly() throws IOException {
+    when(ctx.queryParamMap()).thenReturn(Map.of("grade", List.of("8")));
+    when(ctx.queryParam("grade")).thenReturn("8");
+
+    checklistController.getStoredChecklists(ctx);
+
+    verify(ctx).json(checklistArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(1, checklistArrayListCaptor.getValue().size());
+    assertEquals("johnny", checklistArrayListCaptor.getValue().get(0).studentName);
+  }
+
+  // Test constructFilter with all three params
+  @Test
+  void filterChecklistsBySchoolGradeAndName() throws IOException {
+    when(ctx.queryParamMap()).thenReturn(Map.of(
+        "school", List.of("MAHS"),
+        "grade", List.of("4"),
+        "studentName", List.of("Elmo")));
+    when(ctx.queryParam("school")).thenReturn("MAHS");
+    when(ctx.queryParam("grade")).thenReturn("4");
+    when(ctx.queryParam("studentName")).thenReturn("Elmo");
+
+    checklistController.getStoredChecklists(ctx);
+
+    verify(ctx).json(checklistArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+
+    assertEquals(1, checklistArrayListCaptor.getValue().size());
+    assertEquals("Elmo", checklistArrayListCaptor.getValue().get(0).studentName);
+  }
+
+  // Test createChecklist when supply has null school
+  @Test
+  void createChecklistExcludesSupplyWithNullSchool() {
+    ChecklistController controller = new ChecklistController(null, null, null);
+
+    StudentInfo student = new StudentInfo();
+    student.name = "TestStudent";
+    student.school = "MAHS";
+    student.grade = "4";
+    student.requestedSupplies = List.of();
+
+    SupplyList supplyNullSchool = new SupplyList();
+    supplyNullSchool.school = null;
+    supplyNullSchool.grade = "4";
+    supplyNullSchool.item = Arrays.asList("Pencils");
+
+    SupplyList supplyNullGrade = new SupplyList();
+    supplyNullGrade.school = "MAHS";
+    supplyNullGrade.grade = null;
+    supplyNullGrade.item = Arrays.asList("Erasers");
+
+    Checklist result = controller.createChecklist(student, List.of(supplyNullSchool, supplyNullGrade));
+    assertEquals(0, result.checklist.size());
+  }
+
+  // Test Checklist.equals() branches
+  @Test
+  void checklistEqualsWithSelf() {
+    Checklist c = new Checklist();
+    c._id = "abc";
+    assertEquals(c, c);
+  }
+
+  @Test
+  void checklistEqualsWithNull() {
+    Checklist c = new Checklist();
+    c._id = "abc";
+    assertTrue(!c.equals(null));
+  }
+
+  @Test
+  void checklistEqualsWithNonChecklist() {
+    Checklist c = new Checklist();
+    c._id = "abc";
+    assertTrue(!c.equals("not a checklist"));
+  }
+
+  @Test
+  void checklistHashCodeWithNullId() {
+    Checklist c = new Checklist();
+    c._id = null;
+    assertEquals(0, c.hashCode());
+  }
+
+  // ---- expandHighSchoolSupplies unit tests ----
+
+  // Helper: build a minimal SupplyList with school + grade + one item
+  private SupplyList makeSchoolSupply(String school, String grade, String item) {
+    SupplyList s = new SupplyList();
+    s.school = school;
+    s.grade = grade;
+    s.item = Arrays.asList(item);
+    s.brand = new SupplyList.AttributeOptions();
+    s.brand.allOf = new ArrayList<>();
+    s.brand.anyOf = new ArrayList<>();
+    s.color = new SupplyList.AttributeOptions();
+    s.color.allOf = new ArrayList<>();
+    s.color.anyOf = new ArrayList<>();
+    s.type = new SupplyList.AttributeOptions();
+    s.type.allOf = new ArrayList<>();
+    s.type.anyOf = new ArrayList<>();
+    s.style = new SupplyList.AttributeOptions();
+    s.style.allOf = new ArrayList<>();
+    s.style.anyOf = new ArrayList<>();
+    s.material = new SupplyList.AttributeOptions();
+    s.material.allOf = new ArrayList<>();
+    s.material.anyOf = new ArrayList<>();
+    s.size = "";
+    s.quantity = 1;
+    s.count = 1;
+    s.notes = "";
+    return s;
+  }
+
+  // A "High School" entry expands into separate copies for grades 9–12
+  @Test
+  void expandHighSchoolExpandsToFourGrades() {
+    SupplyList hs = makeSchoolSupply("MAHS", "High School", "Notebook");
+    List<SupplyList> result = ChecklistController.expandHighSchoolSupplies(List.of(hs));
+
+    assertEquals(4, result.size());
+    List<String> grades = result.stream().map(s -> s.grade).toList();
+    assertTrue(grades.contains("9"));
+    assertTrue(grades.contains("10"));
+    assertTrue(grades.contains("11"));
+    assertTrue(grades.contains("12"));
+    // The original "High School" entry must not appear in the output
+    assertTrue(result.stream().noneMatch(s -> "High School".equalsIgnoreCase(s.grade)));
+  }
+
+  // If a specific grade already exists at the same school, that grade is skipped during expansion
+  @Test
+  void expandHighSchoolSkipsGradeWithExistingEntry() {
+    SupplyList existing10 = makeSchoolSupply("MAHS", "10", "Pencils");
+    SupplyList hs = makeSchoolSupply("MAHS", "High School", "Notebook");
+
+    List<SupplyList> result = ChecklistController.expandHighSchoolSupplies(List.of(existing10, hs));
+
+    // Grade 10 already had an entry, so expansion should only add 9, 11, 12 (not a duplicate 10)
+    long hsExpanded = result.stream()
+        .filter(s -> "MAHS".equals(s.school) && List.of("9", "10", "11", "12").contains(s.grade))
+        .count();
+    assertEquals(4, hsExpanded); // existing 10 + new 9, 11, 12
+    long grade10Count = result.stream()
+        .filter(s -> "MAHS".equals(s.school) && "10".equals(s.grade))
+        .count();
+    assertEquals(1, grade10Count); // only the original, not a duplicate
+  }
+
+  // Supply entries for non-HS grades are left completely untouched
+  @Test
+  void expandHighSchoolLeavesOtherGradesAlone() {
+    SupplyList grade8 = makeSchoolSupply("MAHS", "8", "Scissors");
+    SupplyList preK = makeSchoolSupply("MAHS", "Pre-K", "Crayons");
+
+    List<SupplyList> result = ChecklistController.expandHighSchoolSupplies(List.of(grade8, preK));
+
+    assertEquals(2, result.size());
+    assertEquals("8", result.get(0).grade);
+    assertEquals("Pre-K", result.get(1).grade);
+  }
+
+  // copyWithGrade preserves all fields and only changes the grade
+  @Test
+  void copyWithGradePreservesFieldsAndChangesGrade() {
+    SupplyList source = makeSchoolSupply("MAHS", "High School", "Ruler");
+    source.teacher = "Smith";
+    source.academicYear = "2025-2026";
+    source.quantity = 3;
+    source.count = 2;
+    source.notes = "Brand new";
+
+    SupplyList copy = ChecklistController.copyWithGrade(source, "11");
+
+    assertEquals("11", copy.grade);
+    assertEquals("MAHS", copy.school);
+    assertTrue(copy.item.contains("Ruler"));
+    assertEquals("Smith", copy.teacher);
+    assertEquals("2025-2026", copy.academicYear);
+    assertEquals(3, copy.quantity);
+    assertEquals(2, copy.count);
+    assertEquals("Brand new", copy.notes);
+    // _id must NOT be copied — copies are transient
+    assertEquals(null, copy._id);
+  }
+
+  // "HIGH SCHOOL" and "high school" normalize the same way and also expand
+  @Test
+  void expandHighSchoolIsCaseInsensitive() {
+    SupplyList upperCase = makeSchoolSupply("MAHS", "HIGH SCHOOL", "Notebook");
+    SupplyList lowerCase = makeSchoolSupply("MHS", "high school", "Folder");
+
+    List<SupplyList> result = ChecklistController.expandHighSchoolSupplies(
+        List.of(upperCase, lowerCase));
+
+    // 4 copies for MAHS + 4 copies for MHS = 8
+    assertEquals(8, result.size());
+    assertTrue(result.stream().noneMatch(s -> "HIGH SCHOOL".equalsIgnoreCase(s.grade)));
+  }
+
+  // Entries with null school or null grade are passed through without expansion or crashing
+  @Test
+  void expandHighSchoolNullSchoolOrGradePassesThrough() {
+    SupplyList nullSchool = new SupplyList();
+    nullSchool.school = null;
+    nullSchool.grade = "High School";
+    nullSchool.item = Arrays.asList("Pencils");
+
+    SupplyList nullGrade = new SupplyList();
+    nullGrade.school = "MAHS";
+    nullGrade.grade = null;
+    nullGrade.item = Arrays.asList("Erasers");
+
+    // Should not throw; null-school/null-grade entries are kept as-is
+    List<SupplyList> result = ChecklistController.expandHighSchoolSupplies(
+        List.of(nullSchool, nullGrade));
+
+    assertEquals(2, result.size());
+  }
+
+  // ---- applySupplyOrder unit tests ----
+
+  // Helper: build a SupplyItemOrder entry
+  private Settings.SupplyItemOrder orderEntry(String term, String status) {
+    Settings.SupplyItemOrder e = new Settings.SupplyItemOrder();
+    e.itemTerm = term;
+    e.status = status;
+    return e;
+  }
+
+  // Helper: build a SupplyList with optional item terms
+  private SupplyList makeSupply(String... items) {
+    SupplyList s = new SupplyList();
+    s.item = (items.length > 0) ? Arrays.asList(items) : null;
+    return s;
+  }
+
+  // Empty order list → all supplies returned, original order preserved
+  @Test
+  void applySupplyOrderEmptyOrderReturnsAllSupplies() {
+    SupplyList a = makeSupply("notebook");
+    SupplyList b = makeSupply("folder");
+    List<SupplyList> supplies = List.of(a, b);
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(supplies, List.of());
+
+    assertEquals(2, result.size());
+  }
+
+  // Staged terms dictate order: notebook before folder regardless of input order
+  @Test
+  void applySupplyOrderStagedTermsPreserveDefinedOrder() {
+    SupplyList folderSupply = makeSupply("folder");
+    SupplyList notebookSupply = makeSupply("notebook");
+    List<SupplyList> supplies = List.of(folderSupply, notebookSupply);
+
+    List<Settings.SupplyItemOrder> order = List.of(
+        orderEntry("notebook", "staged"),
+        orderEntry("folder", "staged"));
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(supplies, order);
+
+    assertEquals(2, result.size());
+    assertTrue(result.get(0).item.contains("notebook"));
+    assertTrue(result.get(1).item.contains("folder"));
+  }
+
+  // notGiven supplies are excluded entirely
+  @Test
+  void applySupplyOrderNotGivenTermsAreExcluded() {
+    SupplyList pencilSupply = makeSupply("pencil");
+    SupplyList notebookSupply = makeSupply("notebook");
+    List<SupplyList> supplies = List.of(pencilSupply, notebookSupply);
+
+    List<Settings.SupplyItemOrder> order = List.of(
+        orderEntry("pencil", "notGiven"),
+        orderEntry("notebook", "staged"));
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(supplies, order);
+
+    assertEquals(1, result.size());
+    assertTrue(result.get(0).item.contains("notebook"));
+  }
+
+  // Unstaged supplies appear after all staged supplies
+  @Test
+  void applySupplyOrderUnstagedComesAfterStaged() {
+    SupplyList folderSupply = makeSupply("folder");  // unstaged
+    SupplyList notebookSupply = makeSupply("notebook");  // staged
+
+    List<Settings.SupplyItemOrder> order = List.of(
+        orderEntry("notebook", "staged"),
+        orderEntry("folder", "unstaged"));
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(
+        List.of(folderSupply, notebookSupply), order);
+
+    assertEquals(2, result.size());
+    assertTrue(result.get(0).item.contains("notebook"));
+    assertTrue(result.get(1).item.contains("folder"));
+  }
+
+  // Multiple supplies sharing same term both sort together before another term
+  @Test
+  void applySupplyOrderMultipleSuppliesWithSameTermAllOrdered() {
+    SupplyList spiralNotebook = makeSupply("notebook");
+    SupplyList compositionNotebook = makeSupply("notebook");
+    SupplyList folderSupply = makeSupply("folder");
+
+    List<Settings.SupplyItemOrder> order = List.of(
+        orderEntry("notebook", "staged"),
+        orderEntry("folder", "staged"));
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(
+        List.of(folderSupply, spiralNotebook, compositionNotebook), order);
+
+    assertEquals(3, result.size());
+    // folder (index=1) comes after both notebooks (index=0)
+    assertTrue(result.get(0).item.contains("notebook"));
+    assertTrue(result.get(1).item.contains("notebook"));
+    assertTrue(result.get(2).item.contains("folder"));
+  }
+
+  // Supply with null item list is kept (not excluded) and sorted to end
+  @Test
+  void applySupplyOrderNullItemListKeptAndSortedLast() {
+    SupplyList notebookSupply = makeSupply("notebook");
+    SupplyList nullItemSupply = makeSupply(); // item will be null
+
+    List<Settings.SupplyItemOrder> order = List.of(
+        orderEntry("notebook", "staged"));
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(
+        List.of(nullItemSupply, notebookSupply), order);
+
+    assertEquals(2, result.size());
+    assertTrue(result.get(0).item.contains("notebook"));
+    assertEquals(null, result.get(1).item);
+  }
+
+  // Supply whose item list contains one notGiven term is excluded
+  // even if the item list also contains other non-notGiven terms
+  @Test
+  void applySupplyOrderExcludesSupplyWithAnyNotGivenTerm() {
+    // This supply has both "notebook" (staged) and "pencil" (notGiven)
+    SupplyList mixedSupply = makeSupply("notebook", "pencil");
+
+    List<Settings.SupplyItemOrder> order = List.of(
+        orderEntry("notebook", "staged"),
+        orderEntry("pencil", "notGiven"));
+
+    List<SupplyList> result = ChecklistController.applySupplyOrder(
+        List.of(mixedSupply), order);
+
+    assertEquals(0, result.size());
+  }
 }

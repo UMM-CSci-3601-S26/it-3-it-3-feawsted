@@ -26,6 +26,8 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Inventory } from './inventory';
 import { InventoryService } from './inventory.service';
 import { MatMenu } from "@angular/material/menu";
+import { TermsService } from '../terms/terms.service';
+import { Terms } from '../terms/terms';
 
 @Component({
   selector: 'app-inventory-component',
@@ -62,12 +64,13 @@ export class InventoryTableComponent {
   // Define the columns to be displayed in the table, including an 'actions' column for the menu
   displayedColumns: string[] = [
     'item',
-    'description',
     'brand',
     'color',
     'size',
     'type',
+    'style',
     'material',
+    'bin',
     'count',
     'quantity',
     'notes',
@@ -85,6 +88,10 @@ export class InventoryTableComponent {
   // Inject the MatSnackBar for displaying error messages and the InventoryService for fetching inventory data
   private snackBar = inject(MatSnackBar);
   private inventoryService = inject(InventoryService);
+  private termsService = inject(TermsService);
+
+  // Shared vocabulary loaded from /api/terms for autocomplete in inline edit
+  terms: Terms = { item: [], brand: [], color: [], size: [], type: [], material: [], style: [] };
 
   // Constructor sets up an effect to update the table data whenever the serverFilteredInventory signal changes, and assigns the sorting and pagination components to the data source
   constructor() {
@@ -93,6 +100,7 @@ export class InventoryTableComponent {
       this.dataSource.sort = this.sort();
       this.dataSource.paginator = this.page();
     });
+    this.termsService.getTerms().subscribe({ next: t => this.terms = t });
   }
 
   // Define signals for each filterable field in the inventory, and create observables from these signals to be used in the serverFilteredInventory effect
@@ -101,8 +109,9 @@ export class InventoryTableComponent {
   color = signal<string | undefined>(undefined);
   size = signal<string | undefined>(undefined);
   type = signal<string | undefined>(undefined);
+  style = signal<string | undefined>(undefined);
   material = signal<string | undefined>(undefined);
-  description = signal<string | undefined>(undefined);
+  bin = signal<number | undefined>(undefined);
   quantity = signal<number | undefined>(undefined);
 
   errMsg = signal<string | undefined>(undefined);
@@ -113,8 +122,9 @@ export class InventoryTableComponent {
   private color$ = toObservable(this.color);
   private size$ = toObservable(this.size);
   private type$ = toObservable(this.type);
+  private style$ = toObservable(this.style);
   private material$ = toObservable(this.material);
-  private description$ = toObservable(this.description);
+  private bin$ = toObservable(this.bin);
   private quantity$ = toObservable(this.quantity);
 
   /**
@@ -125,10 +135,10 @@ export class InventoryTableComponent {
    * displays a snack bar with the error message, and returns an empty array to ensure the table does not break.
    */
   serverFilteredInventory = toSignal(
-    combineLatest([this.item$, this.brand$, this.color$, this.size$, this.type$, this.material$, this.description$, this.quantity$]).pipe(
+    combineLatest([this.item$, this.brand$, this.color$, this.size$, this.type$, this.style$, this.material$, this.bin$, this.quantity$]).pipe(
       debounceTime(300),
-      switchMap(([ item, brand, color, size, type, material]) =>
-        this.inventoryService.getInventory({ item, brand, color, size, type, material})
+      switchMap(([item, brand, color, size, type, style, material, bin]) =>
+        this.inventoryService.getInventory({ item, brand, color, size, type, style, material, bin })
       ),
       catchError((err) => {
         if (!(err.error instanceof ErrorEvent)) {
@@ -136,7 +146,7 @@ export class InventoryTableComponent {
             `Problem contacting the server – Error Code: ${err.status}\nMessage: ${err.message}`
           )
         };
-        this.snackBar.open(this.errMsg(), 'OK', { duration: 6000 });
+        this.snackBar.open(this.errMsg() ?? '', 'OK', { duration: 6000 });
         return of<Inventory[]>([]);
       })
     ),
@@ -182,8 +192,8 @@ export class InventoryTableComponent {
     }
     const blank: Inventory = {
       _id: this.NEW_ROW_ID,
-      item: '', description: '', brand: '', color: '',
-      count: 1, size: '', type: '', material: '', quantity: 0, notes: ''
+      item: '', brand: '', color: '',
+      count: 1, size: '', type: [], style: [], material: [], bin: [], quantity: 0, notes: ''
     };
     this.dataSource.data = [blank, ...this.dataSource.data];
     this.startEdit(blank);
@@ -246,6 +256,14 @@ export class InventoryTableComponent {
     this.editingBackup = null;
   }
 
+  parseStringArray(value: string): string[] {
+    return value.split(',').map(s => s.trim()).filter(s => s.length > 0);
+  }
+
+  parseBin(value: string): number[] {
+    return value.split(',').map(s => +s.trim()).filter(n => !isNaN(n) && n !== 0);
+  }
+
   /**
    * This was getting unwieldy in the HTML, so I moved it here.
    * It just resets all the filter signals to undefined,
@@ -257,8 +275,9 @@ export class InventoryTableComponent {
     this.color.set(undefined);
     this.size.set(undefined);
     this.type.set(undefined);
+    this.style.set(undefined);
     this.material.set(undefined);
-    this.description.set(undefined);
+    this.bin.set(undefined);
     this.quantity.set(undefined);
   }
 }

@@ -27,19 +27,20 @@ export class InventoryService {
 
   // Define keys for the inventory item properties to be used in constructing HTTP query parameters for filtering
   private readonly itemKey = 'item';
-  private readonly descriptionKey = 'description';
   private readonly brandKey = 'brand';
   private readonly colorKey = 'color';
   private readonly countKey = 'count';
   private readonly sizeKey = 'size';
   private readonly typeKey = 'type';
+  private readonly styleKey = 'style';
   private readonly materialKey = 'material';
+  private readonly binKey = 'bin';
   private readonly quantityKey = 'quantity';
   private readonly notesKey = 'notes';
 
   // Method to fetch the list of inventory items from the API, with optional filtering parameters. It constructs the appropriate HTTP request and returns an Observable of an array of Inventory objects.
-  getInventory(filters?: {item?: string; description?: string; brand?: string; color?: string;
-    count?: number; size?: string; type?: string; material?: string; quantity?: number; notes?: string}): Observable<Inventory[]> {
+  getInventory(filters?: {item?: string; brand?: string; color?: string;
+    count?: number; size?: string; type?: string; style?: string; material?: string; bin?: number; quantity?: number; notes?: string}): Observable<Inventory[]> {
 
     // Construct HTTP query parameters based on the provided filters, setting each parameter only if the corresponding filter value is defined. Then, make a GET request to the inventory API endpoint with the constructed parameters and return an Observable of an array of Inventory objects.
     let httpParams: HttpParams = new HttpParams();
@@ -59,8 +60,14 @@ export class InventoryService {
       if (filters.type) {
         httpParams = httpParams.set(this.typeKey, filters.type);
       }
+      if (filters.style) {
+        httpParams = httpParams.set(this.styleKey, filters.style);
+      }
       if (filters.material) {
         httpParams = httpParams.set(this.materialKey, filters.material);
+      }
+      if (filters.bin !== undefined) {
+        httpParams = httpParams.set(this.binKey, filters.bin);
       }
 
     }

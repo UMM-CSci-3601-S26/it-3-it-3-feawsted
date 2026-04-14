@@ -26,4 +26,25 @@ import { Family } from './family';
 // The component takes a Family object as input and renders the details in a user-friendly format.
 export class FamilyCardComponent {
   family = input.required<Family>();
+
+  getAvailableTimes(): string {
+    const a = this.family().timeAvailability;
+    if (!a) {
+      return 'None';
+    }
+    const times: string[] = [];
+    if (a.earlyMorning) {
+      times.push('Early Morning');
+    }
+    if (a.lateMorning) {
+      times.push('Late Morning');
+    }
+    if (a.earlyAfternoon) {
+      times.push('Early Afternoon');
+    }
+    if (a.lateAfternoon) {
+      times.push('Late Afternoon');
+    }
+    return times.length ? times.join(', ') : 'None';
+  }
 }

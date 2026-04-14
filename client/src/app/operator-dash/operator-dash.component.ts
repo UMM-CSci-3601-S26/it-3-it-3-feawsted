@@ -34,7 +34,7 @@ export class OperatorDashComponent  {
   private familyService = inject(FamilyService);
 
   // Signal to hold the dashboard statistics, with error handling to return undefined in case of an error
-  dashboardStats = toSignal <DashboardStats | undefined>(
+  dashboardStats = toSignal<DashboardStats | undefined>(
     this.familyService.getDashboardStats().pipe(
       catchError(() => of(undefined))
     )

@@ -15,6 +15,13 @@ export interface StudentInfo {
 }
 
 // An interface representing a family, including the guardian's name, email, address, time slot for pickup, and an array of students.
+export interface AvailabilityOptions {
+  earlyMorning: boolean;
+  lateMorning: boolean;
+  earlyAfternoon: boolean;
+  lateAfternoon: boolean;
+}
+
 export interface Family {
   _id?: string;
   guardianName: string;
@@ -22,6 +29,7 @@ export interface Family {
   address: string;
   timeSlot: string;
   students: StudentInfo[];
+  timeAvailability: AvailabilityOptions;
 }
 
 // An interface representing statistics for the dashboard, including counts of students per school and grade, as well as the total number of families served.

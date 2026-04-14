@@ -23,7 +23,7 @@
 
 // Styles for the clear button, giving it a distinct appearance and ensuring it is easily clickable
 .clear-button {
-  border: 1px solid gray;
+  border: 1px solid var(--app-divider-color);
   border-radius: 4px;
   padding: 0 16px;
   min-height: 36px;
