@@ -69,6 +69,7 @@ class FamilySpec {
 
   @Test
   void inventoryToString() {
-    assertEquals(family1.toString(), "Sample Guardian Sample Alternate sample@example.com 123 Sample St, Sample City, SC 12345");
+    assertEquals(family1.toString(),
+     "Sample Guardian Sample Alternate sample@example.com 123 Sample St, Sample City, SC 12345");
   }
 }
