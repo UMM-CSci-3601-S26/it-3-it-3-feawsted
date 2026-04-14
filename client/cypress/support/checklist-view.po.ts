@@ -50,4 +50,8 @@ export class ChecklistViewPage {
     return cy.get(this.exportPDFButtonSelector);
   }
 
+  getGenerateChecklistsButton() {
+    return cy.get('[data-cy="generate-checklists-button"]');
+
+  }
 }

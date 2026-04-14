@@ -17,8 +17,20 @@ describe('Checklist view', () => {
     page.getChecklistTitle().should('have.text', 'Checklists');
   });
 
-  it('Should show display checklists after loading', () => {
-    //Checking for the presence of checklist cards
+  it('Should show display checklists after generating checklists', () => {
+    //Intercepting the POST request to /api/checklists and aliasing it as 'generateChecklists' so we can wait for it later
+    cy.intercept('POST', '/api/checklists*').as('generateChecklists');
+
+    //navigate to page
+    page.navigateTo();
+
+    //Click the button to generate checklists, which will trigger the POST request we are intercepting
+    page.getGenerateChecklistsButton().click();
+
+    //Wait for backend to respond
+    cy.wait('@generateChecklists');
+
+    //Asserting that the checklist cards and list items exits
     page.getChecklistCards().should('exist');
   });
 
