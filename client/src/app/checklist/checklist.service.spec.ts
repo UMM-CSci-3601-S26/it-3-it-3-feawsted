@@ -227,4 +227,32 @@ describe('ChecklistService', () => {
       });
     });
   });
+
+  describe('printIndividualChecklist()', () => {
+    it('should call GET /api/checklists/:id with the correct ID parameter', () => {
+      const checklistId = '123';
+      checklistService.printIndividualChecklist(checklistId).subscribe(result => {
+        expect(result).toEqual(testChecklists);
+        expect(result.length).toBe(2);
+      });
+
+      const req = httpTestingController.expectOne(req =>
+        req.method === 'GET' && req.url === `${checklistService.checklistUrl}/${checklistId}`
+      );
+      expect(req.request.method).toBe('GET');
+      expect(req.request.params.keys().length).toBe(0);
+      req.flush(testChecklists);
+    });
+
+    it('should return an Observable of Checklist[]', () => {
+      const checklistId = '123';
+      const mockedMethod = spyOn(httpClient, 'get').and.returnValue(of(testChecklists));
+
+      checklistService.printIndividualChecklist(checklistId).subscribe(result => {
+        expect(result).toEqual(testChecklists);
+        expect(mockedMethod).toHaveBeenCalledTimes(1);
+        expect(mockedMethod).toHaveBeenCalledWith(`${checklistService.checklistUrl}/${checklistId}`);
+      });
+    });
+  });
 });

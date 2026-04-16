@@ -20,6 +20,7 @@ import com.mongodb.client.MongoDatabase;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
+import io.javalin.http.NotFoundResponse;
 
 // Java Imports
 import java.util.ArrayList;
@@ -265,72 +266,86 @@ public class ChecklistController implements Controller {
     ctx.header("Content-Disposition", "inline; filename=checklists.pdf");
     ctx.result(pdfBytes);
   }
-//   // GET /api/checklist/print — all students
-//   public void printAllChecklists(Context ctx) {
-//     List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
-//     List<Checklist> checklists = familyCollection.find().into(new ArrayList<>()).stream()
-//         .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
-//         .collect(Collectors.toList());
 
-//     try (PDDocument doc = new PDDocument()) {
-//         PDPage page = new PDPage();
-//         doc.addPage(page);
+  public void printChecklistByStudentPdf(Context ctx) {
+      String name = ctx.pathParam("name");
 
-//         PDPageContentStream content = new PDPageContentStream(doc, page);
-//         content.setFont(PDType1Font.HELVETICA, 12);
+      // Expand supplies (same as your all-PDF version)
+      List<SupplyList> pdfSupplies = expandHighSchoolSupplies(
+          supplyListCollection.find().into(new ArrayList<>())
+      );
 
-//         float y = 750;
+      // Find the student and build ONE checklist
+      Checklist checklist = null;
 
-//         content.beginText();
-//         content.newLineAtOffset(50, y);
+      for (Family family : familyCollection.find().into(new ArrayList<>())) {
+          for (StudentInfo student : family.students) {
+              if (student.name.equalsIgnoreCase(name)) {
+                  checklist = createChecklist(student, pdfSupplies);
+                  break;
+              }
+          }
+          if (checklist != null) break;
+      }
 
-//         for (Checklist c : checklists) {
-//             content.showText("Student: " + c.studentName + " (" + c.school + ", Grade " + c.grade + ")");
-//             content.newLineAtOffset(0, -20);
+      if (checklist == null) {
+          throw new NotFoundResponse("No student found with name: " + name);
+      }
 
-//             for (ChecklistItem item : c.checklist) {
-//                 content.showText(" - " + item.supply.name +
-//                     " | completed: " + item.completed +
-//                     " | unreceived: " + item.unreceived +
-//                     " | option: " + item.selectedOption);
-//                 content.newLineAtOffset(0, -15);
-//             }
-//             content.newLineAtOffset(0, -20);
-//         }
+      // Build PDF
+      StringBuilder pdf = new StringBuilder();
+      pdf.append("%PDF-1.4\n");
 
-//         content.endText();
-//         content.close();
+      pdf.append("1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n");
+      pdf.append("2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n");
 
-//         ByteArrayOutputStream out = new ByteArrayOutputStream();
-//         doc.save(out);
+      StringBuilder text = new StringBuilder();
+      text.append("BT /F1 12 Tf 50 750 Td\n");
 
-//         ctx.result(out.toByteArray());
-//         ctx.contentType("application/pdf");
-//         ctx.header("Content-Disposition", "attachment; filename=checklists.pdf");
-//         ctx.status(HttpStatus.OK);
+      // Header
+      text.append("(")
+          .append("Student: ").append(checklist.studentName)
+          .append(" (").append(checklist.school)
+          .append(", Grade ").append(checklist.grade)
+          .append(")")
+          .append(") Tj T* ");
 
-//     } catch (IOException e) {
-//         ctx.status(HttpStatus.INTERNAL_SERVER_ERROR);
-//         ctx.result("Failed to generate PDF");
-//     }
-// }
+      // Items
+      for (ChecklistItem item : checklist.checklist) {
+          text.append("(")
+              .append(" - ").append(item.supply)
+              .append(" | completed: ").append(item.completed)
+              .append(" | unreceived: ").append(item.unreceived)
+              .append(" | option: ").append(item.selectedOption)
+              .append(") Tj T* ");
+      }
 
+      text.append("ET");
 
-  // GET /api/checklist/student/{name} — single student by full name
-  // public void printChecklistByStudent(Context ctx) {
-  //   String name = ctx.pathParam("name");
-  //   List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
-  //   for (Family family : familyCollection.find().into(new ArrayList<>())) {
-  //     for (StudentInfo student : family.students) {
-  //       if ((student.name).equalsIgnoreCase(name)) {
-  //         ctx.json(createChecklist(student, allSupplies));
-  //         ctx.status(HttpStatus.OK);
-  //         return;
-  //       }
-  //     }
-  //   }
-  //   throw new NotFoundResponse("No student found with name: " + name);
-  // }
+      // Page object
+      pdf.append("3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792]")
+        .append(" /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj\n");
+
+      // Content stream
+      byte[] textBytes = text.toString().getBytes();
+      pdf.append("4 0 obj << /Length ").append(textBytes.length).append(" >> stream\n");
+      pdf.append(text.toString()).append("\nendstream endobj\n");
+
+      // Font
+      pdf.append("5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj\n");
+
+      // Trailer
+      pdf.append("xref\n0 6\n0000000000 65535 f \n");
+      pdf.append("trailer << /Size 6 /Root 1 0 R >>\nstartxref\n");
+      pdf.append(pdf.length()).append("\n%%EOF");
+
+      byte[] pdfBytes = pdf.toString().getBytes();
+
+      ctx.contentType("application/pdf");
+      ctx.header("Content-Disposition", "inline; filename=" + name + "_checklist.pdf");
+      ctx.result(pdfBytes);
+  }
+
 
   // GET /api/checklist/family/{guardianName} — all students in a family
   // public void printChecklistsByFamily(Context ctx) {
@@ -347,8 +362,6 @@ public class ChecklistController implements Controller {
   //   ctx.json(checklists);
   //   ctx.status(HttpStatus.OK);
   // }
-
-  // --- DIGITAL DRIVE-DAY ROUTES (persisted to MongoDB) ---
 
   // POST /api/checklist — snapshot all families into the checklists collection
   public void generateDigitalChecklists(Context ctx) {
