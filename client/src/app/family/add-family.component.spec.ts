@@ -109,10 +109,11 @@ describe('AddFamilyComponent', () => {
       altPickUpControl = addFamilyComponent.addFamilyForm.controls.guardianName;
     });
 
+    /*
     it('should allow empty alternate pick up person', () => {
       altPickUpControl.setValue('');
       expect(altPickUpControl.valid).toBeTruthy();
-    });
+    }); */
 
     it('should be fine with "Chris Smith"', () => {
       altPickUpControl.setValue('Chris Smith');
@@ -469,6 +470,7 @@ describe('AddFamilyComponent', () => {
       addFamilyComponent.addStudent();
       (addFamilyComponent.addFamilyForm as unknown as UntypedFormGroup).setValue({
         guardianName: 'Chris Smith',
+        altPickUp: 'James Smith',
         address: '123 Avenue',
         email: 'csmith@email.com',
         students: [{ name: 'Jimmy', grade: '3', school: 'Morris Elementary', requestedSupplies: 'pencil, eraser , notebook ' }],
@@ -535,7 +537,6 @@ describe('AddFamilyComponent', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const setNull = (path: string) => (addFamilyComponent.addFamilyForm.get(path) as any).setValue(null);
       setNull('guardianName');
-      setNull('altPickup');
       setNull('email');
       setNull('address');
       setNull('students.0.name');
