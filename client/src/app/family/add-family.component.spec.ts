@@ -101,6 +101,37 @@ describe('AddFamilyComponent', () => {
     });
 
   });
+  // Tests Alternate Pick Up Person Input
+  describe('The Alternate Pick Up Person field', () => {
+    let altPickUpControl: AbstractControl;
+
+    beforeEach(() => {
+      altPickUpControl = addFamilyComponent.addFamilyForm.controls.guardianName;
+    });
+
+    it('should allow empty alternate pick up person', () => {
+      altPickUpControl.setValue('');
+      expect(altPickUpControl.valid).toBeTruthy();
+    });
+
+    it('should be fine with "Chris Smith"', () => {
+      altPickUpControl.setValue('Chris Smith');
+      expect(altPickUpControl.valid).toBeTruthy();
+    });
+
+    it('should fail on single character name for an alternate pick up person', () => {
+      altPickUpControl.setValue('x');
+      expect(altPickUpControl.valid).toBeFalsy();
+      expect(altPickUpControl.hasError('minlength')).toBeTruthy();
+    });
+
+    it('should fail on really long alternate pick up person name', () => {
+      altPickUpControl.setValue('x'.repeat(100));
+      expect(altPickUpControl.valid).toBeFalsy();
+      expect(altPickUpControl.hasError('maxlength')).toBeTruthy();
+    });
+
+  });
 
   // Tests For Address Input
   describe('The address field', () => {
@@ -271,6 +302,21 @@ describe('AddFamilyComponent', () => {
   describe('Form Validation', () => {
     it('should be valid when all required fields are filled out', () => {
       addFamilyForm.controls.guardianName.setValue('Chris Smith');
+      addFamilyForm.controls.altPickUp.setValue('James Smith');
+      addFamilyForm.controls.address.setValue('123 Avenue');
+      addFamilyForm.controls.email.setValue('csmith@email.com');
+      addFamilyForm.controls.timeAvailability.setValue({ earlyMorning: false, lateMorning: true, earlyAfternoon: false, lateAfternoon: false });
+      addFamilyComponent.addStudent();
+      const student = addFamilyComponent.students.at(0);
+      student.get('name')!.setValue('Jimmy');
+      student.get('grade')!.setValue('3');
+      student.get('school')!.setValue('Morris Elementary');
+
+      expect(addFamilyForm.valid).toBeTrue();
+    });
+    it('should be valid when alternate Pick Up Person is not filled out', () => {
+      addFamilyForm.controls.guardianName.setValue('Chris Smith');
+      addFamilyForm.controls.altPickUp.setValue('');
       addFamilyForm.controls.address.setValue('123 Avenue');
       addFamilyForm.controls.email.setValue('csmith@email.com');
       addFamilyForm.controls.timeAvailability.setValue({ earlyMorning: false, lateMorning: true, earlyAfternoon: false, lateAfternoon: false });
@@ -372,6 +418,7 @@ describe('AddFamilyComponent', () => {
       addFamilyComponent.addStudent();
       (addFamilyComponent.addFamilyForm as unknown as UntypedFormGroup).setValue({
         guardianName: 'Chris Smith',
+        altPickUp: 'James Smith',
         address: '123 Avenue',
         email: 'csmith@email.com',
         students: [{ name: 'Jimmy', grade: '3', school: 'Morris Elementary', requestedSupplies: ['pencil', 'eraser', 'notebook'] }],
@@ -464,6 +511,7 @@ describe('AddFamilyComponent', () => {
       addFamilyComponent.addStudent();
       (addFamilyComponent.addFamilyForm as unknown as UntypedFormGroup).patchValue({
         guardianName: 'Chris Smith',
+        altPickup: 'James Smith',
         address: '123 Avenue',
         email: 'csmith@email.com',
         students: [{ name: 'Jimmy', grade: '3', school: 'Morris Elementary', requestedSupplies: null }],
@@ -487,6 +535,7 @@ describe('AddFamilyComponent', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const setNull = (path: string) => (addFamilyComponent.addFamilyForm.get(path) as any).setValue(null);
       setNull('guardianName');
+      setNull('altPickup');
       setNull('email');
       setNull('address');
       setNull('students.0.name');
