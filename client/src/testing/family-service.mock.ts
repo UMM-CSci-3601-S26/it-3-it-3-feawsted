@@ -14,6 +14,7 @@ export class MockFamilyService implements Pick<FamilyService, 'getFamilyById' | 
       //family with one kid
       _id: 'john_id',
       guardianName: 'John Johnson',
+      altPickUp: 'Dwayne Johnson',
       email: 'jjohnson@email.com',
       address: '713 Broadway',
       timeAvailability: { earlyMorning: false, lateMorning: true, earlyAfternoon: false, lateAfternoon: false },
@@ -31,6 +32,7 @@ export class MockFamilyService implements Pick<FamilyService, 'getFamilyById' | 
       //family with two kids
       _id: 'jane_id',
       guardianName: 'Jane Doe',
+      altPickUp: '',
       email: 'janedoe@email.com',
       address: '123 Street',
       timeAvailability: { earlyMorning: false, lateMorning: true, earlyAfternoon: false, lateAfternoon: false },
@@ -54,6 +56,7 @@ export class MockFamilyService implements Pick<FamilyService, 'getFamilyById' | 
       //family with three kids
       _id: 'george_id',
       guardianName: 'George Peterson',
+      altPickUp: 'Andrew Anderson',
       email: 'georgepeter@email.com',
       address: '245 Acorn Way',
       timeAvailability: { earlyMorning: false, lateMorning: true, earlyAfternoon: false, lateAfternoon: false },
