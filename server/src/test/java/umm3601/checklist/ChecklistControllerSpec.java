@@ -3,9 +3,12 @@ package umm3601.checklist;
 
 // Static Imports
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -47,6 +50,7 @@ import com.mongodb.client.MongoDatabase;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
+import io.javalin.http.NotFoundResponse;
 import io.javalin.json.JavalinJackson;
 import umm3601.family.Family;
 import umm3601.family.Family.StudentInfo;
@@ -213,6 +217,66 @@ class ChecklistControllerSpec {
     verify(mockServer, atLeastOnce()).post(any(), any());
     verify(mockServer, never()).patch(any(), any()); // never use patch so we confirm this
   }
+
+  @Test
+  void printChecklistByStudentPdfWorks() throws IOException {
+
+    //Creates a family with a student to test this
+    MongoCollection<Document> families = db.getCollection("families");
+    families.drop();
+
+    Document studentDoc = new Document()
+      .append("name", "Timmy")
+      .append("school","St. Mary's")
+      .append("grade","3");
+
+    Document familyDoc = new Document()
+      .append("guardianName", "Thomas Jackson")
+      .append("students", List.of(studentDoc));
+
+    families.insertOne(familyDoc);
+
+    //Create a supply list so we can test that the method reads this
+    MongoCollection<Document> supplies = db.getCollection("supplies");
+    supplies.drop();
+    supplies.insertOne(new Document()
+      .append("category", "Pencil")
+      .append("items", List.of("Markers")));
+
+    //Mock the path parameters
+    when(ctx.pathParam("name")).thenReturn("Timmy");
+
+    // Capture PDF bytes
+    ArgumentCaptor<byte[]> pdfCaptor = ArgumentCaptor.forClass(byte[].class);
+
+    // Call the controller
+    checklistController.printChecklistByStudentPdf(ctx);
+
+    // Verify headers
+    verify(ctx).contentType("application/pdf");
+    verify(ctx).header(eq("Content-Disposition"), contains("Timmy_checklist.pdf"));
+
+    // Verify PDF result
+    verify(ctx).result(pdfCaptor.capture());
+    String pdfText = new String(pdfCaptor.getValue());
+
+    assertTrue(pdfText.contains("Timmy"));
+    assertTrue(pdfText.contains("St. Mary's"));
+    //assertTrue(pdfText.contains("Markers"));
+    assertTrue(pdfText.contains("3"));
+  }
+
+  @Test
+  void printChecklistByStudentPdfNoStudent() {
+    MongoCollection<Document> families = db.getCollection("families");
+    families.drop(); // no students in DB
+
+    when(ctx.pathParam("name")).thenReturn("Ghost");
+
+    assertThrows(NotFoundResponse.class,
+        () -> checklistController.printChecklistByStudentPdf(ctx));
+  }
+
 
   // Makes sure that asking for all families returns everything in the database.
   // Also checks that the controller responds with a 200 OK. @Test
@@ -902,3 +966,72 @@ class ChecklistControllerSpec {
     assertEquals(0, result.size());
   }
 }
+// @Test
+// void exportChecklistPdfWorks() throws IOException {
+
+//   MongoCollection<Document> families = db.getCollection("families");
+//   families.drop();
+
+//   families.insertOne(new Document()
+//       .append("students", List.of(
+//           new Document()
+//               .append("name", "Elmo")
+//               .append("school", "MAHS")
+//               .append("grade", "4")
+//               .append("requestedSupplies", List.of()),
+//           new Document()
+//               .append("name", "johnny")
+//               .append("school", "AHS")
+//               .append("grade", "8")
+//               .append("requestedSupplies", List.of()),
+//           new Document()
+//               .append("name", "Rocco")
+//               .append("school", "SSHS")
+//               .append("grade", "2")
+//               .append("requestedSupplies", List.of())
+//       )));
+
+//   MongoCollection<Document> supplies = db.getCollection("supplyList");
+//   supplies.drop();
+
+//   supplies.insertMany(List.of(
+//       new Document()
+//           .append("school", "MAHS")
+//           .append("grade", "4th-Grade")
+//           .append("item", List.of("Pencils")),
+//       new Document()
+//           .append("school", "AHS")
+//           .append("grade", "8th-Grade")
+//           .append("item", List.of("Notebooks")),
+//       new Document()
+//           .append("school", "SSHS")
+//           .append("grade", "2nd-Grade")
+//           .append("item", List.of("Erasers"))
+//   ));
+
+//   ArgumentCaptor<byte[]> pdfCaptor = ArgumentCaptor.forClass(byte[].class);
+
+//   checklistController.exportChecklistsPdf(ctx);
+
+//   verify(ctx).contentType("application/pdf");
+//   verify(ctx).header("Content-Disposition", "inline; filename=checklists.pdf");
+//   verify(ctx).result(pdfCaptor.capture());
+
+//   String pdf = new String(pdfCaptor.getValue());
+
+//   assertTrue(pdf.startsWith("%PDF-1.4"));
+//   assertTrue(pdf.contains("Catalog"));
+//   assertTrue(pdf.contains("Page"));
+
+//   assertTrue(pdf.contains("Elmo"));
+//   assertTrue(pdf.contains("johnny"));
+//   assertTrue(pdf.contains("Rocco"));
+
+//   assertTrue(pdf.contains("Pencils"));
+//   assertTrue(pdf.contains("Notebooks"));
+//   assertTrue(pdf.contains("Erasers"));
+
+//   assertTrue(pdf.contains("completed: false"));
+//   assertTrue(pdf.contains("unreceived: false"));
+// }
+// }
