@@ -30,6 +30,7 @@ public class Family {
 
   // Guardian-level information (applies to the whole household)
   public String guardianName;
+  public String altPickUp;
   public String email;
   public String address;
   public String timeSlot;
@@ -75,6 +76,6 @@ public class Family {
   // Override toString for easier debugging and logging
   @Override
   public String toString() {
-    return guardianName + " " + email + " " + address;
+    return guardianName + " " + altPickUp + " " + email + " " + address;
   }
 }

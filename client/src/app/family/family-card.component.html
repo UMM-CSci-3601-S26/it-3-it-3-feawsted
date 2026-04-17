@@ -5,7 +5,9 @@
 
   <!-- Card Header -->
   <mat-card-header>
-    <mat-card-title class="family-card-guardianName">{{ family().guardianName }}</mat-card-title>
+    <mat-card-title class="family-card-guardianName">{{ family().guardianName + " Family" }}</mat-card-title>
+    @if (family()?.altPickUp) {<mat-card-subtitle class="family-card-altPickUp">
+      {{"Alternate Pick Up: " + family().altPickUp }}</mat-card-subtitle>}
     <mat-card-subtitle class="family-card-email">{{ family().email }}</mat-card-subtitle>
   </mat-card-header>
 

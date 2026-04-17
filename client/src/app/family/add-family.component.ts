@@ -76,6 +76,10 @@ export class AddFamilyComponent implements OnInit {
       Validators.minLength(2),
       Validators.maxLength(50),
     ])),
+    altPickUp: new FormControl('', Validators.compose([
+      Validators.minLength(2),
+      Validators.maxLength(50),
+    ])),
     email: new FormControl('', Validators.compose([
       Validators.required,
       Validators.email,
@@ -125,6 +129,10 @@ export class AddFamilyComponent implements OnInit {
   readonly addFamilyValidationMessages = {
     guardianName: [
       { type: 'required', message: 'Guardian name is required' },
+      { type: 'minlength', message: 'Name must be at least 2 characters long' },
+      { type: 'maxlength', message: 'Name cannot exceed 50 characters' }
+    ],
+    altPickUp: [
       { type: 'minlength', message: 'Name must be at least 2 characters long' },
       { type: 'maxlength', message: 'Name cannot exceed 50 characters' }
     ],
@@ -184,6 +192,7 @@ export class AddFamilyComponent implements OnInit {
     type RawStudent = { name: string | null; grade: string | null; school: string | null; requestedSupplies: string[] | string | null };
     const payload: Partial<import('./family').Family> = {
       guardianName: rawForm.guardianName ?? undefined,
+      altPickUp: rawForm.altPickUp ?? undefined,
       email: rawForm.email ?? undefined,
       address: rawForm.address ?? undefined,
       timeSlot: rawForm.timeSlot ?? undefined,

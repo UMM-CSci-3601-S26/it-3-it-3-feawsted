@@ -131,6 +131,7 @@ class FamilyControllerSpec {
     testFamilies.add(
       new Document()
         .append("guardianName", "Jane Doe")
+        .append("altPickUp", "")
         .append("email", "jane@email.com")
         .append("address", "123 Street")
         .append("timeSlot", "10:00-11:00")
@@ -150,6 +151,7 @@ class FamilyControllerSpec {
     testFamilies.add(
       new Document()
       .append("guardianName", "John Christensen")
+      .append("altPickUp", "Joe Hills")
       .append("email", "jchristensen@email.com")
       .append("address", "713 Broadway")
       .append("timeSlot", "8:00-9:00")
@@ -169,6 +171,7 @@ class FamilyControllerSpec {
     testFamilies.add(
       new Document()
         .append("guardianName", "John Johnson")
+        .append("altPickUp", "Jane Johnson")
         .append("email", "jjohnson@email.com")
         .append("address", "456 Avenue")
         .append("timeSlot", "2:00-3:00")
@@ -186,6 +189,7 @@ class FamilyControllerSpec {
     Document specialFamily = new Document()
       .append("_id", testFamilyId)
       .append("guardianName", "Bob Jones")
+      .append("altPickUp", "")
       .append("email", "bob@email.com")
       .append("address", "456 Oak Ave")
       .append("timeSlot", "2:00-3:00")
@@ -282,6 +286,7 @@ class FamilyControllerSpec {
   void addNewFamily() {
     Family newFamily = new Family();
     newFamily.guardianName = "Charlie Brown";
+    newFamily.altPickUp = "Caisy Brown";
     newFamily.email = "charlie@email.com";
     newFamily.address = "789 Pine St";
     newFamily.timeSlot = "Evening";
@@ -307,6 +312,7 @@ class FamilyControllerSpec {
       .first();
 
     assertEquals("Charlie Brown", added.get("guardianName"));
+    assertEquals("Caisy Brown", added.get("altPickUp"));
     assertEquals("charlie@email.com", added.get("email"));
   }
 
@@ -317,6 +323,7 @@ class FamilyControllerSpec {
     String json = """
       {
         "guardianName": "Bad Email",
+        "altPickUp": "No Pick Up",
         "email": "not-an-email",
         "address": "123 Street",
         "timeSlot": "Morning",
@@ -414,22 +421,22 @@ class FamilyControllerSpec {
 
     // Check header
     assertTrue(csv.contains(
-      "Guardian Name,Email,Address,Time Slot,Number of Students"));
+      "Guardian Name,Alternate Pick Up,Email,Address,Time Slot,Number of Students"));
 
     // Check Jane Doe (2 students)
     assertTrue(csv.contains(
-      "\"Jane Doe\",\"jane@email.com\",\"123 Street\",\"10:00-11:00\",2"));
+      "\"Jane Doe\",\"\",\"jane@email.com\",\"123 Street\",\"10:00-11:00\",2"));
 
     // Check John Christensen (2 students)
     assertTrue(csv.contains(
-      "\"John Christensen\",\"jchristensen@email.com\",\"713 Broadway\",\"8:00-9:00\",2"));
+      "\"John Christensen\",\"Joe Hills\",\"jchristensen@email.com\",\"713 Broadway\",\"8:00-9:00\",2"));
 
     // Check John Johnson (1 student)
     assertTrue(csv.contains(
-      "\"John Johnson\",\"jjohnson@email.com\",\"456 Avenue\",\"2:00-3:00\",1"));
+      "\"John Johnson\",\"Jane Johnson\",\"jjohnson@email.com\",\"456 Avenue\",\"2:00-3:00\",1"));
 
     // Check Bob Jones (1 student)
     assertTrue(csv.contains(
-      "\"Bob Jones\",\"bob@email.com\",\"456 Oak Ave\",\"2:00-3:00\",1"));
+      "\"Bob Jones\",\"\",\"bob@email.com\",\"456 Oak Ave\",\"2:00-3:00\",1"));
   }
 }

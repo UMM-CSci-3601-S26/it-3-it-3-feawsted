@@ -25,6 +25,7 @@ export interface AvailabilityOptions {
 export interface Family {
   _id?: string;
   guardianName: string;
+  altPickUp: string;
   email: string;
   address: string;
   timeSlot: string;

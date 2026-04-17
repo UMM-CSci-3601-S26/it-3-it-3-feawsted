@@ -21,6 +21,7 @@ class FamilySpec {
     family2 = new Family();
 
     family1.guardianName = "Sample Guardian";
+    family1.altPickUp = "Sample Alternate";
     family1.email = "sample@example.com";
     family1.address = "123 Sample St, Sample City, SC 12345";
   }
@@ -68,6 +69,7 @@ class FamilySpec {
 
   @Test
   void inventoryToString() {
-    assertEquals(family1.toString(), "Sample Guardian sample@example.com 123 Sample St, Sample City, SC 12345");
+    assertEquals(family1.toString(),
+     "Sample Guardian Sample Alternate sample@example.com 123 Sample St, Sample City, SC 12345");
   }
 }

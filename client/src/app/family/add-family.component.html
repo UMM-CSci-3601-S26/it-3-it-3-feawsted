@@ -22,6 +22,12 @@
                          *ngIf="formControlHasError('guardianName')">{{ getErrorMessage('guardianName') }}</mat-error>
             </mat-form-field>
 
+            <!-- Alt Pick Up Person Input Field -->
+            <mat-form-field>
+              <mat-label>Alternate Pick Up Person (optional)</mat-label>
+              <input matInput formControlName="altPickUp">
+            </mat-form-field>
+
             <!-- Email Input Field -->
             <mat-form-field>
               <mat-label>Email</mat-label>

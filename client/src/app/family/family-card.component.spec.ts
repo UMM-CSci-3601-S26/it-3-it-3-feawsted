@@ -29,6 +29,7 @@ describe('FamilyCardComponent', () => {
       // Example Family with Two Kids
       _id: 'chris_id',
       guardianName: 'Chris',
+      altPickUp: 'Chrissy',
       address: '123 Street',
       email: 'chris@email.com',
       timeSlot: '9:00-10:00',

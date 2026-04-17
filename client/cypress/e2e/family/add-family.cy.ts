@@ -44,6 +44,22 @@ describe('Add family', () => {
     page.getFormField('guardianName').clear().type('John Smith').blur();
     cy.get('[data-test=guardianNameError]').should('not.exist');
 
+    // // Before doing anything there shouldn't be an error
+    // cy.get('[data-test=altPickUpError]').should('not.exist');
+    // // Some more tests for various invalid guardian name inputs
+    // page.getFormField('altPickUp').type('J').blur();
+    // cy.get('[data-test=altPickUpError]').should('exist').and('be.visible');
+    // page
+    //   .getFormField('altPickUp')
+    //   .clear()
+    //   .type('This is a very long name that goes beyond the 50 character limit')
+    //   .blur();
+    // cy.get('[data-test=altPickUpError]').should('exist').and('be.visible');
+    // // Entering a valid guardian name should remove the error.
+    // page.getFormField('altPickUp').clear().type('John Smith').blur();
+    // cy.get('[data-test=altPickUpError]').should('not.exist');
+
+
     // Before doing anything there shouldn't be an error
     cy.get('[data-test=addressError]').should('not.exist');
     // Just clicking the address field without entering anything should cause an error message

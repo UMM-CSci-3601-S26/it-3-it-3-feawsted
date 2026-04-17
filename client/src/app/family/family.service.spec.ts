@@ -22,6 +22,7 @@ describe('FamilyService', () => {
     {
       _id: 'john_id',
       guardianName: 'John Johnson',
+      altPickUp: 'Dwayne Johnson',
       email: 'jjohnson@email.com',
       address: '713 Broadway',
       timeSlot: '8:00-9:00',
@@ -38,6 +39,7 @@ describe('FamilyService', () => {
     {
       _id: 'jane_id',
       guardianName: 'Jane Doe',
+      altPickUp: '',
       email: 'janedoe@email.com',
       address: '123 Street',
       timeSlot: '10:00-11:00',
@@ -60,6 +62,7 @@ describe('FamilyService', () => {
     {
       _id: 'george_id',
       guardianName: 'George Peterson',
+      altPickUp: 'Will Smith',
       email: 'georgepeter@email.com',
       address: '245 Acorn Way',
       timeSlot: '1:00-2:00',
