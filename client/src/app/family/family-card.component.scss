@@ -21,6 +21,22 @@
   cursor: pointer; /* Change cursor to pointer on hover */
 }
 
+.family-card {
+  position: relative; // For the absolute edit button if used
+
+  // 1. Make all form fields fill the width of the list item
+  mat-form-field {
+    width: 100%;
+    margin-top: 4px;
+
+    // This removes the bottom gap reserved for hints/errors
+    // to keep the card from becoming too tall.
+    ::v-deep .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+  }
+}
+
 .student-list {
   margin-left: 32px; /* aligns with Material icon spacing */
   padding-bottom: 8px;
@@ -34,5 +50,33 @@
 .student-icon {
   font-size: 20px;
   opacity: 0.75;
+}
+
+.checkbox-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr; // Two columns
+  gap: 8px;
+  padding: 12px 0;
+
+  mat-checkbox {
+    // Keeps text from wrapping awkwardly
+    white-space: nowrap;
+  }
+}
+
+.height-auto {
+  height: auto !important;
+  padding-bottom: 8px;
+}
+
+
+mat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  .mat-mdc-card-header-text {
+    flex-grow: 1;
+  }
 }
 

@@ -5,10 +5,29 @@
 
   <!-- Card Header -->
   <mat-card-header>
-    <mat-card-title class="family-card-guardianName">{{ family().guardianName + " Family" }}</mat-card-title>
+  <div mat-card-avatar><mat-icon>family_restroom</mat-icon></div>
+
+    <mat-card-title>
+      @if (isEditing()) {
+        <mat-form-field appearance="outline" class="dense-field">
+          <mat-label>Guardian Name</mat-label>
+          <input matInput [(ngModel)]="editForm()!.guardianName">
+        </mat-form-field>
+      } @else {
+      <span class="family-card-guardianName">{{ family().guardianName + " Family" }}</span>
+      }
+    </mat-card-title>
+    @if (!isEditing()){
     @if (family()?.altPickUp) {<mat-card-subtitle class="family-card-altPickUp">
       {{"Alternate Pick Up: " + family().altPickUp }}</mat-card-subtitle>}
+    }
+    @if (!isEditing()){
     <mat-card-subtitle class="family-card-email">{{ family().email }}</mat-card-subtitle>
+    }
+    <button mat-icon-button class="edit-button" (click)="isEditing() ? cancelEdit() : startEditing()">
+      <mat-icon>{{ isEditing() ? 'close' : 'edit' }}</mat-icon>
+    </button>
+
   </mat-card-header>
 
   <!-- Card Content -->
@@ -37,7 +56,15 @@
       <mat-list-item>
         <mat-icon matListItemIcon>home</mat-icon>
         <p matListItemTitle>Address</p>
-        <p matListItemLine class="family-card-address">{{ family().address }}</p>
+        <div matListItemLine>
+          @if (isEditing()) {
+            <mat-form-field appearance="outline" class="full-width">
+              <input matInput [(ngModel)]="editForm()!.address">
+            </mat-form-field>
+          } @else {
+            {{ family().address }}
+          }
+        </div>
       </mat-list-item>
 
       <mat-divider [inset]="true"></mat-divider>
@@ -53,7 +80,18 @@
       <mat-list-item>
         <mat-icon matListItemIcon>schedule</mat-icon>
         <p matListItemTitle>Available Times</p>
-        <p matListItemLine>{{ getAvailableTimes() }}</p>
+        <div matListItemLine>
+          @if (isEditing()) {
+            <div class="checkbox-group">
+              <mat-checkbox [(ngModel)]="editForm()!.timeAvailability.earlyMorning">Early AM</mat-checkbox>
+              <mat-checkbox [(ngModel)]="editForm()!.timeAvailability.lateMorning">Late AM</mat-checkbox>
+              <mat-checkbox [(ngModel)]="editForm()!.timeAvailability.earlyAfternoon">Early PM</mat-checkbox>
+              <mat-checkbox [(ngModel)]="editForm()!.timeAvailability.lateAfternoon">Late PM</mat-checkbox>
+            </div>
+          } @else {
+            {{ getAvailableTimes() }}
+          }
+        </div>
       </mat-list-item>
 
       <mat-divider [inset]="true"></mat-divider>
@@ -67,5 +105,12 @@
       </mat-list-item>
     </mat-list>
   </mat-card-content>
+
+  @if (isEditing()) {
+    <mat-card-actions align="end">
+      <button mat-button (click)="cancelEdit()">CANCEL</button>
+      <button mat-raised-button color="primary" (click)="saveEdit()">SAVE CHANGES</button>
+    </mat-card-actions>
+  }
 </mat-card>
 }
