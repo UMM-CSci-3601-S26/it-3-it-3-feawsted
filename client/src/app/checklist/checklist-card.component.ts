@@ -44,6 +44,7 @@ export class ChecklistCardComponent {
   }
 
   downloadPDFforIndividualChecklist() {
+    console.log('Checklist ID being sent:', this.checklist()._id);
     this.checklistService.printIndividualChecklist(this.checklist()._id).subscribe({
       error: (err) => {
         this.snackBar.open(`Failed to load checklist: ${err.message}`, 'OK', { duration: 6000 });

@@ -11,13 +11,16 @@ import org.mongojack.JacksonMongoCollection;
 import org.bson.Document;
 import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
 // Com Imports
 // import com.mongodb.client.model.Filters;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 
 // IO Imports
 import io.javalin.Javalin;
+import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 import io.javalin.http.NotFoundResponse;
@@ -62,7 +65,7 @@ public class ChecklistController implements Controller {
   // private static final String API_CHECKLIST_PRINT = "/api/checklists/print";
   // private static final String API_CHECKLIST_BY_NAME = "/api/checklists/student/{name}";
   // private static final String API_CHECKLIST_FAMILY = "/api/checklists/family/{guardianName}";
-  // private static final String API_CHECKLIST_BY_ID = "/api/checklists/{id}";
+  private static final String API_CHECKLIST_BY_ID = "/api/checklists/{id}";
   // private static final String API_CHECKLIST_ITEM = "/api/checklists/{id}/item/{index}";
 
   static final String SCHOOL_KEY = "school";
@@ -285,7 +288,9 @@ public class ChecklistController implements Controller {
                   break;
               }
           }
-          if (checklist != null) break;
+          if (checklist != null) {
+            break;
+          }
       }
 
       if (checklist == null) {
@@ -342,7 +347,7 @@ public class ChecklistController implements Controller {
       byte[] pdfBytes = pdf.toString().getBytes();
 
       ctx.contentType("application/pdf");
-      ctx.header("Content-Disposition", "inline; filename=" + name + "_checklist.pdf");
+      ctx.header("Content-Disposition", "inline; filename=checklist.pdf");
       ctx.result(pdfBytes);
   }
 
@@ -456,20 +461,22 @@ public class ChecklistController implements Controller {
   }
 
   // // GET /api/checklist/{id} — get a single stored checklist by id
-  // public void getStoredChecklistById(Context ctx) {
-  //   String id = ctx.pathParam("id");
-  //   Checklist checklist;
-  //   try {
-  //     checklist = checklistCollection.find(Filters.eq("_id", new ObjectId(id))).first();
-  //   } catch (IllegalArgumentException e) {
-  //     throw new BadRequestResponse("Invalid checklist ID.");
-  //   }
-  //   if (checklist == null) {
-  //     throw new NotFoundResponse("Checklist not found.");
-  //   }
-  //   ctx.json(checklist);
-  //   ctx.status(HttpStatus.OK);
-  // }
+  public void getStoredChecklistById(Context ctx) {
+    String id = ctx.pathParam("id");
+     System.out.println("Looking for checklist ID: " + id);
+
+    Checklist checklist;
+    try {
+      checklist = checklistCollection.find(Filters.eq("_id", new ObjectId(id))).first();
+    } catch (IllegalArgumentException e) {
+      throw new BadRequestResponse("Invalid checklist ID.");
+    }
+    if (checklist == null) {
+      throw new NotFoundResponse("Checklist not found.");
+    }
+    ctx.json(checklist);
+    ctx.status(HttpStatus.OK);
+  }
 
   // // PATCH /api/checklist/{id}/item/{index} — update a single item (completed,
   // // unreceived, selectedOption)
@@ -525,7 +532,7 @@ public class ChecklistController implements Controller {
     server.get(API_CHECKLIST, this::getStoredChecklists);
     server.get("/checklists/export/pdf", this::exportChecklistsPdf);
 
-    // server.get(API_CHECKLIST_BY_ID, this::getStoredChecklistById);
+    server.get(API_CHECKLIST_BY_ID, this::getStoredChecklistById);
     // server.patch(API_CHECKLIST_ITEM, this::updateChecklistItem);
   }
 }

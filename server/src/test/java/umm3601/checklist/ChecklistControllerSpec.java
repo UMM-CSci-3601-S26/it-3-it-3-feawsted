@@ -227,8 +227,8 @@ class ChecklistControllerSpec {
 
     Document studentDoc = new Document()
       .append("name", "Timmy")
-      .append("school","St. Mary's")
-      .append("grade","3");
+      .append("school", "St. Mary's")
+      .append("grade", "3");
 
     Document familyDoc = new Document()
       .append("guardianName", "Thomas Jackson")
@@ -254,7 +254,7 @@ class ChecklistControllerSpec {
 
     // Verify headers
     verify(ctx).contentType("application/pdf");
-    verify(ctx).header(eq("Content-Disposition"), contains("Timmy_checklist.pdf"));
+    verify(ctx).header(eq("Content-Disposition"), contains("checklist.pdf"));
 
     // Verify PDF result
     verify(ctx).result(pdfCaptor.capture());
