@@ -6,12 +6,27 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.regex;
 
-// Org Imports
-import org.mongojack.JacksonMongoCollection;
+import java.io.File;
+// Java Imports
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import org.bson.Document;
 import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
+// Org Imports
+import org.mongojack.JacksonMongoCollection;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 // Com Imports
 // import com.mongodb.client.model.Filters;
 import com.mongodb.client.MongoDatabase;
@@ -20,23 +35,11 @@ import com.mongodb.client.MongoDatabase;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
-
-// Java Imports
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.regex.Pattern;
-
 // Misc Imports
 import umm3601.Controller;
-import umm3601.checklist.Checklist.ChecklistItem;
 import umm3601.family.Family;
 import umm3601.family.Family.StudentInfo;
+import umm3601.purchaselist.Purchaselist.PurchaselistItem;
 import umm3601.settings.Settings;
 import umm3601.settings.SettingsController;
 import umm3601.supplylist.SupplyList;
@@ -54,6 +57,42 @@ import umm3601.supplylist.SupplyList;
  * will be used
  * help calculate supplies demands.
  */
+
+
+
+//Purchase list info for bottom code
+
+class Item {
+    public String item;
+    public String brand;
+    public String size;
+    public String color;
+    public List<String> type;
+    public List<String> style;
+    public List<String> material;
+    public int count;
+    public int quantity;
+    public String notes;
+
+
+
+@Override
+public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof Item)) return false;
+    Item other = (Item) o;
+
+    return Objects.equals(item, other.item) &&
+           Objects.equals(brand, other.brand) &&
+           Objects.equals(size, other.size) &&
+           Objects.equals(color, other.color);
+}
+
+@Override
+public int hashCode() {
+    return Objects.hash(item, brand, size, color);
+}
+}
 
 public class PurchaselistController implements Controller {
 
@@ -95,6 +134,35 @@ public class PurchaselistController implements Controller {
     settingsCollection = JacksonMongoCollection.builder().build(
         db, "settings", Settings.class, UuidRepresentation.STANDARD);
   }
+
+
+//Purchase compare code
+public static void compare(String[] args) throws Exception {
+    ObjectMapper mapper = new ObjectMapper();
+
+    List<Item> inventory = mapper.readValue(
+        new File("inventory.json"),
+        new TypeReference<List<Item>>() {}
+    );
+
+    List<Item> supplyList = mapper.readValue(
+        new File("supplyList.json"),
+        new TypeReference<List<Item>>() {}
+    );
+
+    Set<Item> inventorySet = new HashSet<>(inventory);
+
+    List<Item> missingItems = new ArrayList<>();
+
+    for (Item item : supplyList) {
+        if (!inventorySet.contains(item)) {
+            missingItems.add(item);
+        }}}
+
+
+
+
+
 
   // Normalizes a school name for matching: lowercase, strip trailing " school"
   static String normalizeSchool(String s) {
@@ -515,4 +583,44 @@ public class PurchaselistController implements Controller {
     // server.get(API_CHECKLIST_BY_ID, this::getStoredPurchaselistById);
     // server.patch(API_CHECKLIST_ITEM, this::updateChecklistItem);
   }
-}
+
+
+  //Purchase list simple(delete later)
+//   public class Compare {
+//    public static void main(String[] args) throws Exception {
+//        ObjectMapper mapper = new ObjectMapper();
+
+//        // Reads JSON files
+//        List<String> inventory = mapper.readValue(
+//                new File("inventory.json"),
+//                new TypeReference<List<String>>() {}
+//        );
+
+//        List<String> supplyList = mapper.readValue(
+//                new File("supplyList.json"),
+//                new TypeReference<List<String>>() {}
+//        );
+
+//        // Convert to Set
+//        Set<String> inventorySet = new HashSet<>(inventory);
+
+//        // Find missing items
+//        List<String> missingItems = new ArrayList<>();
+//        for (String item : supplyList) {
+//            if (!inventorySet.contains(item)) {
+//                missingItems.add(item);
+//            }
+//        }
+
+//        // Write output
+//        mapper.writerWithDefaultPrettyPrinter()
+//              .writeValue(new File("missingItems.json"), missingItems);
+
+//        System.out.println("Missing items: " + missingItems);
+//    }
+// }
+
+
+
+
+      }
