@@ -35,13 +35,12 @@ import { FamilyService } from './family.service';
     MatSelectModule,
     MatOptionModule,
     MatRadioModule,
-    FamilyCardComponent,
     MatListModule,
     RouterLink,
     MatButtonModule,
     MatTooltipModule,
     MatIconModule,
-    FamilyCardComponent
+    FamilyCardComponent,
   ],
 })
 

@@ -80,3 +80,29 @@ mat-card-header {
   }
 }
 
+.student-edit-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 2fr auto; // Name, Grade, School, Delete Button
+  gap: 8px;
+  width: 100%;
+  align-items: center;
+  padding: 4px 0;
+
+  mat-form-field {
+    width: 100%;
+    // Removes the extra space for error messages to keep the card compact
+    ::v-deep .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+  }
+}
+
+.editing-student {
+  height: auto !important; // Allows the list item to grow for inputs
+  min-height: 56px;
+  padding: 8px 0;
+}
+
+.student-list {
+  margin-left: 16px;
+}

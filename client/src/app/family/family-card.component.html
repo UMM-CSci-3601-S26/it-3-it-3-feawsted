@@ -34,20 +34,45 @@
   <mat-card-content>
     <mat-list>
       <!-- Students List Header -->
-      <mat-list-item>
-        <mat-icon matListItemIcon>people</mat-icon>
-        <p matListItemTitle>Students</p>
-      </mat-list-item>
+<mat-list dense class="student-list">
+  <mat-list-item>
+    <mat-icon matListItemIcon>people</mat-icon>
+    <p matListItemTitle>Students</p>
+    @if (isEditing()) {
+      <button mat-icon-button matListItemMeta (click)="addStudent()" color="primary">
+        <mat-icon>person_add</mat-icon>
+      </button>
+    }
+  </mat-list-item>
 
-      <!-- Student List -->
-      <mat-list dense class="student-list">
-        @for (student of family().students ?? []; track student.name) {
-          <mat-list-item class="student-item">
-            <mat-icon matListItemIcon class="student-icon">person</mat-icon>
-            <p matListItemTitle>{{ student.name }}</p>
-          </mat-list-item>
-        }
-      </mat-list>
+  @for (student of (isEditing() ? editForm()?.students : family().students) ?? []; track $index) {
+    <mat-list-item class="student-item" [class.editing-student]="isEditing()">
+      <mat-icon matListItemIcon class="student-icon">person</mat-icon>
+
+      @if (isEditing()) {
+        <div class="student-edit-grid">
+          <mat-form-field appearance="outline" dense>
+            <input matInput [(ngModel)]="student.name" placeholder="Name">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" dense>
+            <input matInput [(ngModel)]="student.grade" placeholder="Grade">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" dense>
+            <input matInput [(ngModel)]="student.school" placeholder="School">
+          </mat-form-field>
+
+          <button mat-icon-button color="warn" (click)="removeStudent($index)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      } @else {
+        <p matListItemTitle>{{ student.name }}</p>
+      }
+    </mat-list-item>
+  }
+</mat-list>
 
       <mat-divider inset></mat-divider>
 
@@ -98,11 +123,36 @@
 
       <!-- Email -->
       <mat-list-item>
-        <a href="mailto:{{family().email}}" matListItemIcon><mat-icon>mail</mat-icon></a>
+         @if (isEditing()) {
+          <mat-icon matListItemIcon>mail</mat-icon>
+        } @else {
+         <a href="mailto:{{family().email}}" matListItemIcon>
+            <mat-icon>mail</mat-icon>
+         </a>
+       }
+
         <p matListItemTitle>Email</p>
-        <a matListItemLine class="family-card-email" href="mailto:{{family().email}}">{{family().email}}</a>
-        <a href="mailto:{{family().email}}" matListItemMeta mat-icon-button><mat-icon>open_in_new</mat-icon></a>
-      </mat-list-item>
+
+        @if (isEditing()) {
+          <mat-form-field appearance="outline" class="full-width">
+           <input
+              matInput
+             type="email"
+              [(ngModel)]="editForm()!.email"
+             placeholder="example@email.com">
+          </mat-form-field>
+       } @else {
+         <a matListItemLine class="family-card-email" href="mailto:{{family().email}}">
+           {{ family().email }}
+          </a>
+        }
+
+        @if (!isEditing()) {
+          <a href="mailto:{{family().email}}" matListItemMeta mat-icon-button>
+            <mat-icon>open_in_new</mat-icon>
+          </a>
+        }
+        </mat-list-item>
     </mat-list>
   </mat-card-content>
 

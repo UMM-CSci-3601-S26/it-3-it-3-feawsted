@@ -37,7 +37,7 @@ import { Family } from './family';
 export class FamilyCardComponent {
   family = input.required<Family>();
 
-  // Emit the updated family object to the parent component
+
   familyUpdated = output<Family>();
 
   // State management
@@ -65,6 +65,64 @@ export class FamilyCardComponent {
     this.isEditing.set(false);
   }
 
+
+  /*  editingFamilyId: string | null = null;
+  private editingBackup: Family | null = null;
+  private readonly NEW_FAMILY_ID = '__new__';
+
+  startEdit(family: Family) {
+    this.editingFamilyId = family._id ?? null;
+    this.editingBackup = JSON.parse(JSON.stringify(family));
+  }
+
+  /**
+     * Saves the edited row by calling the PUT endpoint,
+     * then exits edit mode.
+     */
+  /*  saveEdit(family: Family) {
+    if (!family._id) {
+      return;
+    }
+    if (family._id === this.NEW_FAMILY_ID) {
+      // New row: POST to create it, then store the real _id assigned by the server
+      const { _id: _discarded, ...newItem } = family; // eslint-disable-line @typescript-eslint/no-unused-vars
+      this.familyService.addFamily(newItem).subscribe({
+        next: (id) => {
+          family._id = id;
+          this.editingFamilyId = null;
+          this.editingBackup = null;
+        },
+        error: (err) => {
+          this.errMsg.set(`Problem adding item – Error Code: ${err.status}\nMessage: ${err.message}`);
+        }
+      });
+    } else {
+      this.familyService.editFamily(family._id, family).subscribe({
+        next: () => {
+          this.editingFamilyId = null;
+          this.editingBackup = null;
+        },
+        error: (err) => {
+          this.errMsg.set(`Problem saving item – Error Code: ${err.status}\nMessage: ${err.message}`);
+        }
+      });
+    }
+  }
+
+  /**
+     * Cancels editing, reverting the row to its original values.
+     *//*
+     // cancelEdit(family: Family) {
+    if (family._id === this.NEW_FAMILY_ID) {
+      // Discard the unsaved new row entirely
+      this.dataSource.data = this.dataSource.data.filter(i => i._id !== this.NEW_FAMILY_ID);
+    } else if (this.editingBackup) {
+      Object.assign(family, this.editingBackup);
+    }
+    this.editingFamilyId = null;
+    this.editingBackup = null;
+  } */
+
   getAvailableTimes(): string {
     const a = this.family().timeAvailability;
     if (!a) {
@@ -86,4 +144,30 @@ export class FamilyCardComponent {
     return times.length ? times.join(', ') : 'None';
   }
 
+  // Add these inside your FamilyCardComponent class
+  addStudent() {
+    const current = this.editForm();
+    if (current) {
+    // We update the signal by creating a new array with a blank student
+      this.editForm.set({
+        ...current,
+        students: [
+          ...(current.students ?? []),
+          { name: '', grade: '', school: '', requestedSupplies: [] }
+        ]
+      });
+    }
+  }
+
+  removeStudent(index: number) {
+    const current = this.editForm();
+    if (current && current.students) {
+      const updatedStudents = [...current.students];
+      updatedStudents.splice(index, 1);
+      this.editForm.set({
+        ...current,
+        students: updatedStudents
+      });
+    }
+  }
 }
