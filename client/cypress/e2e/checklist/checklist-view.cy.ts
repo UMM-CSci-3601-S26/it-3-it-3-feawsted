@@ -17,6 +17,35 @@ describe('Checklist view', () => {
     page.getChecklistTitle().should('have.text', 'Checklists');
   });
 
+  it('filters checklists by student name', () => {
+    cy.intercept('GET', '/api/checklists*').as('filter');
+
+    cy.get('[data-cy=filter-student-name]')
+      .scrollIntoView({ offset: { top: 150, left: 0 } })
+      .click({ force: true })
+      .type('John');
+
+    cy.wait('@filter').then(({ request }) => {
+      expect(request.query.studentName).to.eq('John');
+    });
+  });
+
+  it('resets all filters', () => {
+    cy.intercept('GET', '/api/checklists*').as('filter');
+    cy.get('[data-cy=filter-student-name]')
+      .scrollIntoView({ offset: { top: 150, left: 0 } })
+      .click({ force: true })
+      .type('John');
+
+    cy.get('[data-cy=filter-clear]').click();
+
+
+    cy.get('[data-cy=filter-student-name]')
+      .scrollIntoView({ offset: { top: 150, left: 0 } })
+      .click({ force: true })
+      .should('have.value', '');
+  });
+
   it('Should show display checklists after generating checklists', () => {
     //Intercepting the POST request to /api/checklists and aliasing it as 'generateChecklists' so we can wait for it later
     cy.intercept('POST', '/api/checklists*').as('generateChecklists');
@@ -32,6 +61,19 @@ describe('Checklist view', () => {
 
     //Asserting that the checklist cards and list items exits
     page.getChecklistCards().should('exist');
+  });
+
+  it('downloads a PDF for all checklists', () => {
+    cy.intercept('GET', '/api/checklists*').as('getChecklists');
+
+    cy.window().then(win => {
+      cy.stub(win.URL, 'createObjectURL').as('createObjectURL');
+    });
+
+    cy.get('[data-test=exportPDFButton]').first().click();
+
+    cy.wait('@getChecklists');
+    cy.get('@createObjectURL').should('have.been.called');
   });
 
   it('Should show an error message if server fails', () => {

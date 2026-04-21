@@ -229,27 +229,29 @@ describe('ChecklistService', () => {
   });
 
   describe('printIndividualChecklist()', () => {
+
     it('should call GET /api/checklists/:id with the correct ID parameter', () => {
       const checklistId = '123';
+      const mockChecklist = testChecklists[0];
+
       checklistService.printIndividualChecklist(checklistId).subscribe(result => {
-        expect(result).toEqual(testChecklists);
-        expect(result.length).toBe(2);
+        expect(result).toEqual(mockChecklist);
       });
 
-      const req = httpTestingController.expectOne(req =>
-        req.method === 'GET' && req.url === `${checklistService.checklistUrl}/${checklistId}`
+      const req = httpTestingController.expectOne(
+        `${checklistService.checklistUrl}/${checklistId}`
       );
       expect(req.request.method).toBe('GET');
-      expect(req.request.params.keys().length).toBe(0);
-      req.flush(testChecklists);
+      req.flush(mockChecklist);
     });
 
-    it('should return an Observable of Checklist[]', () => {
+    it('should return an Observable of Checklist', () => {
       const checklistId = '123';
-      const mockedMethod = spyOn(httpClient, 'get').and.returnValue(of(testChecklists));
+      const mockChecklist = testChecklists[0];
+      const mockedMethod = spyOn(httpClient, 'get').and.returnValue(of(mockChecklist));
 
       checklistService.printIndividualChecklist(checklistId).subscribe(result => {
-        expect(result).toEqual(testChecklists);
+        expect(result).toEqual(mockChecklist);
         expect(mockedMethod).toHaveBeenCalledTimes(1);
         expect(mockedMethod).toHaveBeenCalledWith(`${checklistService.checklistUrl}/${checklistId}`);
       });
