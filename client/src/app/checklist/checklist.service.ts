@@ -51,8 +51,8 @@ export class ChecklistService {
   }
 
   // Method to fetch the details of a specific checklist by its ID from the API. It constructs the appropriate HTTP request and returns an Observable of a Checklist object.
-  getChecklistById(id: string): Observable<Checklist> {
-    return this.httpClient.get<Checklist>(`${this.checklistUrl}/${id}`);
+  getChecklistById(_id: string): Observable<Checklist> {
+    return this.httpClient.get<Checklist>(`${this.checklistUrl}/${_id}`);
   }
 
   // Method to export checklist data in CSV format by sending a GET request to the API endpoint for exporting. It returns an Observable of the CSV data as a string.
@@ -63,6 +63,10 @@ export class ChecklistService {
   // }
   printAllChecklists(): Observable<Checklist[]> {
     return this.httpClient.get<Checklist[]>(this.checklistUrl);
+  }
+
+  printIndividualChecklist(_id: string): Observable<Checklist> {
+    return this.httpClient.get<Checklist>(`${this.checklistUrl}/${_id}`);
   }
 
   // downloadPDF() {

@@ -116,7 +116,7 @@ export class ChecklistViewComponent {
     this.grade.set(undefined);
   }
 
-  downloadPDF() {
+  downloadPDFforChecklists() {
     this.checklistService.printAllChecklists().subscribe({
       error: (err) => {
         this.snackBar.open(`Failed to load checklists: ${err.message}`, 'OK', { duration: 6000 });

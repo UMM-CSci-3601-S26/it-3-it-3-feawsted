@@ -8,7 +8,7 @@ import { SupplyList } from 'src/app/supplylist/supplylist';
 @Injectable({
   providedIn: AppComponent
 })
-export class MockChecklistService implements Pick<ChecklistService, 'getChecklists' | 'getChecklistById' | 'generateChecklists' | 'printAllChecklists'> {
+export class MockChecklistService implements Pick<ChecklistService, 'getChecklists' | 'getChecklistById' | 'printIndividualChecklist' | 'generateChecklists' | 'printAllChecklists'> {
   static mockSupply1: SupplyList = {
     school: "Herman",
     grade: "7",
@@ -86,7 +86,23 @@ export class MockChecklistService implements Pick<ChecklistService, 'getChecklis
         }
       ]
     }
-  ];
+  ]
+
+  static mockChecklist: Checklist = {
+    _id: 'mock_id',
+    studentName: 'Mock Student',
+    grade: '1',
+    school: 'Mock School',
+    requestedSupplies: ['backpack'],
+    checklist: [
+      {
+        supply: MockChecklistService.mockSupply1,
+        completed: false,
+        unreceived: false,
+        selectedOption: ''
+      }
+    ]
+  };
 
   getChecklists(): Observable<Checklist[]> {
     return of(MockChecklistService.testChecklists);
@@ -110,7 +126,12 @@ export class MockChecklistService implements Pick<ChecklistService, 'getChecklis
     }
   }
 
-  // exportChecklists(): Observable<string> {
-  //   return of('csv-data');
-  // }
+  printIndividualChecklist(id: string): Observable<Checklist> {
+    if (id === MockChecklistService.mockChecklist._id) {
+      return of(MockChecklistService.mockChecklist);
+    }
+
+    //fallback so checklist is always returned
+    return of(MockChecklistService.mockChecklist);
+  }
 }

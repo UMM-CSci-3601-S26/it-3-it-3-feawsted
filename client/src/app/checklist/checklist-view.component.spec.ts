@@ -293,7 +293,7 @@ describe('Checklist list', () => {
     });
   });
 
-  describe('downloadPDF()', () => {
+  describe('downloadPDFforChecklists()', () => {
     let checklistService: ChecklistService;
 
     beforeEach(() => {
@@ -306,7 +306,7 @@ describe('Checklist list', () => {
     it('should call printAllChecklists on the service', fakeAsync(() => {
       spyOn(checklistService, 'printAllChecklists').and.returnValue(of(MockChecklistService.testChecklists));
 
-      checklistList.downloadPDF();
+      checklistList.downloadPDFforChecklists();
       tick();
 
       expect(checklistService.printAllChecklists).toHaveBeenCalled();
@@ -315,7 +315,7 @@ describe('Checklist list', () => {
     it('should trigger a file download when given valid checklists', fakeAsync(() => {
       spyOn(checklistService, 'printAllChecklists').and.returnValue(of(MockChecklistService.testChecklists));
 
-      checklistList.downloadPDF();
+      checklistList.downloadPDFforChecklists();
       tick();
 
       expect(URL.createObjectURL).toHaveBeenCalled();
@@ -324,7 +324,7 @@ describe('Checklist list', () => {
     it('should add a page for each checklist after the first', fakeAsync(() => {
       spyOn(checklistService, 'printAllChecklists').and.returnValue(of(MockChecklistService.testChecklists));
 
-      checklistList.downloadPDF();
+      checklistList.downloadPDFforChecklists();
       tick();
 
       // With multiple checklists the PDF is still generated and a download is triggered
@@ -342,7 +342,7 @@ describe('Checklist list', () => {
         afterDismissed: () => of({ dismissedByAction: false }),
       } as unknown as MatSnackBarRef<SimpleSnackBar>);
 
-      checklistList.downloadPDF();
+      checklistList.downloadPDFforChecklists();
       tick();
 
       expect(snackBar.open).toHaveBeenCalledWith(
@@ -363,7 +363,7 @@ describe('Checklist list', () => {
         afterDismissed: () => of({ dismissedByAction: false }),
       } as unknown as MatSnackBarRef<SimpleSnackBar>);
 
-      checklistList.downloadPDF();
+      checklistList.downloadPDFforChecklists();
       tick();
 
       expect(URL.createObjectURL).not.toHaveBeenCalled();

@@ -5,18 +5,22 @@ import { ChecklistCardComponent } from './checklist-card.component';
 // Family Interface Import
 import { Checklist } from './checklist';
 import { MockChecklistService } from 'src/testing/checklist-service.mock';
+import { ChecklistService } from './checklist.service';
+//import { throwError } from 'rxjs'; //of
 
 // Test suite for the FamilyCardComponent, which displays information about a family and their requested supplies
 describe('ChecklistCardComponent', () => {
   let component: ChecklistCardComponent;
   let fixture: ComponentFixture<ChecklistCardComponent>;
   let expectedChecklist: Checklist;
+  let saveSpy: jasmine.Spy;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
-        ChecklistCardComponent
-      ]
+        ChecklistCardComponent],
+      providers: [
+        { provide: ChecklistService, useClass: MockChecklistService }]
     })
     // Compile the component and its template before running tests
       .compileComponents();
@@ -24,8 +28,25 @@ describe('ChecklistCardComponent', () => {
 
   // Set up the component instance and provide it with a sample family before each test
   beforeEach(() => {
-    fixture = TestBed.createComponent(ChecklistCardComponent);
-    component = fixture.componentInstance;
+    saveSpy = jasmine.createSpy('save');
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as unknown as { jsPDF: () => any }).jsPDF = function () {};
+
+    // Now safely spy on it without using <any>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    spyOn(window as unknown as { jsPDF: () => any }, 'jsPDF').and.returnValue({
+      internal: { pageSize: { getWidth: () => 200, getHeight: () => 300 } },
+      setFontSize: () => {},
+      setFont: () => {},
+      text: () => {},
+      line: () => {},
+      rect: () => {},
+      splitTextToSize: () => ['line1'],
+      addPage: () => {},
+      save: saveSpy
+    });
+
 
     expectedChecklist = {
       _id: 'chris_id',
@@ -43,8 +64,10 @@ describe('ChecklistCardComponent', () => {
       ]
     };
 
+    fixture = TestBed.createComponent(ChecklistCardComponent);
     fixture.componentRef.setInput('checklist', expectedChecklist);
     fixture.detectChanges();
+    component = fixture.componentInstance;
   });
 
   it('should create', () => {
@@ -59,6 +82,7 @@ describe('ChecklistCardComponent', () => {
     expect(component.checklist().studentName).toEqual('Chris');
   });
 
+
   it('should correctly format a supply label without "?"', () => {
     const supply = MockChecklistService.mockSupply3;
 
@@ -71,4 +95,35 @@ describe('ChecklistCardComponent', () => {
     expect(label).not.toContain('?');
   });
 
+  //describe('downloadPDFforIndividualChecklist()', () => {
+
+  // it('should call ChecklistService with the correct ID and save a PDF', () => {
+  //   const service = TestBed.inject(ChecklistService) as MockChecklistService;
+
+  //   // Mock service response
+  //   spyOn(service, 'printIndividualChecklist').and.returnValue(of(expectedChecklist));
+
+  //   component.downloadPDFforIndividualChecklist();
+
+  //   expect(service.printIndividualChecklist).toHaveBeenCalledWith('chris_id');
+  //   expect(saveSpy).toHaveBeenCalled();
+  // });
+
+  // it('should show a snackbar when the service errors', () => {
+  //   const service = TestBed.inject(ChecklistService) as MockChecklistService;
+  //   const snackSpy = spyOn(component['snackBar'], 'open');
+
+  //   spyOn(service, 'printIndividualChecklist').and.returnValue(
+  //     throwError(() => new Error('Failed'))
+  //   );
+
+  //   component.downloadPDFforIndividualChecklist();
+
+  //   expect(snackSpy).toHaveBeenCalledWith(
+  //     'Failed to load checklist: Failed',
+  //     'OK',
+  //     { duration: 6000 }
+  //   );
+  // });
+  //});
 });
