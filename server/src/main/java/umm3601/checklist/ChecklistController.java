@@ -71,6 +71,8 @@ public class ChecklistController implements Controller {
   static final String SCHOOL_KEY = "school";
   static final String GRADE_KEY = "grade";
   static final String NAME_KEY = "studentName";
+  static final String GUARDIAN_NAME_KEY = "guardianName";
+  static final String ALT_PICKUP_KEY = "altPickup";
   static final String REQUESTED_SUPPLIES_KEY = "requestedSupplies";
 
   private final JacksonMongoCollection<Family> familyCollection;
@@ -180,7 +182,9 @@ public class ChecklistController implements Controller {
   }
 
   // Builds a Checklist for a single student from the supply list (not persisted)
-  public Checklist createChecklist(StudentInfo student, List<SupplyList> allSupplies) {
+  public Checklist createChecklist(
+    StudentInfo student, String guardianName, String altPickUp, List<SupplyList> allSupplies
+  ) {
     String studentSchool = normalizeSchool(student.school);
     String studentGrade = normalizeGrade(student.grade);
     List<Checklist.ChecklistItem> items = allSupplies.stream()
@@ -192,6 +196,8 @@ public class ChecklistController implements Controller {
 
     Checklist checklist = new Checklist();
     checklist.studentName = student.name; // can't display last name, so maybe guardian name instead?
+    checklist.guardianName = guardianName;
+    checklist.altPickUp = altPickUp;
     checklist.school = student.school;
     checklist.grade = student.grade;
     checklist.requestedSupplies = student.requestedSupplies;
@@ -207,7 +213,10 @@ public class ChecklistController implements Controller {
     List<Checklist> checklists = familyCollection.find()
         .into(new ArrayList<>())
         .stream()
-        .flatMap(f -> f.students.stream().map(s -> createChecklist(s, pdfSupplies)))
+        .flatMap((Family f) ->
+          f.students.stream()
+            .map((StudentInfo s) ->
+              createChecklist(s, f.guardianName, f.altPickUp,  pdfSupplies)))
         .collect(Collectors.toList());
 
     // Build PDF content manually
@@ -226,6 +235,8 @@ public class ChecklistController implements Controller {
         text.append("(")
             .append("Student: ").append(c.studentName)
             .append(" (")
+            .append(c.guardianName)
+            .append(c.altPickUp)
             .append(c.school)
             .append(", Grade ")
             .append(c.grade)
@@ -284,7 +295,7 @@ public class ChecklistController implements Controller {
       for (Family family : familyCollection.find().into(new ArrayList<>())) {
           for (StudentInfo student : family.students) {
               if (student.name.equalsIgnoreCase(name)) {
-                  checklist = createChecklist(student, pdfSupplies);
+                  checklist = createChecklist(student, family.guardianName, family.altPickUp, pdfSupplies);
                   break;
               }
           }
@@ -310,6 +321,8 @@ public class ChecklistController implements Controller {
       // Header
       text.append("(")
           .append("Student: ").append(checklist.studentName)
+          .append("Guardian: ").append(checklist.guardianName)
+          .append(" | Alt Pickup: ").append(checklist.altPickUp)
           .append(" (").append(checklist.school)
           .append(", Grade ").append(checklist.grade)
           .append(")")
@@ -384,7 +397,9 @@ public class ChecklistController implements Controller {
 
     final List<SupplyList> allSupplies = expandHighSchoolSupplies(orderedSupplies);
     List<Checklist> checklists = familyCollection.find().into(new ArrayList<>()).stream()
-        .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
+        .flatMap((Family f) ->
+          f.students.stream()
+            .map((StudentInfo s) -> createChecklist(s, f.guardianName, f.altPickUp, rawSupplies)))
         .collect(Collectors.toList());
     checklistCollection.insertMany(checklists);
     ctx.json(checklists);

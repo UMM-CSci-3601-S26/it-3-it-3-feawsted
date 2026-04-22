@@ -60,6 +60,8 @@ export class ChecklistViewComponent {
   private route = inject(ActivatedRoute);
 
   studentName = signal<string | undefined>(undefined);
+  guardianName = signal<string | undefined>(undefined);
+  altPickUp = signal<string | undefined>(undefined);
   school = signal<string | undefined>(undefined);
   grade = signal<string | undefined>(undefined);
   refreshTrigger = signal(0);
@@ -75,15 +77,17 @@ export class ChecklistViewComponent {
   }
 
   private studentName$ = toObservable(this.studentName);
+  private guardianName$ = toObservable(this.guardianName);
+  private altPickUp$ = toObservable(this.altPickUp);
   private school$ = toObservable(this.school);
   private grade$ = toObservable(this.grade);
   private refresh$ = toObservable(this.refreshTrigger);
 
   serverFilteredChecklists = toSignal(
-    combineLatest([this.studentName$, this.school$, this.grade$, this.refresh$]).pipe(
+    combineLatest([this.studentName$, this.guardianName$, this.altPickUp$, this.school$, this.grade$, this.refresh$]).pipe(
       debounceTime(300),
-      switchMap(([studentName, school, grade]) =>
-        this.checklistService.getChecklists({ studentName, school, grade })
+      switchMap(([studentName, guardianName, altPickUp, school, grade]) =>
+        this.checklistService.getChecklists({ studentName, guardianName, altPickUp, school, grade })
       ),
       catchError((err) => {
         if (!(err.error instanceof ErrorEvent)) {

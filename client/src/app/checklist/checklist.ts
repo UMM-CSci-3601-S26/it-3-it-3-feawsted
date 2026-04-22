@@ -2,7 +2,9 @@ import { SupplyList } from "../supplylist/supplylist";
 
 export interface Checklist {
   _id: string;
-  studentName: string
+  studentName: string;
+  guardianName: string;
+  altPickUp: string;
   school: string;
   grade: string;
   requestedSupplies: string[];

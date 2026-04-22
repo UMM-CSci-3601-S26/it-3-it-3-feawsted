@@ -16,6 +16,8 @@ public class Checklist {
   public String _id;
 
   public String studentName;
+  public String guardianName;
+  public String altPickUp;
   public String school;
   public String grade;
   public List<String> requestedSupplies;

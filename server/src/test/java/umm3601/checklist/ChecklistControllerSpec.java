@@ -382,14 +382,21 @@ class ChecklistControllerSpec {
 
     List<SupplyList> supplies = List.of(supply);
 
+    String guardianName = "Test Guardian";
+    String altPickUp = "Test Alternative Pickup";
+
     // Act
-    Checklist result = controller.createChecklist(student, supplies);
+    Checklist result = controller.createChecklist(student, guardianName, altPickUp, supplies);
 
     // Assert student info is copied correctly
     assertEquals("Elmo", result.studentName);
     assertEquals("MAHS", result.school);
     assertEquals("4", result.grade);
     assertEquals(List.of("headphones"), result.requestedSupplies);
+
+    //Assert guardian fields are copied
+    assertEquals("Test Guardian", result.guardianName);
+    assertEquals("Test Alternative Pickup", result.altPickUp);
 
     // Assert one checklist item was created for the matching supply
     assertEquals(1, result.checklist.size());
@@ -426,7 +433,10 @@ class ChecklistControllerSpec {
 
     List<SupplyList> supplies = List.of(wrongSchool, wrongGrade);
 
-    Checklist result = controller.createChecklist(student, supplies);
+    String guardianName = "Test Guardian";
+    String altPickUp = "Test Alt";
+
+    Checklist result = controller.createChecklist(student, guardianName, altPickUp, supplies);
 
     assertEquals(0, result.checklist.size());
   }
@@ -450,9 +460,12 @@ class ChecklistControllerSpec {
     supplyWithNulls.grade = "4";
     // item is null
 
+    String guardianName = "Test Guardian";
+    String altPickUp = "Test Alt";
+
     List<SupplyList> supplies = List.of(supplyWithNulls);
 
-    Checklist result = controller.createChecklist(student, supplies);
+    Checklist result = controller.createChecklist(student, guardianName, altPickUp, supplies);
 
     assertEquals(1, result.checklist.size());
     Checklist.ChecklistItem item = result.checklist.get(0);
@@ -660,7 +673,11 @@ class ChecklistControllerSpec {
     supplyNullGrade.grade = null;
     supplyNullGrade.item = Arrays.asList("Erasers");
 
-    Checklist result = controller.createChecklist(student, List.of(supplyNullSchool, supplyNullGrade));
+    String g = "Test Guardian";
+    String a = "Test Alt";
+
+
+    Checklist result = controller.createChecklist(student, g, a, List.of(supplyNullSchool, supplyNullGrade));
     assertEquals(0, result.checklist.size());
   }
 

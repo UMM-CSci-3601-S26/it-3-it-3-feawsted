@@ -1,5 +1,5 @@
 // Angular and Material Imports
-import { Component, inject, input} from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
@@ -64,8 +64,10 @@ export class ChecklistCardComponent {
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
         doc.text(`Student: ${checklist.studentName}`, margin, 28);
-        doc.text(`School:  ${checklist.school}`, margin, 35);
-        doc.text(`Grade:   ${checklist.grade}`, margin, 42);
+        doc.text(`Guardian: ${checklist.guardianName}`, margin, 36);
+        doc.text(`Alt Pickup: ${checklist.altPickUp}`, margin, 44);
+        doc.text(`School:  ${checklist.school}`, margin, 51);
+        doc.text(`Grade:   ${checklist.grade}`, margin, 58);
 
         doc.setLineWidth(0.4);
         doc.line(margin, 46, pageWidth - margin, 46);
