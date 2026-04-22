@@ -234,13 +234,16 @@ public class ChecklistController implements Controller {
     for (Checklist c : checklists) {
         text.append("(")
             .append("Student: ").append(c.studentName)
-            .append(" (")
-            .append(c.guardianName)
-            .append(c.altPickUp)
+            .append(") Tj T* ");
+
+        text.append("(")
+            .append("Guardian: ").append(c.guardianName)
+            .append(" | Alt Pickup: ").append(c.altPickUp)
+            .append(") Tj T* ");
+
+        text.append("(")
             .append(c.school)
-            .append(", Grade ")
-            .append(c.grade)
-            .append(")")
+            .append(", Grade ").append(c.grade)
             .append(") Tj T* ");
 
         for (ChecklistItem item : c.checklist) {
@@ -321,11 +324,16 @@ public class ChecklistController implements Controller {
       // Header
       text.append("(")
           .append("Student: ").append(checklist.studentName)
+          .append(") Tj T* ");
+
+      text.append("(")
           .append("Guardian: ").append(checklist.guardianName)
           .append(" | Alt Pickup: ").append(checklist.altPickUp)
-          .append(" (").append(checklist.school)
+          .append(") Tj T* ");
+
+      text.append("(")
+          .append(checklist.school)
           .append(", Grade ").append(checklist.grade)
-          .append(")")
           .append(") Tj T* ");
 
       // Items
@@ -338,7 +346,7 @@ public class ChecklistController implements Controller {
               .append(") Tj T* ");
       }
 
-      text.append("ET");
+      text.append("ET\n");
 
       // Page object
       pdf.append("3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792]")

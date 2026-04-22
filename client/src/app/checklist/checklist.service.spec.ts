@@ -48,6 +48,8 @@ describe('ChecklistService', () => {
     {
       _id: '1',
       studentName: 'John',
+      guardianName: 'alex Doe',
+      altPickUp: 'Jane Doe',
       school: 'Herman',
       grade: '7',
       requestedSupplies: ['backpack'],
@@ -63,6 +65,8 @@ describe('ChecklistService', () => {
     {
       _id: '2',
       studentName: 'Jane Doe',
+      guardianName: 'Freddy Doe',
+      altPickUp: 'Christa Doe',
       school: 'Herman',
       grade: '3',
       requestedSupplies: ['backpack'],
@@ -180,6 +184,8 @@ describe('ChecklistService', () => {
     const testChecklist: Checklist = {
       _id: '123',
       studentName: 'Test Checklist',
+      guardianName: 'Test Guardian',
+      altPickUp: 'Test Alt PickUp',
       requestedSupplies: ['backpack'],
       school: 'AHS',
       grade: '6th',

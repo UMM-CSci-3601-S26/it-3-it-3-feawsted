@@ -15,16 +15,22 @@
         <mat-list>
 
           <mat-list-item>
+            <mat-icon matListItemIcon>person</mat-icon>
+            <p matListItemTitle>Guardian</p>
             <p matListItemLine class="checklist-card-guardianName">{{ checklist().guardianName }}</p>
           </mat-list-item>
 
-          <mat-list-item>
-            <p matListItemLine class="checklist-card-altPickUp">{{ checklist().altPickUp }}</p>
-          </mat-list-item>
+          @if(checklist().altPickUp) {
+            <mat-list-item>
+              <mat-icon matListItemIcon>person</mat-icon>
+              <p matListItemTitle>Secondary Guardian/Pickup</p>
+              <p matListItemLine class="checklist-card-altPickUp">{{ checklist().altPickUp }}</p>
+            </mat-list-item>
+          }
 
           <!-- School -->
           <mat-list-item>
-            <mat-icon matListItemIcon>home</mat-icon>
+            <mat-icon matListItemIcon>school</mat-icon>
             <p matListItemTitle>School</p>
             <p matListItemLine class="checklist-card-school">{{ checklist().school }}</p>
           </mat-list-item>
@@ -33,7 +39,7 @@
 
           <!-- Grade -->
           <mat-list-item>
-            <mat-icon matListItemIcon>clock</mat-icon>
+            <mat-icon matListItemIcon>grade</mat-icon>
             <p matListItemTitle>Grade</p>
             <p matListItemLine class="checklist-card-grade">{{ checklist().grade }}</p>
           </mat-list-item>

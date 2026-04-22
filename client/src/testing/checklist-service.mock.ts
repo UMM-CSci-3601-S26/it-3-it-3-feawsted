@@ -59,6 +59,8 @@ export class MockChecklistService implements Pick<ChecklistService, 'getChecklis
     {
       _id: '1',
       studentName: 'John',
+      guardianName: 'Ann Doe',
+      altPickUp: 'Gregory Doe',
       school: 'Herman',
       grade: '7',
       requestedSupplies: ['backpack'],
@@ -74,6 +76,8 @@ export class MockChecklistService implements Pick<ChecklistService, 'getChecklis
     {
       _id: '2',
       studentName: 'Jane',
+      guardianName: 'Dr. Doe',
+      altPickUp: 'Mrs. Doe',
       school: 'Herman',
       grade: '3',
       requestedSupplies: ['backpack'],
@@ -91,6 +95,8 @@ export class MockChecklistService implements Pick<ChecklistService, 'getChecklis
   static mockChecklist: Checklist = {
     _id: 'mock_id',
     studentName: 'Mock Student',
+    guardianName: 'Mock Guardian',
+    altPickUp: 'Mock Alt Pickup',
     grade: '1',
     school: 'Mock School',
     requestedSupplies: ['backpack'],
