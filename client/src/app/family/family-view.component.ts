@@ -15,7 +15,7 @@ import { RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 // RxJS imports
-import { catchError, of } from 'rxjs';
+import { catchError, of, switchMap, startWith, Subject } from 'rxjs';
 
 // Family Component and Service Import
 import { Family } from './family';
@@ -54,12 +54,36 @@ export class FamilyViewComponent {
   // Inject the FamilyService to fetch family data and handle CSV export functionality
   private familyService = inject(FamilyService);
 
+  private refreshTrigger$ = new Subject<void>();
   // Create a signal to hold the list of families, fetching data from the FamilyService and handling errors by returning an empty array
-  families = toSignal<Family[]>(
-    this.familyService.getFamilies().pipe(
+  families = toSignal(
+    this.refreshTrigger$.pipe(
+      startWith(void 0), // Fetch immediately on load
+      switchMap(() => this.familyService.getFamilies()),
       catchError(() => of([]))
     )
   );
+
+  updateFamily(updatedFamily: Family) {
+  // Check if we have an ID to update
+    if (updatedFamily._id) {
+    // We call the service and MUST .subscribe() to send the request
+      this.familyService.editInventory(updatedFamily._id, updatedFamily).subscribe({
+        next: () => {
+          console.log('Successfully updated database!');
+          // This reloads the page so you see the changes immediately
+          window.location.reload();
+        },
+        error: (err) => {
+          console.error('Failed to update family:', err);
+          alert('Could not save changes. Check the console.');
+        }
+      });
+    } else {
+      console.error('Cannot update: Family ID is missing.');
+    }
+
+  }
 
   /**
    * Method to download the family data as a CSV file. It calls the exportFamilies() method from the FamilyService, creates a Blob from the CSV data, and triggers a download in the browser.

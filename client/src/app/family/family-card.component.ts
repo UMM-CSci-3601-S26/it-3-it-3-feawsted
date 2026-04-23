@@ -1,6 +1,6 @@
 // Angular and Material Imports
-import { Component, input, signal, output} from '@angular/core';
-
+import { Component, input, signal, inject} from '@angular/core';
+import { FamilyService } from './family.service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -35,19 +35,16 @@ import { Family } from './family';
 // Component for displaying a card with family information and their requested supplies.
 // The component takes a Family object as input and renders the details in a user-friendly format.
 export class FamilyCardComponent {
+  private familyService = inject(FamilyService);
+
   family = input.required<Family>();
-
-
-  familyUpdated = output<Family>();
-
-  // State management
   isEditing = signal(false);
 
   // A writable signal to hold draft changes
   editForm = signal<Family | null>(null);
 
   startEditing() {
-    // Create a deep copy so we don't accidentally mutate the input
+    // Create a deep copy so we don't edit the original input directly
     this.editForm.set(JSON.parse(JSON.stringify(this.family())));
     this.isEditing.set(true);
   }
@@ -58,70 +55,29 @@ export class FamilyCardComponent {
   }
 
   saveEdit() {
-    const updated = this.editForm();
-    if (updated) {
-      this.familyUpdated.emit(updated);
-    }
-    this.isEditing.set(false);
-  }
+    const updatedData = this.editForm();
+    const id = this.family()._id;
 
-
-  /*  editingFamilyId: string | null = null;
-  private editingBackup: Family | null = null;
-  private readonly NEW_FAMILY_ID = '__new__';
-
-  startEdit(family: Family) {
-    this.editingFamilyId = family._id ?? null;
-    this.editingBackup = JSON.parse(JSON.stringify(family));
-  }
-
-  /**
-     * Saves the edited row by calling the PUT endpoint,
-     * then exits edit mode.
-     */
-  /*  saveEdit(family: Family) {
-    if (!family._id) {
-      return;
-    }
-    if (family._id === this.NEW_FAMILY_ID) {
-      // New row: POST to create it, then store the real _id assigned by the server
-      const { _id: _discarded, ...newItem } = family; // eslint-disable-line @typescript-eslint/no-unused-vars
-      this.familyService.addFamily(newItem).subscribe({
-        next: (id) => {
-          family._id = id;
-          this.editingFamilyId = null;
-          this.editingBackup = null;
-        },
-        error: (err) => {
-          this.errMsg.set(`Problem adding item – Error Code: ${err.status}\nMessage: ${err.message}`);
-        }
-      });
-    } else {
-      this.familyService.editFamily(family._id, family).subscribe({
+    if (updatedData && id) {
+      // 1. Call the service method
+      // 2. CRITICAL: You must .subscribe() for the request to fire!
+      this.familyService.editInventory(id, updatedData).subscribe({
         next: () => {
-          this.editingFamilyId = null;
-          this.editingBackup = null;
+          console.log('Update successful');
+          this.isEditing.set(false);
+          // Optional: You might want to trigger a refresh in the parent
+          // or update the local signal if the parent doesn't auto-refresh.
         },
         error: (err) => {
-          this.errMsg.set(`Problem saving item – Error Code: ${err.status}\nMessage: ${err.message}`);
+          console.error('Failed to update family', err);
+          // Handle error (e.g., show a snackbar/alert)
         }
       });
     }
   }
 
-  /**
-     * Cancels editing, reverting the row to its original values.
-     *//*
-     // cancelEdit(family: Family) {
-    if (family._id === this.NEW_FAMILY_ID) {
-      // Discard the unsaved new row entirely
-      this.dataSource.data = this.dataSource.data.filter(i => i._id !== this.NEW_FAMILY_ID);
-    } else if (this.editingBackup) {
-      Object.assign(family, this.editingBackup);
-    }
-    this.editingFamilyId = null;
-    this.editingBackup = null;
-  } */
+
+
 
   getAvailableTimes(): string {
     const a = this.family().timeAvailability;
