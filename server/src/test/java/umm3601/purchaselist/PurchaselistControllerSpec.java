@@ -1,121 +1,304 @@
-// Packages
-// package umm3601.checklist;
+//Packages
+package umm3601.purchaselist;
 
-// // Static Imports
-// import static org.junit.jupiter.api.Assertions.assertEquals;
-// import static org.junit.jupiter.api.Assertions.assertTrue;
-// import static org.mockito.ArgumentMatchers.any;
-// import static org.mockito.ArgumentMatchers.anyList;
-// import static org.mockito.Mockito.atLeastOnce;
-// import static org.mockito.Mockito.mock;
-// import static org.mockito.Mockito.never;
-// import static org.mockito.Mockito.verify;
-// import static org.mockito.Mockito.when;
+// Static Imports
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-// // Java Imports
-// import java.io.IOException;
-// import java.util.ArrayList;
-// import java.util.Arrays;
-// import java.util.Collections;
-// import java.util.List;
-// import java.util.Map;
+// Java Imports
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-// // Org Imports
-// import org.bson.Document;
-// import org.bson.types.ObjectId;
-// import org.junit.jupiter.api.AfterAll;
-// import org.junit.jupiter.api.BeforeAll;
-// import org.junit.jupiter.api.BeforeEach;
-// import org.junit.jupiter.api.Test;
-// import org.mockito.ArgumentCaptor;
-// import org.mockito.Captor;
-// import org.mockito.Mock;
-// import org.mockito.Mockito;
-// import org.mockito.MockitoAnnotations;
-// import org.mongojack.JacksonMongoCollection;
+// Org Imports
+import org.bson.Document;
+import org.bson.types.ObjectId;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mongojack.JacksonMongoCollection;
 
-// // Com Imports
-// import com.mongodb.MongoClientSettings;
-// import com.mongodb.ServerAddress;
-// import com.mongodb.client.FindIterable;
-// import com.mongodb.client.MongoClient;
-// import com.mongodb.client.MongoClients;
-// import com.mongodb.client.MongoCollection;
-// import com.mongodb.client.MongoDatabase;
+// Com Imports
+import com.mongodb.MongoClientSettings;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 
-// // IO Imports
-// import io.javalin.Javalin;
-// import io.javalin.http.Context;
-// import io.javalin.http.HttpStatus;
-// import io.javalin.json.JavalinJackson;
-// import umm3601.family.Family;
-// import umm3601.family.Family.StudentInfo;
-// import umm3601.settings.Settings;
-// import umm3601.supplylist.SupplyList;
+// IO Imports
+import io.javalin.Javalin;
+import io.javalin.http.Context;
+import io.javalin.http.HttpStatus;
+import io.javalin.json.JavalinJackson;
+import umm3601.family.Family;
+import umm3601.family.Family.StudentInfo;
+import umm3601.settings.Settings;
+import umm3601.supplylist.SupplyList;
 
 // /**
-//  * Tests for the ChecklistController using a real MongoDB "test" database.
+//  * Tests for the PurchaselistController using a real MongoDB "test" database.
 //  *
 //  * These tests make sure the controller behaves the way the rest of the app
 //  * expects it to. They cover:
-//  * - Getting all families or a single checklist by ID
+//  * - Getting all families or a single purchaselist by ID
 //  * - Handling bad or nonexistent IDs
 //  * - Adding new families and checking that validation works
 //  * - Deleting families and making sure the database updates correctly
 //  * - Dashboard stats and CSV export formatting
 //  * - Making sure the controller actually registers its routes
 //  *
-//  * Each test starts with a clean set of checklist documents so results are
+//  * Each test starts with a clean set of purchaselist documents so results are
 //  * predictable and easy to understand.
 //  */
 
-// // Tests for the Checklist Controller
-// @SuppressWarnings({ "MagicNumber" })
-// class ChecklistControllerSpec {
+// // Tests for the Purchaselist Controller
+@SuppressWarnings({ "MagicNumber" })
+class PurchaselistControllerSpec {
 
-//   private ChecklistController checklistController;
-//   private ObjectId testChecklistId;
+  private PurchaselistController purchaselistController;
+  private ObjectId testPurchaselistId;
 
-//   private static MongoClient mongoClient;
-//   private static MongoDatabase db;
+  private static MongoClient mongoClient;
+  private static MongoDatabase db;
 
-//   @SuppressWarnings("unused")
-//   private static JavalinJackson javalinJackson = new JavalinJackson();
+  @SuppressWarnings("unused")
+  private static JavalinJackson javalinJackson = new JavalinJackson();
 
-//   @Mock
-//   private Context ctx;
+  @Mock
+  private Context ctx;
 
-//   @Captor
-//   private ArgumentCaptor<ArrayList<Checklist>> checklistArrayListCaptor;
+  @Captor
+  private ArgumentCaptor<ArrayList<Purchaselist>> purchaselistArrayListCaptor;
 
-//   @Captor
-//   private ArgumentCaptor<Checklist> checklistCaptor;
+  @Captor
+  private ArgumentCaptor<Purchaselist> purchaselistCaptor;
 
-//   @Captor
-//   private ArgumentCaptor<Map<String, String>> mapCaptor;
+  @Captor
+  private ArgumentCaptor<Map<String, String>> mapCaptor;
 
-//   @Captor
-//   private ArgumentCaptor<Map<String, Object>> dashboardCaptor;
+  @Captor
+  private ArgumentCaptor<Map<String, Object>> dashboardCaptor;
 
-//   // Runs once before all the tests. This connects to a real MongoDB "test"
-//   // database so the controller is working with actual data instead of fake mocks.
-//   // Basically sets up the shared database the tests will use.
-//   @BeforeAll
-//   static void setupAll() {
-//     String mongoAddr = System.getenv().getOrDefault("MONGO_ADDR", "localhost");
+  // Runs once before all the tests. This connects to a real MongoDB "test"
+  // database so the controller is working with actual data instead of fake mocks.
+  // Basically sets up the shared database the tests will use.
+  @BeforeAll
+  static void setupAll() {
+    String mongoAddr = System.getenv().getOrDefault("MONGO_ADDR", "localhost");
 
-//     mongoClient = MongoClients.create(
-//         MongoClientSettings.builder()
-//             .applyToClusterSettings(builder -> builder.hosts(Arrays.asList(new ServerAddress(mongoAddr))))
-//             .build());
-//     db = mongoClient.getDatabase("test");
-//   }
+    mongoClient = MongoClients.create(
+        MongoClientSettings.builder()
+            .applyToClusterSettings(builder -> builder.hosts(Arrays.asList(new ServerAddress(mongoAddr))))
+            .build());
+    db = mongoClient.getDatabase("test");
+  }
 
-//   @AfterAll
-//   static void teardown() {
-//     db.drop();
-//     mongoClient.close();
-//   }
+  @AfterAll
+  static void teardown() {
+    db.drop();
+    mongoClient.close();
+  }
+
+
+  // Runs before every single test. We clear out the inventory collection,
+  // insert a small set of sample items, and reset all the mocks.
+  // This makes sure each test starts fresh and doesn’t get messed up by
+  // whatever happened in a previous test.
+  @BeforeEach
+  void setupEach() throws IOException {
+    MockitoAnnotations.openMocks(this);
+
+    // Setup Inventory database
+    MongoCollection<Document> inventoryDocuments = db.getCollection("inventory");
+    inventoryDocuments.drop();
+    List<Document> testInventory = new ArrayList<>();
+    testInventory.add(
+        new Document()
+            .append("item", "pencil")
+            .append("brand", "Ticonderoga")
+            .append("color", "yellow")
+            .append("count", 1)
+            .append("size", "")
+            .append("quantity", 10)
+            .append("notes", "")
+            .append("type", List.of("#2"))
+            .append("style", List.of("hexagonal"))
+            .append("material", List.of("wood"))
+            .append("bin", List.of(1)));
+    testInventory.add(
+        new Document()
+            .append("item", "eraser")
+            .append("brand", "Pink Pearl")
+            .append("color", "pink")
+            .append("count", 1)
+            .append("size", "small")
+            .append("quantity", 5)
+            .append("notes", "")
+            .append("type", List.of())
+            .append("style", List.of())
+            .append("material", List.of("rubber"))
+            .append("bin", List.of(2)));
+    testInventory.add(
+        new Document()
+            .append("item", "notebook")
+            .append("brand", "Five Star")
+            .append("color", "blue")
+            .append("count", 1)
+            .append("size", "")
+            .append("quantity", 3)
+            .append("notes", "")
+            .append("type", List.of("spiral"))
+            .append("style", List.of("wide ruled"))
+            .append("material", List.of("paper"))
+            .append("bin", List.of(3)));
+
+    inventoryId = new ObjectId();
+    Document sam = new Document()
+        .append("_id", inventoryId)
+        .append("item", "backpack")
+        .append("brand", "JanSport")
+        .append("color", "black")
+        .append("count", 1)
+        .append("size", "standard")
+        .append("quantity", 2)
+        .append("notes", "Plain colors only")
+        .append("type", List.of("shoulder bag"))
+        .append("style", List.of())
+        .append("material", List.of("fabric"))
+        .append("bin", List.of(4, 5));
+
+    inventoryDocuments.insertMany(testInventory);
+    inventoryDocuments.insertOne(sam);
+
+    inventoryController = new InventoryController(db);
+    }
+
+    // Setup Supplylist database
+    MongoCollection<Document> supplylistDocuments = db.getCollection("supplylist");
+    supplylistDocuments.drop();
+    List<Document> testSupplyList = new ArrayList<>();
+    testSupplyList.add(
+        new Document()
+            .append("school", "MHS")
+            .append("grade", "PreK")
+            .append("item", Arrays.asList("Pencil"))
+            .append("brand", new Document()
+                .append("allOf", Arrays.asList("Ticonderoga"))
+                .append("anyOf", new ArrayList<>()))
+            .append("color", new Document()
+                .append("allOf", Arrays.asList("yellow"))
+                .append("anyOf", new ArrayList<>()))
+            .append("count", 1)
+            .append("size", "N/A")
+            .append("quantity", 10)
+            .append("notes", "N/A")
+            .append("type", new Document()
+                .append("allOf", Arrays.asList("#2"))
+                .append("anyOf", new ArrayList<>()))
+            .append("material", new Document()
+                .append("allOf", Arrays.asList("wood"))
+                .append("anyOf", new ArrayList<>()))
+            .append("style", new Document()
+              .append("allOf", Arrays.asList("hexagonal"))
+              .append("anyOf", new ArrayList<>())));
+    testSupplyList.add(
+        new Document()
+            .append("school", "CHS")
+            .append("grade", "12th grade")
+            .append("item", Arrays.asList("Eraser"))
+            .append("brand", new Document()
+                .append("allOf", Arrays.asList("Pink Pearl"))
+                .append("anyOf", new ArrayList<>()))
+            .append("color", new Document()
+                .append("allOf", Arrays.asList("pink"))
+                .append("anyOf", new ArrayList<>()))
+            .append("count", 1)
+            .append("size", "Small")
+            .append("quantity", 5)
+            .append("notes", "N/A")
+            .append("type", new Document()
+                .append("allOf", Arrays.asList("rubber"))
+                .append("anyOf", new ArrayList<>()))
+            .append("material", new Document()
+                .append("allOf", Arrays.asList("rubber"))
+                .append("anyOf", new ArrayList<>()))
+            .append("style", new Document()
+                .append("allOf", new ArrayList<>())
+                .append("anyOf", new ArrayList<>())));
+    testSupplyList.add(
+        new Document()
+            .append("school", "MHS")
+            .append("grade", "PreK")
+            .append("item", Arrays.asList("Notebook"))
+            .append("brand", new Document()
+                .append("allOf", Arrays.asList("Five Star"))
+                .append("anyOf", new ArrayList<>()))
+            .append("color", new Document()
+                .append("allOf", Arrays.asList("blue"))
+                .append("anyOf", new ArrayList<>()))
+            .append("count", 1)
+            .append("size", "N/A")
+            .append("quantity", 3)
+            .append("notes", "N/A")
+            .append("type", new Document()
+                .append("allOf", Arrays.asList("spiral"))
+                .append("anyOf", new ArrayList<>()))
+            .append("material", new Document()
+                .append("allOf", Arrays.asList("paper"))
+                .append("anyOf", new ArrayList<>()))
+            .append("style", new Document()
+                .append("allOf", new ArrayList<>())
+                .append("anyOf", new ArrayList<>())));
+
+    samsId = new ObjectId();
+    Document sam = new Document()
+        .append("_id", samsId)
+        .append("school", "MHS")
+        .append("grade", "PreK")
+        .append("item", Arrays.asList("Backpack"))
+        .append("brand", new Document()
+            .append("allOf", Arrays.asList("JanSport"))
+            .append("anyOf", new ArrayList<>()))
+        .append("color", new Document()
+            .append("allOf", Arrays.asList("black"))
+            .append("anyOf", new ArrayList<>()))
+        .append("count", 1)
+        .append("size", "Standard")
+        .append("quantity", 2)
+        .append("notes", "Plain colors only")
+        .append("type", new Document()
+            .append("allOf", Arrays.asList("shoulder bag"))
+            .append("anyOf", new ArrayList<>()))
+        .append("material", new Document()
+            .append("allOf", Arrays.asList("fabric"))
+            .append("anyOf", new ArrayList<>()))
+        .append("style", new Document()
+            .append("allOf", Arrays.asList("standard"))
+            .append("anyOf", new ArrayList<>()));
+
+    supplylistDocuments.insertMany(testSupplyList);
+    supplylistDocuments.insertOne(sam);
+
+    supplylistController = new SupplyListController(db);
+  }}
 
 //   // Runs before every test. We clear out the families collection, insert a small
 //   // set of sample families, and reset all the mocks. This keeps each test
@@ -125,16 +308,16 @@
 //     MockitoAnnotations.openMocks(this);
 
 //     // Setup database
-//     MongoCollection<Document> checklistDocuments = db.getCollection("checklists");
-//     checklistDocuments.drop();
-//     List<Document> testChecklists = new ArrayList<>();
-//     testChecklists.add(
+//     MongoCollection<Document> purchaselistDocuments = db.getCollection("purchaselists");
+//     purchaselistDocuments.drop();
+//     List<Document> testPurchaselists = new ArrayList<>();
+//     testPurchaselists.add(
 //         new Document()
 //             .append("school", "MAHS")
 //             .append("grade", "4")
 //             .append("studentName", "Elmo")
 //             .append("requestedSupplies", List.of("headphones"))
-//             .append("checklist", List.of(
+//             .append("purchaselist", List.of(
 //                 new Document()
 //                     .append("supply", new Document()
 //                         .append("item", Arrays.asList("Pencils"))
@@ -144,13 +327,13 @@
 //                     .append("completed", false)
 //                     .append("unreceived", false)
 //                     .append("selectedOption", null))));
-//     testChecklists.add(
+//     testPurchaselists.add(
 //         new Document()
 //             .append("school", "AHS")
 //             .append("grade", "8")
 //             .append("studentName", "johnny")
 //             .append("requestedSupplies", List.of("backpack"))
-//             .append("checklist", List.of(
+//             .append("purchaselist", List.of(
 //                 new Document()
 //                     .append("supply", new Document()
 //                         .append("item", Arrays.asList("Notebooks"))
@@ -160,13 +343,13 @@
 //                     .append("completed", false)
 //                     .append("unreceived", false)
 //                     .append("selectedOption", null))));
-//     testChecklists.add(
+//     testPurchaselists.add(
 //         new Document()
 //             .append("school", "SSHS")
 //             .append("grade", "2")
 //             .append("studentName", "Rocco")
 //             .append("requestedSupplies", List.of(""))
-//             .append("checklist", List.of(
+//             .append("purchaselist", List.of(
 //                 new Document()
 //                     .append("supply", new Document()
 //                         .append("item", Arrays.asList("Erasers"))
@@ -177,15 +360,15 @@
 //                     .append("unreceived", false)
 //                     .append("selectedOption", null))));
 
-//     testChecklistId = new ObjectId();
+//     testPurchaselistId = new ObjectId();
 
-//     Document specialChecklist = new Document()
-//         .append("_id", testChecklistId)
+//     Document specialPurchaselist = new Document()
+//         .append("_id", testPurchaselistId)
 //         .append("school", "Nowhere")
 //         .append("grade", "12")
 //         .append("studentName", "bart")
 //         .append("requestedSupplies", List.of())
-//         .append("checklist", List.of(
+//         .append("purchaselist", List.of(
 //             new Document()
 //                 .append("supply", new Document()
 //                     .append("item", Arrays.asList("Markers"))
@@ -195,10 +378,10 @@
 //                 .append("unreceived", false)
 //                 .append("selectedOption", null)));
 
-//     checklistDocuments.insertMany(testChecklists);
-//     checklistDocuments.insertOne(specialChecklist);
+//     purchaselistDocuments.insertMany(testPurchaselists);
+//     purchaselistDocuments.insertOne(specialPurchaselist);
 
-//     checklistController = new ChecklistController(db);
+//     purchaselistController = new PurchaselistController(db);
 //   }
 
 //   // Checks that the controller actually registers all its routes with Javalin.
@@ -206,7 +389,7 @@
 //   @Test
 //   void addsRoutes() {
 //     Javalin mockServer = mock(Javalin.class);
-//     checklistController.addRoutes(mockServer);
+//     purchaselistController.addRoutes(mockServer);
 
 //     verify(mockServer, Mockito.atLeast(1)).get(any(), any());
 //     verify(mockServer, atLeastOnce()).get(any(), any());
@@ -217,34 +400,34 @@
 //   // Makes sure that asking for all families returns everything in the database.
 //   // Also checks that the controller responds with a 200 OK. @Test
 //   @Test
-//   void canGetAllChecklists() throws IOException {
+//   void canGetAllPurchaselists() throws IOException {
 //     when(ctx.queryParamMap()).thenReturn(Collections.emptyMap());
-//     checklistController.getStoredChecklists(ctx);
+//     purchaselistController.getStoredPurchaselists(ctx);
 
-//     verify(ctx).json(checklistArrayListCaptor.capture());
+//     verify(ctx).json(purchaselistArrayListCaptor.capture());
 //     verify(ctx).status(HttpStatus.OK);
 
 //     assertEquals(
-//         db.getCollection("checklists").countDocuments(),
-//         checklistArrayListCaptor.getValue().size());
+//         db.getCollection("purchaselists").countDocuments(),
+//         purchaselistArrayListCaptor.getValue().size());
 //   }
 
-//   // checks that checklists were created and inserted
+//   // checks that purchaselists were created and inserted
 //   @SuppressWarnings("unchecked")
 //   @Test
-//   void generateDigitalChecklists() {
+//   void generateDigitalPurchaselists() {
 //     // mock three mongo collections
 //     // @SuppressWarnings("unchecked")
 //     JacksonMongoCollection<SupplyList> supplyListCollection = mock(JacksonMongoCollection.class);
 //     // @SuppressWarnings("unchecked")
 //     JacksonMongoCollection<Family> familyCollection = mock(JacksonMongoCollection.class);
 //     // @SuppressWarnings("unchecked")
-//     JacksonMongoCollection<Checklist> checklistCollection = mock(JacksonMongoCollection.class);
+//     JacksonMongoCollection<Purchaselist> purchaselistCollection = mock(JacksonMongoCollection.class);
 
-//     ChecklistController controller = new ChecklistController(
+//     PurchaselistController controller = new PurchaselistController(
 //         familyCollection,
 //         supplyListCollection,
-//         checklistCollection);
+//         purchaselistCollection);
 //     // Mock supply list
 //     SupplyList supply = new SupplyList();
 //     supply.item = Arrays.asList("Pencils");
@@ -279,15 +462,15 @@
 //       return list;
 //     });
 
-//     // Capture inserted checklists
-//     ArgumentCaptor<List<Checklist>> captor = ArgumentCaptor.forClass(List.class);
+//     // Capture inserted purchaselists
+//     ArgumentCaptor<List<Purchaselist>> captor = ArgumentCaptor.forClass(List.class);
 
 //     // Act
-//     controller.generateDigitalChecklists(ctx);
+//     controller.generateDigitalPurchaselists(ctx);
 
-//     // Assert: insertMany was called with 2 checklists (one per student)
-//     verify(checklistCollection).insertMany(captor.capture());
-//     List<Checklist> inserted = captor.getValue();
+//     // Assert: insertMany was called with 2 purchaselists (one per student)
+//     verify(purchaselistCollection).insertMany(captor.capture());
+//     List<Purchaselist> inserted = captor.getValue();
 //     assertEquals(2, inserted.size());
 
 //     // Assert: JSON response and status
@@ -297,12 +480,12 @@
 
 //   // This test was changed due to the fact you were comparing a made document to
 //   // another made document, which is not a good test. Instead, we are now testing
-//   // the createChecklist method directly to make sure it creates the checklist
+//   // the createPurchaselist method directly to make sure it creates the purchaselist
 //   // correctly based on the student info and supply list. This is a more focused
 //   // unit test that doesn't rely on the database or the HTTP context.
 //   @Test
-//   void createChecklistMakesTheRightChecklist() {
-//     ChecklistController controller = new ChecklistController(null, null, null);
+//   void createPurchaselistMakesTheRightPurchaselist() {
+//     PurchaselistController controller = new PurchaselistController(null, null, null);
 
 //     // Arrange
 //     StudentInfo student = new StudentInfo();
@@ -319,7 +502,7 @@
 //     List<SupplyList> supplies = List.of(supply);
 
 //     // Act
-//     Checklist result = controller.createChecklist(student, supplies);
+//     Purchaselist result = controller.createPurchaselist(student, supplies);
 
 //     // Assert student info is copied correctly
 //     assertEquals("Elmo", result.studentName);
@@ -327,22 +510,22 @@
 //     assertEquals("4", result.grade);
 //     assertEquals(List.of("headphones"), result.requestedSupplies);
 
-//     // Assert one checklist item was created for the matching supply
-//     assertEquals(1, result.checklist.size());
-//     Checklist.ChecklistItem item = result.checklist.get(0);
+//     // Assert one purchaselist item was created for the matching supply
+//     assertEquals(1, result.purchaselist.size());
+//     Purchaselist.PurchaselistItem item = result.purchaselist.get(0);
 //     assertTrue(item.supply.item.contains("Notebook"));
 //     assertEquals(false, item.completed);
 //     assertEquals(false, item.unreceived);
 //     assertEquals(null, item.selectedOption);
 //   }
 
-//   // This test checks that the createChecklist method correctly excludes supplies
+//   // This test checks that the createPurchaselist method correctly excludes supplies
 //   // that don't match the student's school and grade. It creates a student and two
 //   // supplies (one with the wrong school and one with the wrong grade) and
-//   // verifies that the resulting checklist has no items.
+//   // verifies that the resulting purchaselist has no items.
 //   @Test
-//   void createChecklistExcludesSuppliesForDifferentSchoolOrGrade() {
-//     ChecklistController controller = new ChecklistController(null, null, null);
+//   void createPurchaselistExcludesSuppliesForDifferentSchoolOrGrade() {
+//     PurchaselistController controller = new PurchaselistController(null, null, null);
 
 //     StudentInfo student = new StudentInfo();
 //     student.name = "Elmo";
@@ -362,18 +545,18 @@
 
 //     List<SupplyList> supplies = List.of(wrongSchool, wrongGrade);
 
-//     Checklist result = controller.createChecklist(student, supplies);
+//     Purchaselist result = controller.createPurchaselist(student, supplies);
 
-//     assertEquals(0, result.checklist.size());
+//     assertEquals(0, result.purchaselist.size());
 //   }
 
-//   // This test checks that the createChecklist method can handle supplies with
+//   // This test checks that the createPurchaselist method can handle supplies with
 //   // null fields without throwing an exception. It creates a supply with a null
-//   // item field and verifies that the resulting checklist item has a null supply
+//   // item field and verifies that the resulting purchaselist item has a null supply
 //   // item.
 //   @Test
-//   void createChecklistWithNullFields() {
-//     ChecklistController controller = new ChecklistController(null, null, null);
+//   void createPurchaselistWithNullFields() {
+//     PurchaselistController controller = new PurchaselistController(null, null, null);
 
 //     StudentInfo student = new StudentInfo();
 //     student.name = "Elmo";
@@ -388,91 +571,91 @@
 
 //     List<SupplyList> supplies = List.of(supplyWithNulls);
 
-//     Checklist result = controller.createChecklist(student, supplies);
+//     Purchaselist result = controller.createPurchaselist(student, supplies);
 
-//     assertEquals(1, result.checklist.size());
-//     Checklist.ChecklistItem item = result.checklist.get(0);
+//     assertEquals(1, result.purchaselist.size());
+//     Purchaselist.PurchaselistItem item = result.purchaselist.get(0);
 //     assertEquals(null, item.supply.item);
 //   }
 
-//   // This test checks that the getStoredChecklists method correctly filters
-//   // checklists by school and grade. It sets up query parameters for a specific
-//   // school and grade, calls the method, and verifies that the returned checklists
+//   // This test checks that the getStoredPurchaselists method correctly filters
+//   // purchaselists by school and grade. It sets up query parameters for a specific
+//   // school and grade, calls the method, and verifies that the returned purchaselists
 //   // match the expected criteria.
 //   @Test
-//   void filterChecklistsBySchoolAndGrade() throws IOException {
+//   void filterPurchaselistsBySchoolAndGrade() throws IOException {
 //     when(ctx.queryParamMap()).thenReturn(Map.of(
 //         "school", List.of("MAHS"),
 //         "grade", List.of("4")));
 //     when(ctx.queryParam("school")).thenReturn("MAHS");
 //     when(ctx.queryParam("grade")).thenReturn("4");
 
-//     checklistController.getStoredChecklists(ctx);
+//     purchaselistController.getStoredPurchaselists(ctx);
 
-//     verify(ctx).json(checklistArrayListCaptor.capture());
+//     verify(ctx).json(purchaselistArrayListCaptor.capture());
 //     verify(ctx).status(HttpStatus.OK);
 
-//     List<Checklist> result = checklistArrayListCaptor.getValue();
+//     List<Purchaselist> result = purchaselistArrayListCaptor.getValue();
 //     assertEquals(1, result.size());
 //     assertEquals("Elmo", result.get(0).studentName);
 //   }
 
 //   @Test
-//   void filterChecklistsByNameAndGrade() throws IOException {
+//   void filterPurchaselistsByNameAndGrade() throws IOException {
 //     when(ctx.queryParamMap()).thenReturn(Map.of(
 //         "name", List.of("Elmo"),
 //         "grade", List.of("4")));
 //     when(ctx.queryParam("name")).thenReturn("Elmo");
 //     when(ctx.queryParam("grade")).thenReturn("4");
 
-//     checklistController.getStoredChecklists(ctx);
+//     purchaselistController.getStoredPurchaselists(ctx);
 
-//     verify(ctx).json(checklistArrayListCaptor.capture());
+//     verify(ctx).json(purchaselistArrayListCaptor.capture());
 //     verify(ctx).status(HttpStatus.OK);
 
-//     List<Checklist> result = checklistArrayListCaptor.getValue();
+//     List<Purchaselist> result = purchaselistArrayListCaptor.getValue();
 //     assertEquals(1, result.size());
 //     assertEquals("Elmo", result.get(0).studentName);
 //   }
 
-//   // This test checks that the getStoredChecklists method returns an empty list
-//   // when there are no checklists matching the specified school and grade. It sets
+//   // This test checks that the getStoredPurchaselists method returns an empty list
+//   // when there are no purchaselists matching the specified school and grade. It sets
 //   // up query parameters for a nonexistent school and grade, calls the method, and
 //   // verifies that the returned list is empty.
 //   @Test
-//   void filterChecklistsWithNoMatchingSchoolOrGrade() throws IOException {
+//   void filterPurchaselistsWithNoMatchingSchoolOrGrade() throws IOException {
 //     when(ctx.queryParamMap()).thenReturn(Map.of(
 //         "school", List.of("Nonexistent School"),
 //         "grade", List.of("Nonexistent Grade")));
 //     when(ctx.queryParam("school")).thenReturn("Nonexistent School");
 //     when(ctx.queryParam("grade")).thenReturn("Nonexistent Grade");
 
-//     checklistController.getStoredChecklists(ctx);
+//     purchaselistController.getStoredPurchaselists(ctx);
 
-//     verify(ctx).json(checklistArrayListCaptor.capture());
+//     verify(ctx).json(purchaselistArrayListCaptor.capture());
 //     verify(ctx).status(HttpStatus.OK);
 
-//     List<Checklist> result = checklistArrayListCaptor.getValue();
+//     List<Purchaselist> result = purchaselistArrayListCaptor.getValue();
 //     assertEquals(0, result.size());
 //   }
 
-//   // This test checks that the getStoredChecklists method can filter checklists by
+//   // This test checks that the getStoredPurchaselists method can filter purchaselists by
 //   // student name. It sets up a query parameter for a specific student name, calls
-//   // the method, and verifies that the returned checklists have the expected
+//   // the method, and verifies that the returned purchaselists have the expected
 //   // student name.
 //   @Test
-//   void filterChecklistsByName() throws IOException {
+//   void filterPurchaselistsByName() throws IOException {
 //     when(ctx.queryParamMap()).thenReturn(Map.of(
 //         "name", List.of("Elmo")));
 //     when(ctx.queryParam("name")).thenReturn("Elmo");
 
-//     checklistController.getStoredChecklists(ctx);
+//     purchaselistController.getStoredPurchaselists(ctx);
 
-//     verify(ctx).json(checklistArrayListCaptor.capture());
+//     verify(ctx).json(purchaselistArrayListCaptor.capture());
 //     verify(ctx).status(HttpStatus.OK);
 
-//     List<Checklist> result = checklistArrayListCaptor.getValue();
-//     assertEquals(4, result.size()); // why is this 4? there are only 3 checklists in the database with studentName
+//     List<Purchaselist> result = purchaselistArrayListCaptor.getValue();
+//     assertEquals(4, result.size()); // why is this 4? there are only 3 purchaselists in the database with studentName
 //                                     // "Elmo"?
 //     assertEquals("Elmo", result.get(0).studentName);
 //   }
@@ -482,12 +665,12 @@
 //     when(ctx.queryParamMap()).thenReturn(Map.of(
 //         "name", List.of("Elmo")));
 //     when(ctx.queryParam("name")).thenReturn("Elmo");
-//     checklistController.getStoredChecklists(ctx);
+//     purchaselistController.getStoredPurchaselists(ctx);
 
-//     verify(ctx).json(checklistArrayListCaptor.capture());
+//     verify(ctx).json(purchaselistArrayListCaptor.capture());
 //     verify(ctx).status(HttpStatus.OK);
 
-//     List<Checklist> result = checklistArrayListCaptor.getValue();
+//     List<Purchaselist> result = purchaselistArrayListCaptor.getValue();
 //     // Verify that the filter is applied and returns results with name filter
 //     assertTrue(result.size() > 0);
 //     assertTrue(result.get(0).studentName.equals("Elmo"));
@@ -496,68 +679,68 @@
 //   // Tests for normalizeSchool static method
 //   @Test
 //   void normalizeSchoolHandlesNull() {
-//     assertEquals("", ChecklistController.normalizeSchool(null));
+//     assertEquals("", PurchaselistController.normalizeSchool(null));
 //   }
 
 //   @Test
 //   void normalizeSchoolStripsTrailingSchool() {
-//     assertEquals("morris area high", ChecklistController.normalizeSchool("Morris Area High School"));
+//     assertEquals("morris area high", PurchaselistController.normalizeSchool("Morris Area High School"));
 //   }
 
 //   @Test
 //   void normalizeSchoolTrimsAndLowers() {
-//     assertEquals("mahs", ChecklistController.normalizeSchool("  MAHS  "));
+//     assertEquals("mahs", PurchaselistController.normalizeSchool("  MAHS  "));
 //   }
 
 //   // Tests for normalizeGrade static method
 //   @Test
 //   void normalizeGradeHandlesNull() {
-//     assertEquals("", ChecklistController.normalizeGrade(null));
+//     assertEquals("", PurchaselistController.normalizeGrade(null));
 //   }
 
 //   @Test
 //   void normalizeGradeStripsHyphensAndSpaces() {
-//     assertEquals("4thgrade", ChecklistController.normalizeGrade("4th-Grade"));
+//     assertEquals("4thgrade", PurchaselistController.normalizeGrade("4th-Grade"));
 //   }
 
 //   @Test
 //   void normalizeGradeTrimsAndLowers() {
-//     assertEquals("prek", ChecklistController.normalizeGrade("  PreK  "));
+//     assertEquals("prek", PurchaselistController.normalizeGrade("  PreK  "));
 //   }
 
 //   // Test constructFilter with only school param
 //   @Test
-//   void filterChecklistsBySchoolOnly() throws IOException {
+//   void filterPurchaselistsBySchoolOnly() throws IOException {
 //     when(ctx.queryParamMap()).thenReturn(Map.of("school", List.of("MAHS")));
 //     when(ctx.queryParam("school")).thenReturn("MAHS");
 
-//     checklistController.getStoredChecklists(ctx);
+//     purchaselistController.getStoredPurchaselists(ctx);
 
-//     verify(ctx).json(checklistArrayListCaptor.capture());
+//     verify(ctx).json(purchaselistArrayListCaptor.capture());
 //     verify(ctx).status(HttpStatus.OK);
 
-//     assertEquals(1, checklistArrayListCaptor.getValue().size());
-//     assertEquals("Elmo", checklistArrayListCaptor.getValue().get(0).studentName);
+//     assertEquals(1, purchaselistArrayListCaptor.getValue().size());
+//     assertEquals("Elmo", purchaselistArrayListCaptor.getValue().get(0).studentName);
 //   }
 
 //   // Test constructFilter with only grade param
 //   @Test
-//   void filterChecklistsByGradeOnly() throws IOException {
+//   void filterPurchaselistsByGradeOnly() throws IOException {
 //     when(ctx.queryParamMap()).thenReturn(Map.of("grade", List.of("8")));
 //     when(ctx.queryParam("grade")).thenReturn("8");
 
-//     checklistController.getStoredChecklists(ctx);
+//     purchaselistController.getStoredPurchaselists(ctx);
 
-//     verify(ctx).json(checklistArrayListCaptor.capture());
+//     verify(ctx).json(purchaselistArrayListCaptor.capture());
 //     verify(ctx).status(HttpStatus.OK);
 
-//     assertEquals(1, checklistArrayListCaptor.getValue().size());
-//     assertEquals("johnny", checklistArrayListCaptor.getValue().get(0).studentName);
+//     assertEquals(1, purchaselistArrayListCaptor.getValue().size());
+//     assertEquals("johnny", purchaselistArrayListCaptor.getValue().get(0).studentName);
 //   }
 
 //   // Test constructFilter with all three params
 //   @Test
-//   void filterChecklistsBySchoolGradeAndName() throws IOException {
+//   void filterPurchaselistsBySchoolGradeAndName() throws IOException {
 //     when(ctx.queryParamMap()).thenReturn(Map.of(
 //         "school", List.of("MAHS"),
 //         "grade", List.of("4"),
@@ -566,19 +749,19 @@
 //     when(ctx.queryParam("grade")).thenReturn("4");
 //     when(ctx.queryParam("studentName")).thenReturn("Elmo");
 
-//     checklistController.getStoredChecklists(ctx);
+//     purchaselistController.getStoredPurchaselists(ctx);
 
-//     verify(ctx).json(checklistArrayListCaptor.capture());
+//     verify(ctx).json(purchaselistArrayListCaptor.capture());
 //     verify(ctx).status(HttpStatus.OK);
 
-//     assertEquals(1, checklistArrayListCaptor.getValue().size());
-//     assertEquals("Elmo", checklistArrayListCaptor.getValue().get(0).studentName);
+//     assertEquals(1, purchaselistArrayListCaptor.getValue().size());
+//     assertEquals("Elmo", purchaselistArrayListCaptor.getValue().get(0).studentName);
 //   }
 
-//   // Test createChecklist when supply has null school
+//   // Test createPurchaselist when supply has null school
 //   @Test
-//   void createChecklistExcludesSupplyWithNullSchool() {
-//     ChecklistController controller = new ChecklistController(null, null, null);
+//   void createPurchaselistExcludesSupplyWithNullSchool() {
+//     PurchaselistController controller = new PurchaselistController(null, null, null);
 
 //     StudentInfo student = new StudentInfo();
 //     student.name = "TestStudent";
@@ -596,35 +779,35 @@
 //     supplyNullGrade.grade = null;
 //     supplyNullGrade.item = Arrays.asList("Erasers");
 
-//     Checklist result = controller.createChecklist(student, List.of(supplyNullSchool, supplyNullGrade));
-//     assertEquals(0, result.checklist.size());
+//     Purchaselist result = controller.createPurchaselist(student, List.of(supplyNullSchool, supplyNullGrade));
+//     assertEquals(0, result.purchaselist.size());
 //   }
 
-//   // Test Checklist.equals() branches
+//   // Test Purchaselist.equals() branches
 //   @Test
-//   void checklistEqualsWithSelf() {
-//     Checklist c = new Checklist();
+//   void purchaselistEqualsWithSelf() {
+//     Purchaselist c = new Purchaselist();
 //     c._id = "abc";
 //     assertEquals(c, c);
 //   }
 
 //   @Test
-//   void checklistEqualsWithNull() {
-//     Checklist c = new Checklist();
+//   void purchaselistEqualsWithNull() {
+//     Purchaselist c = new Purchaselist();
 //     c._id = "abc";
 //     assertTrue(!c.equals(null));
 //   }
 
 //   @Test
-//   void checklistEqualsWithNonChecklist() {
-//     Checklist c = new Checklist();
+//   void purchaselistEqualsWithNonPurchaselist() {
+//     Purchaselist c = new Purchaselist();
 //     c._id = "abc";
-//     assertTrue(!c.equals("not a checklist"));
+//     assertTrue(!c.equals("not a purchaselist"));
 //   }
 
 //   @Test
-//   void checklistHashCodeWithNullId() {
-//     Checklist c = new Checklist();
+//   void purchaselistHashCodeWithNullId() {
+//     Purchaselist c = new Purchaselist();
 //     c._id = null;
 //     assertEquals(0, c.hashCode());
 //   }
@@ -663,7 +846,7 @@
 //   @Test
 //   void expandHighSchoolExpandsToFourGrades() {
 //     SupplyList hs = makeSchoolSupply("MAHS", "High School", "Notebook");
-//     List<SupplyList> result = ChecklistController.expandHighSchoolSupplies(List.of(hs));
+//     List<SupplyList> result = PurchaselistController.expandHighSchoolSupplies(List.of(hs));
 
 //     assertEquals(4, result.size());
 //     List<String> grades = result.stream().map(s -> s.grade).toList();
@@ -681,7 +864,7 @@
 //     SupplyList existing10 = makeSchoolSupply("MAHS", "10", "Pencils");
 //     SupplyList hs = makeSchoolSupply("MAHS", "High School", "Notebook");
 
-//     List<SupplyList> result = ChecklistController.expandHighSchoolSupplies(List.of(existing10, hs));
+//     List<SupplyList> result = PurchaselistController.expandHighSchoolSupplies(List.of(existing10, hs));
 
 //     // Grade 10 already had an entry, so expansion should only add 9, 11, 12 (not a duplicate 10)
 //     long hsExpanded = result.stream()
@@ -700,7 +883,7 @@
 //     SupplyList grade8 = makeSchoolSupply("MAHS", "8", "Scissors");
 //     SupplyList preK = makeSchoolSupply("MAHS", "Pre-K", "Crayons");
 
-//     List<SupplyList> result = ChecklistController.expandHighSchoolSupplies(List.of(grade8, preK));
+//     List<SupplyList> result = PurchaselistController.expandHighSchoolSupplies(List.of(grade8, preK));
 
 //     assertEquals(2, result.size());
 //     assertEquals("8", result.get(0).grade);
@@ -717,7 +900,7 @@
 //     source.count = 2;
 //     source.notes = "Brand new";
 
-//     SupplyList copy = ChecklistController.copyWithGrade(source, "11");
+//     SupplyList copy = PurchaselistController.copyWithGrade(source, "11");
 
 //     assertEquals("11", copy.grade);
 //     assertEquals("MAHS", copy.school);
@@ -737,7 +920,7 @@
 //     SupplyList upperCase = makeSchoolSupply("MAHS", "HIGH SCHOOL", "Notebook");
 //     SupplyList lowerCase = makeSchoolSupply("MHS", "high school", "Folder");
 
-//     List<SupplyList> result = ChecklistController.expandHighSchoolSupplies(
+//     List<SupplyList> result = PurchaselistController.expandHighSchoolSupplies(
 //         List.of(upperCase, lowerCase));
 
 //     // 4 copies for MAHS + 4 copies for MHS = 8
@@ -759,7 +942,7 @@
 //     nullGrade.item = Arrays.asList("Erasers");
 
 //     // Should not throw; null-school/null-grade entries are kept as-is
-//     List<SupplyList> result = ChecklistController.expandHighSchoolSupplies(
+//     List<SupplyList> result = PurchaselistController.expandHighSchoolSupplies(
 //         List.of(nullSchool, nullGrade));
 
 //     assertEquals(2, result.size());
@@ -789,7 +972,7 @@
 //     SupplyList b = makeSupply("folder");
 //     List<SupplyList> supplies = List.of(a, b);
 
-//     List<SupplyList> result = ChecklistController.applySupplyOrder(supplies, List.of());
+//     List<SupplyList> result = PurchaselistController.applySupplyOrder(supplies, List.of());
 
 //     assertEquals(2, result.size());
 //   }
@@ -805,7 +988,7 @@
 //         orderEntry("notebook", "staged"),
 //         orderEntry("folder", "staged"));
 
-//     List<SupplyList> result = ChecklistController.applySupplyOrder(supplies, order);
+//     List<SupplyList> result = PurchaselistController.applySupplyOrder(supplies, order);
 
 //     assertEquals(2, result.size());
 //     assertTrue(result.get(0).item.contains("notebook"));
@@ -823,7 +1006,7 @@
 //         orderEntry("pencil", "notGiven"),
 //         orderEntry("notebook", "staged"));
 
-//     List<SupplyList> result = ChecklistController.applySupplyOrder(supplies, order);
+//     List<SupplyList> result = PurchaselistController.applySupplyOrder(supplies, order);
 
 //     assertEquals(1, result.size());
 //     assertTrue(result.get(0).item.contains("notebook"));
@@ -839,7 +1022,7 @@
 //         orderEntry("notebook", "staged"),
 //         orderEntry("folder", "unstaged"));
 
-//     List<SupplyList> result = ChecklistController.applySupplyOrder(
+//     List<SupplyList> result = PurchaselistController.applySupplyOrder(
 //         List.of(folderSupply, notebookSupply), order);
 
 //     assertEquals(2, result.size());
@@ -858,7 +1041,7 @@
 //         orderEntry("notebook", "staged"),
 //         orderEntry("folder", "staged"));
 
-//     List<SupplyList> result = ChecklistController.applySupplyOrder(
+//     List<SupplyList> result = PurchaselistController.applySupplyOrder(
 //         List.of(folderSupply, spiralNotebook, compositionNotebook), order);
 
 //     assertEquals(3, result.size());
@@ -877,7 +1060,7 @@
 //     List<Settings.SupplyItemOrder> order = List.of(
 //         orderEntry("notebook", "staged"));
 
-//     List<SupplyList> result = ChecklistController.applySupplyOrder(
+//     List<SupplyList> result = PurchaselistController.applySupplyOrder(
 //         List.of(nullItemSupply, notebookSupply), order);
 
 //     assertEquals(2, result.size());
@@ -896,7 +1079,7 @@
 //         orderEntry("notebook", "staged"),
 //         orderEntry("pencil", "notGiven"));
 
-//     List<SupplyList> result = ChecklistController.applySupplyOrder(
+//     List<SupplyList> result = PurchaselistController.applySupplyOrder(
 //         List.of(mixedSupply), order);
 
 //     assertEquals(0, result.size());

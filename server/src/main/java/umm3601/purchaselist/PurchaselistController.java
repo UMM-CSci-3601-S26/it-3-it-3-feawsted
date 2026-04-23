@@ -43,6 +43,7 @@ import umm3601.purchaselist.Purchaselist.PurchaselistItem;
 import umm3601.settings.Settings;
 import umm3601.settings.SettingsController;
 import umm3601.supplylist.SupplyList;
+import umm3601.inventory.Inventory;
 
 // Define the Checklist class if it doesn't exist elsewhere
 
@@ -110,15 +111,17 @@ public class PurchaselistController implements Controller {
 
   private final JacksonMongoCollection<Family> familyCollection;
   private final JacksonMongoCollection<SupplyList> supplyListCollection;
+  private final JacksonMongoCollection<Inventory> inventoryCollection;
   private final JacksonMongoCollection<Purchaselist> checklistCollection;
   private final JacksonMongoCollection<Settings> settingsCollection;
 
-  // constructor used for testing:
+  // constructor used for testing:database/seed/
   public PurchaselistController(JacksonMongoCollection<Family> familyCollection,
       JacksonMongoCollection<SupplyList> supplyListCollection,
       JacksonMongoCollection<Purchaselist> checklistCollection) {
     this.familyCollection = familyCollection;
     this.supplyListCollection = supplyListCollection;
+    this.inventoryCollection = inventoryCollection;
     this.checklistCollection = checklistCollection;
     this.settingsCollection = null;
   }
@@ -137,7 +140,7 @@ public class PurchaselistController implements Controller {
 
 
 //Purchase compare code
-public static void compare(String[] args) throws Exception {
+public static List<Item> compare(String inventoryCollection, String supplyListCollection) throws Exception { //The compare(strings) should be relating to inventory and supplylist, is there better method?
     ObjectMapper mapper = new ObjectMapper();
 
     List<Item> inventory = mapper.readValue(
@@ -157,7 +160,9 @@ public static void compare(String[] args) throws Exception {
     for (Item item : supplyList) {
         if (!inventorySet.contains(item)) {
             missingItems.add(item);
-        }}}
+        }}
+      return missingItems;
+      }
 
 
 

@@ -8,6 +8,7 @@ import org.mongojack.Id;
 import org.mongojack.ObjectId;
 
 import umm3601.supplylist.SupplyList;
+import umm3601.inventory.Inventory;
 
 @SuppressWarnings({"VisibilityModifier"})
 public class Purchaselist {
@@ -15,11 +16,12 @@ public class Purchaselist {
   @SuppressWarnings({"MemberName"})
   public String _id;
 
-  public String studentName;
-  public String school;
-  public String grade;
-  public List<String> requestedSupplies;
-  public List<PurchaselistItem> purchaselist;
+  public String item;
+  public String brand;
+  public String size;
+  public String color;
+  public List<String> requestedSupplies;  //how did this work for Checklist? Do I do inventory and supply?
+  public List<PurchaselistItem> purchaselist; //Is this useful or not for purchase?
 
   // Default constructor for Jackson serialization
   public Purchaselist() {
@@ -27,6 +29,7 @@ public class Purchaselist {
 
   public static class PurchaselistItem {
     public SupplyList supply;
+    public Inventory item;
     public Boolean completed = false;
     public Boolean unreceived = false;
     public String selectedOption;
@@ -37,6 +40,10 @@ public class Purchaselist {
 
     PurchaselistItem(SupplyList supply) {
       this.supply = supply;
+    }
+
+    PurchaselistItem(Inventory item) {
+      this.item = item;
     }
   }
 
