@@ -16,7 +16,6 @@ import { ChecklistService } from './checklist.service';
 
 // PDF generation
 import jsPDF from 'jspdf';
-
 @Component({
   selector: 'app-checklist-card',
   templateUrl: './checklist-card.component.html',

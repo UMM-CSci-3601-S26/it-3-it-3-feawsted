@@ -204,8 +204,8 @@ export class ChecklistViewComponent {
               y += blockHeight + 3;
             });
           }
-          doc.save('checklists.pdf');
         });
+        doc.save('checklists.pdf');
       }
     });
   }
