@@ -3,6 +3,7 @@ package umm3601.checklist;
 
 // Static Imports
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -100,6 +101,9 @@ class ChecklistControllerSpec {
 
   @Captor
   private ArgumentCaptor<Map<String, Object>> dashboardCaptor;
+
+  @Captor
+  private ArgumentCaptor<byte[]> byteCaptor;
 
   // Runs once before all the tests. This connects to a real MongoDB "test"
   // database so the controller is working with actual data instead of fake mocks.
@@ -275,6 +279,142 @@ class ChecklistControllerSpec {
 
     assertThrows(NotFoundResponse.class,
         () -> checklistController.printChecklistByStudentPdf(ctx));
+  }
+
+  @Test
+  void printFilteredChecklistsPdfPrintsChecklistsBasedOnStudentFilter() throws IOException {
+    MongoCollection<Document> families = db.getCollection("families");
+    families.drop();
+
+    families.insertOne(new Document()
+      .append("guardianName", "Test Guardian")
+      .append("students", List.of(
+        new Document()
+          .append("name", "Alice")
+          .append("school", "MAHS")
+          .append("grade", "4"),
+        new Document()
+              .append("name", "Bob")
+              .append("school", "AHS")
+              .append("grade", "8")
+      )));
+
+    families.insertOne(new Document()
+      .append("guardianName", "Test Guardian")
+      .append("students", List.of(
+        new Document()
+          .append("name", "Johnny")
+          .append("school", "MAHS")
+          .append("grade", "4")
+      )));
+
+
+
+    MongoCollection<Document> supplies = db.getCollection("supplies");
+    supplies.drop();
+
+    supplies.insertMany(List.of(new Document()
+      .append("school", "MAHS")
+          .append("grade", "4")
+          .append("item", List.of("Pencils")),
+      new Document()
+          .append("school", "AHS")
+          .append("grade", "8")
+          .append("item", List.of("Notebooks"))
+  ));
+
+    when(ctx.queryParam("name")).thenReturn("Alice");
+    when(ctx.queryParam("grade")).thenReturn(null);
+    when(ctx.queryParam("school")).thenReturn(null);
+
+    when(ctx.queryParamMap()).thenReturn(Map.of(
+        "name", List.of("Alice")));
+
+    ArgumentCaptor<byte[]> pdfCaptor = ArgumentCaptor.forClass(byte[].class);
+
+    checklistController.exportFilteredChecklistsPdf(ctx);
+
+    verify(ctx).contentType("application/pdf");
+    verify(ctx).result(pdfCaptor.capture());
+
+    String pdfText = new String(pdfCaptor.getValue());
+
+    assertTrue(pdfText.contains("Alice"));
+    assertTrue(pdfText.contains("Bob"));
+    assertFalse(pdfText.contains("Johnny"));
+  }
+
+  // @Test
+  // void printFilteredChecklistsPdfPrintsChecklistsBasedOnMultipleFilters() {
+
+  // }
+
+  @Test
+  void printFilteredChecklistsPdfPrintsChecklistsBasedOnNoFilters() {
+    MongoCollection<Document> families = db.getCollection("families");
+    families.drop();
+
+    // families.insertOne(new Document()
+    //   .append("guardianName", "Test Guardian")
+    //   .append("students", List.of(
+    //     new Document()
+    //       .append("name", "Alice")
+    //       .append("school", "MAHS")
+    //       .append("grade", "4"),
+    //     new Document()
+    //           .append("name", "Bob")
+    //           .append("school", "AHS")
+    //           .append("grade", "8")
+    //   )));
+
+    // families.insertOne(new Document()
+    //   .append("guardianName", "Test Guardian")
+    //   .append("students", List.of(
+    //     new Document()
+    //       .append("name", "Johnny")
+    //       .append("school", "MAHS")
+    //       .append("grade", "4")
+    //   )));
+
+    // families.insertMany(List.of(
+    //   new Document()
+    //       .append("guardianName", "Some Guardian")
+    //       .append("altPickUp", "None")
+    //       .append("students", List.of(
+    //           new Document()
+    //               .append("name", "Layla")
+    //               .append("school", "MAHS")
+    //               .append("grade", "4")
+    //       ))
+    // ));
+
+    when(ctx.queryParam("school")).thenReturn(null);
+    when(ctx.queryParam("grade")).thenReturn(null);
+    when(ctx.queryParam("name")).thenReturn(null);
+
+    checklistController.exportFilteredChecklistsPdf(ctx);
+
+    verify(ctx).contentType("application/pdf");
+    verify(ctx).header(eq("Content-Disposition"), contains("checklists.pdf"));
+    verify(ctx).result(byteCaptor.capture());
+
+    String pdfText = new String(byteCaptor.getValue());
+
+    assertTrue(pdfText.contains("Elmo")); //fails
+    // assertTrue(pdfText.contains("Student: Mina"));
+    // assertTrue(pdfText.contains("Student: Kevin"));
+    // assertTrue(pdfText.contains("Student: Arjun"));
+    // assertTrue(pdfText.contains("Student: Neha"));
+    // assertTrue(pdfText.contains("Student: Tim"));
+    // assertTrue(pdfText.contains("Student: Ella"));
+    // assertTrue(pdfText.contains("Student: Sara"));
+    // assertTrue(pdfText.contains("Student: Sarah"));
+    // assertTrue(pdfText.contains("Student: Burtrum"));
+    // assertTrue(pdfText.contains("Student: Harold"));
+    // assertTrue(pdfText.contains("Student: Timothy"));
+    // assertTrue(pdfText.contains("Student: Johnny Jr."));
+    // assertTrue(pdfText.contains("Student: Marco"));
+    // assertTrue(pdfText.contains("Student: Guilia"));
   }
 
 
