@@ -164,6 +164,19 @@ describe('ChecklistService', () => {
       });
     });
 
+    it('correctly calls api/checklists with filter parameter grade', () => {
+      const mockedMethod = spyOn(httpClient, 'get').and.returnValue(of(testChecklists));
+
+      checklistService.getChecklists({ grade: '7' }).subscribe(() => {
+        expect(mockedMethod)
+          .withContext('one call')
+          .toHaveBeenCalledTimes(1);
+        expect(mockedMethod)
+          .withContext('talks to the correct endpoint')
+          .toHaveBeenCalledWith(checklistService.checklistUrl, { params: new HttpParams().set('grade', '7') });
+      });
+    });
+
   });
 
   it('should fetch all checklists', () => {
