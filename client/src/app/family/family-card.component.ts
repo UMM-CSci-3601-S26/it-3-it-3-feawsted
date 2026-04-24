@@ -1,5 +1,5 @@
 // Angular and Material Imports
-import { Component, input, signal, inject} from '@angular/core';
+import { Component, input, signal, inject, output} from '@angular/core';
 import { FamilyService } from './family.service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -37,7 +37,10 @@ import { Family } from './family';
 export class FamilyCardComponent {
   private familyService = inject(FamilyService);
 
+  familyUpdated = output<Family>();
+
   family = input.required<Family>();
+
   isEditing = signal(false);
 
   // A writable signal to hold draft changes
@@ -56,23 +59,10 @@ export class FamilyCardComponent {
 
   saveEdit() {
     const updatedData = this.editForm();
-    const id = this.family()._id;
 
-    if (updatedData && id) {
-      // 1. Call the service method
-      // 2. CRITICAL: You must .subscribe() for the request to fire!
-      this.familyService.editInventory(id, updatedData).subscribe({
-        next: () => {
-          console.log('Update successful');
-          this.isEditing.set(false);
-          // Optional: You might want to trigger a refresh in the parent
-          // or update the local signal if the parent doesn't auto-refresh.
-        },
-        error: (err) => {
-          console.error('Failed to update family', err);
-          // Handle error (e.g., show a snackbar/alert)
-        }
-      });
+    if (updatedData && updatedData._id) {
+      this.familyUpdated.emit(updatedData);
+      this.isEditing.set(false);
     }
   }
 

@@ -71,8 +71,8 @@ export class FamilyViewComponent {
       this.familyService.editInventory(updatedFamily._id, updatedFamily).subscribe({
         next: () => {
           console.log('Successfully updated database!');
-          // This reloads the page so you see the changes immediately
-          window.location.reload();
+
+          this.refreshTrigger$.next();
         },
         error: (err) => {
           console.error('Failed to update family:', err);
