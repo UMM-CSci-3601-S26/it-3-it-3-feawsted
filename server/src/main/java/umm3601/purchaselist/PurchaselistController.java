@@ -33,8 +33,10 @@ import com.mongodb.client.MongoDatabase;
 
 // IO Imports
 import io.javalin.Javalin;
+import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
+import io.javalin.http.NotFoundResponse;
 // Misc Imports
 import umm3601.Controller;
 import umm3601.family.Family;
@@ -45,16 +47,16 @@ import umm3601.settings.SettingsController;
 import umm3601.supplylist.SupplyList;
 import umm3601.inventory.Inventory;
 
-// Define the Checklist class if it doesn't exist elsewhere
+// Define the Purchaselist class if it doesn't exist elsewhere
 
 /**
- * Controller for handling Checklist-related API routes.
+ * Controller for handling Purchaselist-related API routes.
  *
  * Routes include:
- * - GET /api/checklist → list all checklist items (with optional filters)
- * - GET /api/checklist/{id} → get a single checklist item
+ * - GET /api/purchaselist → list all purchaselist items (with optional filters)
+ * - GET /api/purchaselist/{id} → get a single purchaselist item
  *
- * Checklist is the core data model for tracking what supplies students, and
+ * Purchaselist is the core data model for tracking what supplies students, and
  * will be used
  * help calculate supplies demands.
  */
@@ -97,12 +99,12 @@ public int hashCode() {
 
 public class PurchaselistController implements Controller {
 
-  private static final String API_CHECKLIST = "/api/checklists";
-  // private static final String API_CHECKLIST_PRINT = "/api/checklists/print";
-  // private static final String API_CHECKLIST_BY_NAME = "/api/checklists/student/{name}";
-  // private static final String API_CHECKLIST_FAMILY = "/api/checklists/family/{guardianName}";
-  // private static final String API_CHECKLIST_BY_ID = "/api/checklists/{id}";
-  // private static final String API_CHECKLIST_ITEM = "/api/checklists/{id}/item/{index}";
+  private static final String API_PURCHASELIST = "/api/purchaselists";
+  // private static final String API_PURCHASELIST_PRINT = "/api/purchaselists/print";
+  // private static final String API_PURCHASELIST_BY_NAME = "/api/purchaselists/student/{name}";
+  // private static final String API_PURCHASELIST_FAMILY = "/api/purchaselists/family/{guardianName}";
+  // private static final String API_PURCHASELIST_BY_ID = "/api/purchaselists/{id}";
+  // private static final String API_PURCHASELIST_ITEM = "/api/purchaselists/{id}/item/{index}";
 
   static final String SCHOOL_KEY = "school";
   static final String GRADE_KEY = "grade";
@@ -112,17 +114,17 @@ public class PurchaselistController implements Controller {
   private final JacksonMongoCollection<Family> familyCollection;
   private final JacksonMongoCollection<SupplyList> supplyListCollection;
   private final JacksonMongoCollection<Inventory> inventoryCollection;
-  private final JacksonMongoCollection<Purchaselist> checklistCollection;
+  private final JacksonMongoCollection<Purchaselist> purchaselistCollection;
   private final JacksonMongoCollection<Settings> settingsCollection;
 
   // constructor used for testing:database/seed/
   public PurchaselistController(JacksonMongoCollection<Family> familyCollection,
       JacksonMongoCollection<SupplyList> supplyListCollection,
-      JacksonMongoCollection<Purchaselist> checklistCollection) {
+      JacksonMongoCollection<Purchaselist> purchaselistCollection) {
     this.familyCollection = familyCollection;
     this.supplyListCollection = supplyListCollection;
     this.inventoryCollection = inventoryCollection;
-    this.checklistCollection = checklistCollection;
+    this.purchaselistCollection = purchaselistCollection;
     this.settingsCollection = null;
   }
 
@@ -132,15 +134,17 @@ public class PurchaselistController implements Controller {
         db, "families", Family.class, UuidRepresentation.STANDARD);
     supplyListCollection = JacksonMongoCollection.builder().build(
       db, "supplylist", SupplyList.class, UuidRepresentation.STANDARD);
-    checklistCollection = JacksonMongoCollection.builder().build(
-        db, "checklists", Purchaselist.class, UuidRepresentation.STANDARD);
+    inventoryCollection = JacksonMongoCollection.builder().build(
+      db, "inventory", Inventory.class, UuidRepresentation.STANDARD);
+    purchaselistCollection = JacksonMongoCollection.builder().build(
+        db, "purchaselists", Purchaselist.class, UuidRepresentation.STANDARD);
     settingsCollection = JacksonMongoCollection.builder().build(
         db, "settings", Settings.class, UuidRepresentation.STANDARD);
   }
 
 
 //Purchase compare code
-public static List<Item> compare(String inventoryCollection, String supplyListCollection) throws Exception { //The compare(strings) should be relating to inventory and supplylist, is there better method?
+public static List<Item> getPurchaselists(String inventoryCollection, String supplyListCollection) throws Exception { //The compare(strings) should be relating to inventory and supplylist, is there better method?
     ObjectMapper mapper = new ObjectMapper();
 
     List<Item> inventory = mapper.readValue(
@@ -165,28 +169,47 @@ public static List<Item> compare(String inventoryCollection, String supplyListCo
       }
 
 
+       /**
+   * GET /api/supplylist/{id}
+   * Retrieves a single supply list item by its MongoDB ObjectId.
+   */
+  public void getList(Context ctx) {
+    String id = ctx.pathParam("id");
+    SupplyList supplylistinv;
 
+    try {
+      supplylistinv = supplyListCollection.find(eq("_id", new ObjectId(id))).first();
+    } catch (IllegalArgumentException e) {
+      throw new BadRequestResponse("The requested supply list id wasn't a legal Mongo Object ID.");
+    }
 
+    if (supplylistinv == null) {
+      throw new NotFoundResponse("The requested supply list item was not found");
+    } else {
+      ctx.json(supplylistinv);
+      ctx.status(HttpStatus.OK);
+    }
+  }
 
 
   // Normalizes a school name for matching: lowercase, strip trailing " school"
-  static String normalizeSchool(String s) {
-    if (s == null) {
-      return "";
-    }
-    return s.trim().toLowerCase().replaceAll("\\s+school$", "");
-  }
+  // static String normalizeSchool(String s) {
+  //   if (s == null) {
+  //     return "";
+  //   }
+  //   return s.trim().toLowerCase().replaceAll("\\s+school$", "");
+  // }
 
-  // Normalizes a grade for matching: lowercase, remove hyphens and spaces
-  static String normalizeGrade(String g) {
-    if (g == null) {
-      return "";
-    }
-    return g.trim().toLowerCase().replaceAll("[\\s\\-]", "");
-  }
+  // // Normalizes a grade for matching: lowercase, remove hyphens and spaces
+  // static String normalizeGrade(String g) {
+  //   if (g == null) {
+  //     return "";
+  //   }
+  //   return g.trim().toLowerCase().replaceAll("[\\s\\-]", "");
+  // }
 
-  // Grades considered "high school" for expansion purposes
-  static final String[] HS_GRADES = {"9", "10", "11", "12"};
+  // // Grades considered "high school" for expansion purposes
+  // static final String[] HS_GRADES = {"9", "10", "11", "12"};
 
   /**
    * Expands any supply list entry whose grade normalizes to "highschool" into
@@ -198,33 +221,33 @@ public static List<Item> compare(String inventoryCollection, String supplyListCo
    * covers whichever HS grades a school lacks explicit entries for, without
    * needing to know where each district's high school starts.
    */
-  static List<SupplyList> expandHighSchoolSupplies(List<SupplyList> supplies) {
-    // Collect (normalizedSchool|normalizedGrade) keys that already have specific entries
-    Set<String> existingKeys = new HashSet<>();
-    for (SupplyList s : supplies) {
-      if (s.school != null && s.grade != null
-          && !normalizeGrade(s.grade).equals("highschool")) {
-        existingKeys.add(normalizeSchool(s.school) + "|" + normalizeGrade(s.grade));
-      }
-    }
+  // static List<SupplyList> expandHighSchoolSupplies(List<SupplyList> supplies) {
+  //   // Collect (normalizedSchool|normalizedGrade) keys that already have specific entries
+  //   Set<String> existingKeys = new HashSet<>();
+  //   for (SupplyList s : supplies) {
+  //     if (s.school != null && s.grade != null
+  //         && !normalizeGrade(s.grade).equals("highschool")) {
+  //       existingKeys.add(normalizeSchool(s.school) + "|" + normalizeGrade(s.grade));
+  //     }
+  //   }
 
-    List<SupplyList> result = new ArrayList<>();
-    for (SupplyList s : supplies) {
-      if (s.school != null && s.grade != null
-          && normalizeGrade(s.grade).equals("highschool")) {
-        // Replace this entry with grade-specific copies for each missing HS grade
-        for (String grade : HS_GRADES) {
-          String key = normalizeSchool(s.school) + "|" + normalizeGrade(grade);
-          if (!existingKeys.contains(key)) {
-            result.add(copyWithGrade(s, grade));
-          }
-        }
-      } else {
-        result.add(s);
-      }
-    }
-    return result;
-  }
+  //   List<SupplyList> result = new ArrayList<>();
+  //   for (SupplyList s : supplies) {
+  //     if (s.school != null && s.grade != null
+  //         && normalizeGrade(s.grade).equals("highschool")) {
+  //       // Replace this entry with grade-specific copies for each missing HS grade
+  //       for (String grade : HS_GRADES) {
+  //         String key = normalizeSchool(s.school) + "|" + normalizeGrade(grade);
+  //         if (!existingKeys.contains(key)) {
+  //           result.add(copyWithGrade(s, grade));
+  //         }
+  //       }
+  //     } else {
+  //       result.add(s);
+  //     }
+  //   }
+  //   return result;
+  // }
 
   // Shallow-copies a SupplyList, replacing only the grade field.
   // _id is intentionally omitted — the copies are transient (in-memory only).
@@ -248,100 +271,100 @@ public static List<Item> compare(String inventoryCollection, String supplyListCo
     return copy;
   }
 
-  // Builds a Purchaselist for a single student from the supply list (not persisted)
-  public Purchaselist createPurchaselist(StudentInfo student, List<SupplyList> allSupplies) {
-    String studentSchool = normalizeSchool(student.school);
-    String studentGrade = normalizeGrade(student.grade);
-    List<Purchaselist.PurchaselistItem> items = allSupplies.stream()
-        .filter(s -> s.school != null && s.grade != null
-            && normalizeSchool(s.school).equals(studentSchool)
-            && normalizeGrade(s.grade).equals(studentGrade))
-        .map(Purchaselist.PurchaselistItem::new)
-        .collect(Collectors.toList());
+  // // Builds a Purchaselist for a single student from the supply list (not persisted)
+  // // public Purchaselist createPurchaselist(StudentInfo student, List<SupplyList> allSupplies) {
+  // //   String studentSchool = normalizeSchool(student.school);
+  // //   String studentGrade = normalizeGrade(student.grade);
+  // //   List<Purchaselist.PurchaselistItem> items = allSupplies.stream()
+  // //       .filter(s -> s.school != null && s.grade != null
+  // //           && normalizeSchool(s.school).equals(studentSchool)
+  // //           && normalizeGrade(s.grade).equals(studentGrade))
+  // //       .map(Purchaselist.PurchaselistItem::new)
+  // //       .collect(Collectors.toList());
 
-    Purchaselist checklist = new Purchaselist();
-    checklist.studentName = student.name; // can't display last name, so maybe guardian name instead?
-    checklist.school = student.school;
-    checklist.grade = student.grade;
-    checklist.requestedSupplies = student.requestedSupplies;
-    checklist.checklist = items;
-    return checklist;
-  }
+  // //   Purchaselist purchaselist = new Purchaselist();
+  // //   purchaselist.studentName = student.name; // can't display last name, so maybe guardian name instead?
+  // //   purchaselist.school = student.school;
+  // //   purchaselist.grade = student.grade;
+  // //   purchaselist.requestedSupplies = student.requestedSupplies;
+  // //   purchaselist.purchaselist = items;
+  // //   return purchaselist;
+  // }
 
-  // --- PRINT ROUTES (on-the-fly, not persisted) ---
-  public void exportPurchaselistsPdf(Context ctx) {
-    // Fetch your checklist data
-    List<SupplyList> pdfSupplies = expandHighSchoolSupplies(
-        supplyListCollection.find().into(new ArrayList<>()));
-    List<Purchaselist> checklists = familyCollection.find()
-        .into(new ArrayList<>())
-        .stream()
-        .flatMap(f -> f.students.stream().map(s -> createPurchaselist(s, pdfSupplies)))
-        .collect(Collectors.toList());
+  // // --- PRINT ROUTES (on-the-fly, not persisted) ---
+  // public void exportPurchaselistsPdf(Context ctx) {
+  //   // Fetch your purchaselist data
+  //   List<SupplyList> pdfSupplies = expandHighSchoolSupplies(
+  //       supplyListCollection.find().into(new ArrayList<>()));
+  //   List<Purchaselist> purchaselists = familyCollection.find()
+  //       .into(new ArrayList<>())
+  //       .stream()
+  //       .flatMap(f -> f.students.stream().map(s -> createPurchaselist(s, pdfSupplies)))
+  //       .collect(Collectors.toList());
 
-    // Build PDF content manually
-    StringBuilder pdf = new StringBuilder();
-    pdf.append("%PDF-1.4\n");
+  //   // Build PDF content manually
+  //   StringBuilder pdf = new StringBuilder();
+  //   pdf.append("%PDF-1.4\n");
 
-    // PDF objects
-    pdf.append("1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n");
-    pdf.append("2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n");
+  //   // PDF objects
+  //   pdf.append("1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n");
+  //   pdf.append("2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n");
 
-    // Build the text content
-    StringBuilder text = new StringBuilder();
-    text.append("BT /F1 12 Tf 50 750 Td\n");
+  //   // Build the text content
+  //   StringBuilder text = new StringBuilder();
+  //   text.append("BT /F1 12 Tf 50 750 Td\n");
 
-    for (Purchaselist c : checklists) {
-        text.append("(")
-            .append("Student: ").append(c.studentName)
-            .append(" (")
-            .append(c.school)
-            .append(", Grade ")
-            .append(c.grade)
-            .append(")")
-            .append(") Tj T* ");
+  //   for (Purchaselist c : purchaselists) {
+  //       text.append("(")
+  //           .append("Student: ").append(c.studentName)
+  //           .append(" (")
+  //           .append(c.school)
+  //           .append(", Grade ")
+  //           .append(c.grade)
+  //           .append(")")
+  //           .append(") Tj T* ");
 
-        for (PurchaselistItem item : c.checklist) {
-            text.append("(")
-                .append(" - ").append(item.supply)
-                .append(" | completed: ").append(item.completed)
-                .append(" | unreceived: ").append(item.unreceived)
-                .append(" | option: ").append(item.selectedOption)
-                .append(") Tj T* ");
-        }
+  //       for (PurchaselistItem item : c.purchaselist) {
+  //           text.append("(")
+  //               .append(" - ").append(item.supply)
+  //               .append(" | completed: ").append(item.completed)
+  //               .append(" | unreceived: ").append(item.unreceived)
+  //               .append(" | option: ").append(item.selectedOption)
+  //               .append(") Tj T* ");
+  //       }
 
-        text.append("() Tj T* "); // blank line
-    }
+  //       text.append("() Tj T* "); // blank line
+  //   }
 
-    text.append("ET");
+  //   text.append("ET");
 
-    // PDF page object
-    pdf.append("3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792]")
-       .append(" /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj\n");
+  //   // PDF page object
+  //   pdf.append("3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792]")
+  //      .append(" /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj\n");
 
-    // PDF content stream
-    byte[] textBytes = text.toString().getBytes();
-    pdf.append("4 0 obj << /Length ").append(textBytes.length).append(" >> stream\n");
-    pdf.append(text.toString()).append("\nendstream endobj\n");
+  //   // PDF content stream
+  //   byte[] textBytes = text.toString().getBytes();
+  //   pdf.append("4 0 obj << /Length ").append(textBytes.length).append(" >> stream\n");
+  //   pdf.append(text.toString()).append("\nendstream endobj\n");
 
-    // Font object
-    pdf.append("5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj\n");
+  //   // Font object
+  //   pdf.append("5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj\n");
 
-    // Trailer
-    pdf.append("xref\n0 6\n0000000000 65535 f \n");
-    pdf.append("trailer << /Size 6 /Root 1 0 R >>\nstartxref\n");
-    pdf.append(pdf.length()).append("\n%%EOF");
+  //   // Trailer
+  //   pdf.append("xref\n0 6\n0000000000 65535 f \n");
+  //   pdf.append("trailer << /Size 6 /Root 1 0 R >>\nstartxref\n");
+  //   pdf.append(pdf.length()).append("\n%%EOF");
 
-    byte[] pdfBytes = pdf.toString().getBytes();
+  //   byte[] pdfBytes = pdf.toString().getBytes();
 
-    ctx.contentType("application/pdf");
-    ctx.header("Content-Disposition", "inline; filename=checklists.pdf");
-    ctx.result(pdfBytes);
-  }
-//   // GET /api/checklist/print — all students
+  //   ctx.contentType("application/pdf");
+  //   ctx.header("Content-Disposition", "inline; filename=purchaselists.pdf");
+  //   ctx.result(pdfBytes);
+  // }
+//   // GET /api/purchaselist/print — all students
 //   public void printAllPurchaselists(Context ctx) {
 //     List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
-//     List<Purchaselist> checklists = familyCollection.find().into(new ArrayList<>()).stream()
+//     List<Purchaselist> purchaselists = familyCollection.find().into(new ArrayList<>()).stream()
 //         .flatMap(f -> f.students.stream().map(s -> createPurchaselist(s, allSupplies)))
 //         .collect(Collectors.toList());
 
@@ -357,11 +380,11 @@ public static List<Item> compare(String inventoryCollection, String supplyListCo
 //         content.beginText();
 //         content.newLineAtOffset(50, y);
 
-//         for (Purchaselist c : checklists) {
+//         for (Purchaselist c : purchaselists) {
 //             content.showText("Student: " + c.studentName + " (" + c.school + ", Grade " + c.grade + ")");
 //             content.newLineAtOffset(0, -20);
 
-//             for (PurchaselistItem item : c.checklist) {
+//             for (PurchaselistItem item : c.purchaselist) {
 //                 content.showText(" - " + item.supply.name +
 //                     " | completed: " + item.completed +
 //                     " | unreceived: " + item.unreceived +
@@ -379,7 +402,7 @@ public static List<Item> compare(String inventoryCollection, String supplyListCo
 
 //         ctx.result(out.toByteArray());
 //         ctx.contentType("application/pdf");
-//         ctx.header("Content-Disposition", "attachment; filename=checklists.pdf");
+//         ctx.header("Content-Disposition", "attachment; filename=purchaselists.pdf");
 //         ctx.status(HttpStatus.OK);
 
 //     } catch (IOException e) {
@@ -389,7 +412,7 @@ public static List<Item> compare(String inventoryCollection, String supplyListCo
 // }
 
 
-  // GET /api/checklist/student/{name} — single student by full name
+  // GET /api/purchaselist/student/{name} — single student by full name
   // public void printPurchaselistByStudent(Context ctx) {
   //   String name = ctx.pathParam("name");
   //   List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
@@ -405,7 +428,7 @@ public static List<Item> compare(String inventoryCollection, String supplyListCo
   //   throw new NotFoundResponse("No student found with name: " + name);
   // }
 
-  // GET /api/checklist/family/{guardianName} — all students in a family
+  // GET /api/purchaselist/family/{guardianName} — all students in a family
   // public void printPurchaselistsByFamily(Context ctx) {
   //   String guardianName = ctx.pathParam("guardianName");
   //   List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
@@ -414,37 +437,37 @@ public static List<Item> compare(String inventoryCollection, String supplyListCo
   //   if (families.isEmpty()) {
   //     throw new NotFoundResponse("No family found for guardian: " + guardianName);
   //   }
-  //   List<Purchaselist> checklists = families.stream()
+  //   List<Purchaselist> purchaselists = families.stream()
   //       .flatMap(f -> f.students.stream().map(s -> createPurchaselist(s, allSupplies)))
   //       .collect(Collectors.toList());
-  //   ctx.json(checklists);
+  //   ctx.json(purchaselists);
   //   ctx.status(HttpStatus.OK);
   // }
 
   // --- DIGITAL DRIVE-DAY ROUTES (persisted to MongoDB) ---
 
-  // POST /api/checklist — snapshot all families into the checklists collection
-  public void generateDigitalPurchaselists(Context ctx) {
-    checklistCollection.deleteMany(new Document());
-    List<SupplyList> rawSupplies = supplyListCollection.find().into(new ArrayList<>());
+  // POST /api/purchaselist — snapshot all families into the purchaselists collection
+  // public void generateDigitalPurchaselists(Context ctx) {
+  //   purchaselistCollection.deleteMany(new Document());
+  //   List<SupplyList> rawSupplies = supplyListCollection.find().into(new ArrayList<>());
 
-    // Apply the operator-configured drive order from settings
-    List<SupplyList> orderedSupplies = rawSupplies;
-    if (settingsCollection != null) {
-      Settings settings = settingsCollection.find(eq("_id", SettingsController.SETTINGS_ID)).first();
-      if (settings != null && settings.supplyOrder != null && !settings.supplyOrder.isEmpty()) {
-        orderedSupplies = applySupplyOrder(rawSupplies, settings.supplyOrder);
-      }
-    }
+  //   // Apply the operator-configured drive order from settings
+  //   List<SupplyList> orderedSupplies = rawSupplies;
+  //   if (settingsCollection != null) {
+  //     Settings settings = settingsCollection.find(eq("_id", SettingsController.SETTINGS_ID)).first();
+  //     if (settings != null && settings.supplyOrder != null && !settings.supplyOrder.isEmpty()) {
+  //       orderedSupplies = applySupplyOrder(rawSupplies, settings.supplyOrder);
+  //     }
+  //   }
 
-    final List<SupplyList> allSupplies = expandHighSchoolSupplies(orderedSupplies);
-    List<Purchaselist> checklists = familyCollection.find().into(new ArrayList<>()).stream()
-        .flatMap(f -> f.students.stream().map(s -> createPurchaselist(s, allSupplies)))
-        .collect(Collectors.toList());
-    checklistCollection.insertMany(checklists);
-    ctx.json(checklists);
-    ctx.status(HttpStatus.CREATED);
-  }
+  //   final List<SupplyList> allSupplies = expandHighSchoolSupplies(orderedSupplies);
+  //   List<Purchaselist> purchaselists = familyCollection.find().into(new ArrayList<>()).stream()
+  //       .flatMap(f -> f.students.stream().map(s -> createPurchaselist(s, allSupplies)))
+  //       .collect(Collectors.toList());
+  //   purchaselistCollection.insertMany(purchaselists);
+  //   ctx.json(purchaselists);
+  //   ctx.status(HttpStatus.CREATED);
+  // }
 
   /**
    * Orders and filters the supply list according to the saved drive-day order.
@@ -452,86 +475,86 @@ public static List<Item> compare(String inventoryCollection, String supplyListCo
    * - "unstaged" items come after all staged items (original fetch order preserved)
    * - "notGiven" items are excluded entirely
    */
-  static List<SupplyList> applySupplyOrder(List<SupplyList> supplies,
-      List<Settings.SupplyItemOrder> supplyOrder) {
-    // Build a map of itemTerm -> staged position
-    Map<String, Integer> stagedIndex = new HashMap<>();
-    Set<String> notGivenTerms = new HashSet<>();
-    // Set the index of staged items to their position in the supplyOrder list; unstaged items will default to MAX_VALUE
-    int pos = 0;
-    // Iterate in order and record the index of each staged term, and collect notGiven terms
-    for (Settings.SupplyItemOrder entry : supplyOrder) {
-      if ("staged".equals(entry.status)) {
-        stagedIndex.put(entry.itemTerm, pos++);
-      } else if ("notGiven".equals(entry.status)) {
-        notGivenTerms.add(entry.itemTerm);
-      }
-    }
+  // static List<SupplyList> applySupplyOrder(List<SupplyList> supplies,
+  //     List<Settings.SupplyItemOrder> supplyOrder) {
+  //   // Build a map of itemTerm -> staged position
+  //   Map<String, Integer> stagedIndex = new HashMap<>();
+  //   Set<String> notGivenTerms = new HashSet<>();
+  //   // Set the index of staged items to their position in the supplyOrder list; unstaged items will default to MAX_VALUE
+  //   int pos = 0;
+  //   // Iterate in order and record the index of each staged term, and collect notGiven terms
+  //   for (Settings.SupplyItemOrder entry : supplyOrder) {
+  //     if ("staged".equals(entry.status)) {
+  //       stagedIndex.put(entry.itemTerm, pos++);
+  //     } else if ("notGiven".equals(entry.status)) {
+  //       notGivenTerms.add(entry.itemTerm);
+  //     }
+  //   }
 
     // Exclude supplies whose item list contains any notGiven term.
     // Sort remaining: staged supplies (by lowest matching term index) before unstaged.
-    return supplies.stream()
-        // Exclude supplies that have any notGiven terms in their item list; if item is null,
-        // keep it (could be a non-standard supply that doesn't match any terms)
-        .filter(s -> s.item == null || s.item.stream().noneMatch(notGivenTerms::contains))
-        // Supplies with a staged term get their lowest index; unstaged supplies default to MAX_VALUE, so come last
-        .sorted(Comparator.comparingInt(s -> {
-          if (s.item == null) {
-            return Integer.MAX_VALUE;
-          }
-          return s.item.stream()
-              .mapToInt(t -> stagedIndex.getOrDefault(t, Integer.MAX_VALUE))
-              .min()
-              .orElse(Integer.MAX_VALUE);
-        }))
-        .collect(Collectors.toList());
-  }
+  //   return supplies.stream()
+  //       // Exclude supplies that have any notGiven terms in their item list; if item is null,
+  //       // keep it (could be a non-standard supply that doesn't match any terms)
+  //       .filter(s -> s.item == null || s.item.stream().noneMatch(notGivenTerms::contains))
+  //       // Supplies with a staged term get their lowest index; unstaged supplies default to MAX_VALUE, so come last
+  //       .sorted(Comparator.comparingInt(s -> {
+  //         if (s.item == null) {
+  //           return Integer.MAX_VALUE;
+  //         }
+  //         return s.item.stream()
+  //             .mapToInt(t -> stagedIndex.getOrDefault(t, Integer.MAX_VALUE))
+  //             .min()
+  //             .orElse(Integer.MAX_VALUE);
+  //       }))
+  //       .collect(Collectors.toList());
+  // }
 
-  // GET /api/checklist — query stored digital checklists (optional ?school= and
+  // GET /api/purchaselist — query stored digital purchaselists (optional ?school= and
   // ?grade= filters)
-  public void getStoredPurchaselists(Context ctx) {
-    Bson filter = constructFilter(ctx);
-    ctx.json(checklistCollection.find(filter).into(new ArrayList<>()));
-    ctx.status(HttpStatus.OK);
-  }
-
-  // Constructs a MongoDB filter from optional query params
-  private Bson constructFilter(Context ctx) {
-    List<Bson> filters = new ArrayList<>();
-
-    if (ctx.queryParamMap().containsKey(SCHOOL_KEY)) {
-      Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(SCHOOL_KEY)), Pattern.CASE_INSENSITIVE);
-      filters.add(regex(SCHOOL_KEY, pattern));
-    }
-    if (ctx.queryParamMap().containsKey(GRADE_KEY)) {
-      Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(GRADE_KEY)), Pattern.CASE_INSENSITIVE);
-      filters.add(regex(GRADE_KEY, pattern));
-    }
-    if (ctx.queryParamMap().containsKey(NAME_KEY)) {
-      Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(NAME_KEY)), Pattern.CASE_INSENSITIVE);
-      filters.add(regex(NAME_KEY, pattern));
-    }
-
-    return filters.isEmpty() ? new Document() : and(filters);
-  }
-
-  // // GET /api/checklist/{id} — get a single stored checklist by id
-  // public void getStoredPurchaselistById(Context ctx) {
-  //   String id = ctx.pathParam("id");
-  //   Purchaselist checklist;
-  //   try {
-  //     checklist = checklistCollection.find(Filters.eq("_id", new ObjectId(id))).first();
-  //   } catch (IllegalArgumentException e) {
-  //     throw new BadRequestResponse("Invalid checklist ID.");
-  //   }
-  //   if (checklist == null) {
-  //     throw new NotFoundResponse("Purchaselist not found.");
-  //   }
-  //   ctx.json(checklist);
+  // public void getStoredPurchaselists(Context ctx) {
+  //   Bson filter = constructFilter(ctx);
+  //   ctx.json(purchaselistCollection.find(filter).into(new ArrayList<>()));
   //   ctx.status(HttpStatus.OK);
   // }
 
-  // // PATCH /api/checklist/{id}/item/{index} — update a single item (completed,
+  // // Constructs a MongoDB filter from optional query params
+  // private Bson constructFilter(Context ctx) {
+  //   List<Bson> filters = new ArrayList<>();
+
+  //   if (ctx.queryParamMap().containsKey(SCHOOL_KEY)) {
+  //     Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(SCHOOL_KEY)), Pattern.CASE_INSENSITIVE);
+  //     filters.add(regex(SCHOOL_KEY, pattern));
+  //   }
+  //   if (ctx.queryParamMap().containsKey(GRADE_KEY)) {
+  //     Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(GRADE_KEY)), Pattern.CASE_INSENSITIVE);
+  //     filters.add(regex(GRADE_KEY, pattern));
+  //   }
+  //   if (ctx.queryParamMap().containsKey(NAME_KEY)) {
+  //     Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(NAME_KEY)), Pattern.CASE_INSENSITIVE);
+  //     filters.add(regex(NAME_KEY, pattern));
+  //   }
+
+  //   return filters.isEmpty() ? new Document() : and(filters);
+  // }
+
+  // // GET /api/purchaselist/{id} — get a single stored purchaselist by id
+  // public void getStoredPurchaselistById(Context ctx) {
+  //   String id = ctx.pathParam("id");
+  //   Purchaselist purchaselist;
+  //   try {
+  //     purchaselist = purchaselistCollection.find(Filters.eq("_id", new ObjectId(id))).first();
+  //   } catch (IllegalArgumentException e) {
+  //     throw new BadRequestResponse("Invalid purchaselist ID.");
+  //   }
+  //   if (purchaselist == null) {
+  //     throw new NotFoundResponse("Purchaselist not found.");
+  //   }
+  //   ctx.json(purchaselist);
+  //   ctx.status(HttpStatus.OK);
+  // }
+
+  // // PATCH /api/purchaselist/{id}/item/{index} — update a single item (completed,
   // // unreceived, selectedOption)
   // public void updatePurchaselistItem(Context ctx) {
   //   String id = ctx.pathParam("id");
@@ -541,29 +564,29 @@ public static List<Item> compare(String inventoryCollection, String supplyListCo
   //   } catch (NumberFormatException e) {
   //     throw new BadRequestResponse("Item index must be an integer.");
   //   }
-  //   Purchaselist checklist;
+  //   Purchaselist purchaselist;
   //   try {
-  //     checklist = checklistCollection.find(Filters.eq("_id", new ObjectId(id))).first();
+  //     purchaselist = purchaselistCollection.find(Filters.eq("_id", new ObjectId(id))).first();
   //   } catch (IllegalArgumentException e) {
-  //     throw new BadRequestResponse("Invalid checklist ID.");
+  //     throw new BadRequestResponse("Invalid purchaselist ID.");
   //   }
-  //   if (checklist == null) {
+  //   if (purchaselist == null) {
   //     throw new NotFoundResponse("Purchaselist not found.");
   //   }
-  //   if (index < 0 || index >= checklist.checklist.size()) {
+  //   if (index < 0 || index >= purchaselist.purchaselist.size()) {
   //     throw new BadRequestResponse("Item index out of range.");
   //   }
   //   // Parse only the fields present in the request body
   //   var body = ctx.bodyAsClass(ItemUpdateRequest.class);
-  //   Purchaselist.PurchaselistItem item = checklist.checklist.get(index);
+  //   Purchaselist.PurchaselistItem item = purchaselist.purchaselist.get(index);
   //   if (body.completed != null)
   //     item.completed = body.completed;
   //   if (body.unreceived != null)
   //     item.unreceived = body.unreceived;
   //   if (body.selectedOption != null)
   //     item.selectedOption = body.selectedOption;
-  //   checklistCollection.save(checklist);
-  //   ctx.json(checklist);
+  //   purchaselistCollection.save(purchaselist);
+  //   ctx.json(purchaselist);
   //   ctx.status(HttpStatus.OK);
   // }
   // // Request body for PATCH item update
@@ -576,17 +599,17 @@ public static List<Item> compare(String inventoryCollection, String supplyListCo
   @Override
   public void addRoutes(Javalin server) {
     // Print routes (on-the-fly, no persistence)
-    // server.get(API_CHECKLIST_PRINT, this::printAllPurchaselists);
-    // server.get(API_CHECKLIST_BY_NAME, this::printPurchaselistByStudent);
-    // server.get(API_CHECKLIST_FAMILY, this::printPurchaselistsByFamily);
+    // server.get(API_PURCHASELIST_PRINT, this::printAllPurchaselists);
+    // server.get(API_PURCHASELIST_BY_NAME, this::printPurchaselistByStudent);
+    // server.get(API_PURCHASELIST_FAMILY, this::printPurchaselistsByFamily);
 
     // Digital drive-day routes (persisted)
-    server.post(API_CHECKLIST, this::generateDigitalPurchaselists);
-    server.get(API_CHECKLIST, this::getStoredPurchaselists);
-    server.get("/checklists/export/pdf", this::exportPurchaselistsPdf);
+    server.get(API_PURCHASELIST, this::getPurchaselists);
+    // server.get(API_PURCHASELIST, this::getStoredPurchaselists);
+    // server.get("/purchaselists/export/pdf", this::exportPurchaselistsPdf);
 
-    // server.get(API_CHECKLIST_BY_ID, this::getStoredPurchaselistById);
-    // server.patch(API_CHECKLIST_ITEM, this::updateChecklistItem);
+    // server.get(API_PURCHASELIST_BY_ID, this::getStoredPurchaselistById);
+    // server.patch(API_PURCHASELIST_ITEM, this::updatePurchaselistItem);
   }
 
 
