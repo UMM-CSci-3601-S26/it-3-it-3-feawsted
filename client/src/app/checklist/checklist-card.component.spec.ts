@@ -51,6 +51,8 @@ describe('ChecklistCardComponent', () => {
     expectedChecklist = {
       _id: 'chris_id',
       studentName: 'Chris',
+      guardianName: 'Alex Jon',
+      altPickUp: 'Jamie Bob',
       grade: '3',
       school: 'AHS',
       requestedSupplies: ["backpack"],
@@ -127,3 +129,5 @@ describe('ChecklistCardComponent', () => {
   // });
   //});
 });
+
+

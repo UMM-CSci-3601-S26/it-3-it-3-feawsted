@@ -60,6 +60,8 @@ export class ChecklistViewComponent {
   private route = inject(ActivatedRoute);
 
   studentName = signal<string | undefined>(undefined);
+  guardianName = signal<string | undefined>(undefined);
+  altPickUp = signal<string | undefined>(undefined);
   school = signal<string | undefined>(undefined);
   grade = signal<string | undefined>(undefined);
   refreshTrigger = signal(0);
@@ -75,12 +77,14 @@ export class ChecklistViewComponent {
   }
 
   private studentName$ = toObservable(this.studentName);
+  private guardianName$ = toObservable(this.guardianName);
+  private altPickUp$ = toObservable(this.altPickUp);
   private school$ = toObservable(this.school);
   private grade$ = toObservable(this.grade);
   private refresh$ = toObservable(this.refreshTrigger);
 
   serverFilteredChecklists = toSignal(
-    combineLatest([this.studentName$, this.school$, this.grade$, this.refresh$]).pipe(
+    combineLatest([this.studentName$, this.guardianName$, this.altPickUp$, this.school$, this.grade$, this.refresh$]).pipe(
       debounceTime(300),
       switchMap(([studentName, school, grade]) =>
         this.checklistService.getChecklists({ studentName, school, grade })
@@ -126,7 +130,7 @@ export class ChecklistViewComponent {
         const pageWidth = doc.internal.pageSize.getWidth();
         const margin = 14;
         const checkSize = 4;
-        const lineHeight = 7;
+        const lineHeight = 12;
 
         checklists.forEach((checklist, index) => {
           if (index > 0) {
@@ -141,36 +145,66 @@ export class ChecklistViewComponent {
           doc.setFontSize(11);
           doc.setFont('helvetica', 'normal');
           doc.text(`Student: ${checklist.studentName}`, margin, 28);
-          doc.text(`School:  ${checklist.school}`, margin, 35);
-          doc.text(`Grade:   ${checklist.grade}`, margin, 42);
+          doc.text(`Guardian: ${checklist.guardianName}`, margin, 36);
+          if (checklist.altPickUp) {
+            doc.text(`Alt Pickup: ${checklist.altPickUp}`, margin, 44);
+            doc.text(`School:  ${checklist.school}`, margin, 51);
+            doc.text(`Grade:   ${checklist.grade}`, margin, 58);
 
-          doc.setLineWidth(0.4);
-          doc.line(margin, 46, pageWidth - margin, 46);
+            doc.setLineWidth(0.4);
+            doc.line(margin, 62, pageWidth - margin, 62);
+            let y = 70;
+            // Items with checkboxes
+            checklist.checklist.forEach(item => {
+              const label = supplyToLabel(item.supply);
+              const lines = doc.splitTextToSize(label, pageWidth - margin - 20) as string[];
+              const blockHeight = lines.length * lineHeight;
 
-          // Items with checkboxes
-          let y = 54;
-          checklist.checklist.forEach(item => {
-            const label = supplyToLabel(item.supply);
-            const lines = doc.splitTextToSize(label, pageWidth - margin - 20) as string[];
-            const blockHeight = lines.length * lineHeight;
+              if (y + blockHeight > doc.internal.pageSize.getHeight() - 14) {
+                doc.addPage();
+                y = 20;
+              }
 
-            if (y + blockHeight > doc.internal.pageSize.getHeight() - 14) {
-              doc.addPage();
-              y = 20;
-            }
+              // Checkbox square — centred vertically with the first line of text
+              doc.rect(margin, y - checkSize + 1, checkSize, checkSize);
 
-            // Checkbox square — centred vertically with the first line of text
-            doc.rect(margin, y - checkSize + 1, checkSize, checkSize);
+              // Label text starting after the checkbox
+              doc.setFontSize(10);
+              doc.setFont('helvetica', 'normal');
+              doc.text(lines, margin + checkSize + 3, y);
 
-            // Label text starting after the checkbox
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text(lines, margin + checkSize + 3, y);
+              y += blockHeight + 3;
+            });
+          } else {
+            doc.text(`School:  ${checklist.school}`, margin, 45);
+            doc.text(`Grade:   ${checklist.grade}`, margin, 53);
 
-            y += blockHeight + 3;
-          });
+            doc.setLineWidth(0.4);
+            doc.line(margin, 55, pageWidth - margin, 55);
+            let y = 60;
+            // Items with checkboxes
+            checklist.checklist.forEach(item => {
+              const label = supplyToLabel(item.supply);
+              const lines = doc.splitTextToSize(label, pageWidth - margin - 20) as string[];
+              const blockHeight = lines.length * lineHeight;
+
+              if (y + blockHeight > doc.internal.pageSize.getHeight() - 14) {
+                doc.addPage();
+                y = 20;
+              }
+
+              // Checkbox square — centred vertically with the first line of text
+              doc.rect(margin, y - checkSize + 1, checkSize, checkSize);
+
+              // Label text starting after the checkbox
+              doc.setFontSize(10);
+              doc.setFont('helvetica', 'normal');
+              doc.text(lines, margin + checkSize + 3, y);
+
+              y += blockHeight + 3;
+            });
+          }
         });
-
         doc.save('checklists.pdf');
       }
     });

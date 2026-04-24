@@ -48,6 +48,8 @@ describe('ChecklistService', () => {
     {
       _id: '1',
       studentName: 'John',
+      guardianName: 'alex Doe',
+      altPickUp: 'Jane Doe',
       school: 'Herman',
       grade: '7',
       requestedSupplies: ['backpack'],
@@ -63,6 +65,8 @@ describe('ChecklistService', () => {
     {
       _id: '2',
       studentName: 'Jane Doe',
+      guardianName: 'Freddy Doe',
+      altPickUp: 'Christa Doe',
       school: 'Herman',
       grade: '3',
       requestedSupplies: ['backpack'],
@@ -160,6 +164,19 @@ describe('ChecklistService', () => {
       });
     });
 
+    it('correctly calls api/checklists with filter parameter grade', () => {
+      const mockedMethod = spyOn(httpClient, 'get').and.returnValue(of(testChecklists));
+
+      checklistService.getChecklists({ grade: '7' }).subscribe(() => {
+        expect(mockedMethod)
+          .withContext('one call')
+          .toHaveBeenCalledTimes(1);
+        expect(mockedMethod)
+          .withContext('talks to the correct endpoint')
+          .toHaveBeenCalledWith(checklistService.checklistUrl, { params: new HttpParams().set('grade', '7') });
+      });
+    });
+
   });
 
   it('should fetch all checklists', () => {
@@ -180,6 +197,8 @@ describe('ChecklistService', () => {
     const testChecklist: Checklist = {
       _id: '123',
       studentName: 'Test Checklist',
+      guardianName: 'Test Guardian',
+      altPickUp: 'Test Alt PickUp',
       requestedSupplies: ['backpack'],
       school: 'AHS',
       grade: '6th',
