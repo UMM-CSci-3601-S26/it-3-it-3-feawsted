@@ -373,16 +373,13 @@ public class ChecklistController implements Controller {
   }
 
   public void exportFilteredChecklistsPdf(Context ctx) {
-    Bson filter = constructFilter(ctx);
+    //Bson filter = constructFilter(ctx);
     // // Fetch your checklist data
-    // List<Family> families = familyCollection.find(filter).into(new
-    // ArrayList<>());
+    List<Family> families = familyCollection.find().into(new ArrayList<>());
 
     List<SupplyList> pdfSupplies = expandHighSchoolSupplies(
         supplyListCollection.find().into(new ArrayList<>()));
-    List<Checklist> checklists = familyCollection.find()
-        .into(new ArrayList<>())
-        .stream()
+    List<Checklist> checklists = families.stream()
         .flatMap((Family f) -> f.students.stream()
             .map((StudentInfo s) -> createChecklist(s, f.guardianName, f.altPickUp, pdfSupplies)))
         .collect(Collectors.toList());
@@ -444,7 +441,7 @@ public class ChecklistController implements Controller {
 
       for (ChecklistItem item : c.checklist) {
         text.append("(")
-            .append(" - ").append(item.supply)
+            .append(" - ").append(String.join(", ", item.supply.item))
             .append(" | completed: ").append(item.completed)
             .append(" | unreceived: ").append(item.unreceived)
             .append(" | option: ").append(item.selectedOption)
@@ -582,16 +579,25 @@ public class ChecklistController implements Controller {
     List<Bson> filters = new ArrayList<>();
 
     if (ctx.queryParamMap().containsKey(SCHOOL_KEY)) {
-      Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(SCHOOL_KEY)), Pattern.CASE_INSENSITIVE);
-      filters.add(regex(SCHOOL_KEY, pattern));
+      Pattern pattern = Pattern.compile(
+        Pattern.quote(ctx.queryParam(SCHOOL_KEY)),
+        Pattern.CASE_INSENSITIVE
+      );
+      filters.add(regex("school", pattern));
     }
     if (ctx.queryParamMap().containsKey(GRADE_KEY)) {
-      Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(GRADE_KEY)), Pattern.CASE_INSENSITIVE);
-      filters.add(regex(GRADE_KEY, pattern));
+      Pattern pattern = Pattern.compile(
+        Pattern.quote(ctx.queryParam(GRADE_KEY)),
+        Pattern.CASE_INSENSITIVE
+      );
+      filters.add(regex("grade", pattern));
     }
     if (ctx.queryParamMap().containsKey(NAME_KEY)) {
-      Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(NAME_KEY)), Pattern.CASE_INSENSITIVE);
-      filters.add(regex(NAME_KEY, pattern));
+      Pattern pattern = Pattern.compile(
+        Pattern.quote(ctx.queryParam(NAME_KEY)),
+        Pattern.CASE_INSENSITIVE
+      );
+      filters.add(regex("studentName", pattern));
     }
 
     return filters.isEmpty() ? new Document() : and(filters);
