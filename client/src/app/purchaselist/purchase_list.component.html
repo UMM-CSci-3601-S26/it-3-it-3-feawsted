@@ -1,227 +1,159 @@
 <div class="flex-row">
   <div class="flex-1">
-    <mat-card class="search-card">
+    <mat-card class="search-grid">
       <mat-card-header>
-        <mat-card-title class="inventory-list-title"><strong>GRADE REQUIREMENTS</strong></mat-card-title>
+        <mat-card-title class="purchaselist-title">Purchase List</mat-card-title>
       </mat-card-header>
+
       <mat-card-content>
-      <mat-card class="search-card">
-        <p>
-          This page lists the items to be purchased, which are found by seeing what is in supplylist and not inventory.
-      </mat-card>
+        <p class="page-description">
+          Welcome to the Purchase List page! Here, you can view the items a student in each grade at each school needs, as well as filter them by various attributes. In the future, functionality for generating supply sheets and other similar features may be added!
+        </p>
+        <hr style="margin: 1rem 0;" />
 
-        <div class="flex-row gap-8 flex-wrap">
-          <!-- Examples of filtering in Angular -->
+        <p class="filters-description">
+          Use the fields below to filter the inventory by school, grade, item, brand, color, size, type, and material. The filters will be applied as you type, and you can clear them all at once using the "Clear" button on the bottom.
+        </p>
 
-          <mat-form-field class="input-field">
-            <input matInput data-test="itemNameInput" placeholder="Name" [(ngModel)]="itemName">
-            <mat-hint>Search requirements by name</mat-hint>
-          </mat-form-field>
 
-          <mat-form-field class="input-field">
-            <input matInput data-test="itemSchoolInput" placeholder="School" [(ngModel)]="itemSchool">
-            <mat-hint>Search by school</mat-hint>
-          </mat-form-field>
+        !-- Datalists for inline-edit autocomplete — must be outside the table element
 
-          <mat-form-field class="input-field">
-            <input matInput data-test="itemGradeInput" placeholder="Grade" [(ngModel)]="itemGrade">
-            <mat-hint>Search by grade</mat-hint>
-          </mat-form-field>
+<table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8 demo-table">
+  <!-- Item Column -->
+  <ng-container matColumnDef="item">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by item">Item</th>
+    <td mat-cell *matCellDef="let element" class="inventory-item" data-cy="inventory-item">
+    </td>
+  </ng-container>
 
-          <mat-form-field [style.width.px]=100 class="input-field">
-            <!--<mat-label>Stock</mat-label> -->
-            <input matInput data-test="itemRequiredInput" type="number" placeholder="" min="0" max="9999"
-              [(ngModel)]="itemRequired">
-            <mat-hint>Minimum</mat-hint>
-          </mat-form-field>
+  <!-- Brand Column -->
+  <ng-container matColumnDef="brand">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by brand">Brand</th>
+    <td mat-cell *matCellDef="let element" class="inventory-brand" data-cy="inventory-brand">
+    </td>
+  </ng-container>
 
-          <mat-form-field class="input-field">
-            <mat-label>Type</mat-label>
+  <!-- Color Column -->
+  <ng-container matColumnDef="color">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by color">Color</th>
+    <td mat-cell *matCellDef="let element" class="inventory-color" data-cy="inventory-color">
+    </td>
+  </ng-container>
+
+  <!-- Size Column -->
+  <ng-container matColumnDef="size">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by size">Size</th>
+    <td mat-cell *matCellDef="let element" class="inventory-size" data-cy="inventory-size">
+    </td>
+  </ng-container>
+
+
+        <!-- Filter Fields
+        <div class="filter-container">
+          <mat-form-field appearance="outline">
+            <mat-label>School</mat-label>
             <input
               matInput
-              placeholder="Any Type"
-              [ngModel]="itemType()"
-              (ngModelChange)="itemType.set($event)"
-              [matAutocomplete]="auto"
-              data-test="itemDescSelect"
-            >
-            <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayTypeLabel">
-            <mat-option [value]="''">Any Type</mat-option>
-            @for (option of filteredTypeOptions(); track option.value) {
-              <mat-option [value]="option.value">{{ option.label }}</mat-option>
-            }
-            </mat-autocomplete>
-            <mat-hint>Search by type</mat-hint>
+              [ngModel]="school() ?? ''"
+              (ngModelChange)="school.set($event?.trim() || undefined)"
+              placeholder="contains..."
+              data-cy="filter-school"
+            />
           </mat-form-field>
-          <button
-            mat-raised-button
-            type="button"
-            color="accent"
-            type="back"
-            [style.height.px]=55
-            (click)="resetFamilies()"
-            data-test="resetLocationButton"
-            >
-            List Reset
-          </button>
+
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">Grade</mat-label>
+            <input
+              matInput
+              [ngModel]="grade() ?? ''"
+              (ngModelChange)="grade.set($event?.trim() || undefined)"
+              placeholder="contains..."
+              data-cy="filter-grade"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">Item</mat-label>
+            <input
+              matInput
+              [ngModel]="item() ?? ''"
+              (ngModelChange)="item.set($event?.trim() || undefined)"
+              placeholder="contains..."
+              data-cy="filter-item"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">Brand</mat-label>
+            <input
+              matInput
+              [ngModel]="brand() ?? ''"
+              (ngModelChange)="brand.set($event?.trim() || undefined)"
+              placeholder="contains..."
+              data-cy="filter-brand"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">Color</mat-label>
+            <input
+              matInput
+              [ngModel]="color() ?? ''"
+              (ngModelChange)="color.set($event?.trim() || undefined)"
+              placeholder="contains..."
+              data-cy="filter-color"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">Size</mat-label>
+            <input
+              matInput
+              [ngModel]="size() ?? ''"
+              (ngModelChange)="size.set($event?.trim() || undefined)"
+              placeholder="contains..."
+              data-cy="filter-size"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">Type</mat-label>
+            <input
+              matInput
+              [ngModel]="type() ?? ''"
+              (ngModelChange)="type.set($event?.trim() || undefined)"
+              placeholder="contains..."
+              data-cy="filter-type"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">Material</mat-label>
+            <input
+              matInput
+              [ngModel]="material() ?? ''"
+              (ngModelChange)="material.set($event?.trim() || undefined)"
+              placeholder="contains..."
+              data-cy="filter-material"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">Style</mat-label>
+            <input
+              matInput
+              [ngModel]="style() ?? ''"
+              (ngModelChange)="style.set($event?.trim() || undefined)"
+              placeholder="contains..."
+              data-cy="filter-style"
+            />
+          </mat-form-field>
         </div>
 
-        <div class="flex-row gap-8 flex-wrap">
 
-          <mat-form-field [style.width.px]=760 class="input-field">
-            <input matInput data-test="itemDescInput" placeholder="Description" [(ngModel)]="itemDesc">
-            <mat-hint>Search descriptions</mat-hint>
-          </mat-form-field>
 
-          <mat-form-field [style.width.px]=250 class="input-field">
-            <!-- <mat-label>Desc</mat-label> -->
-            <mat-select placeholder="Sort by School & Grade" [(ngModel)]="sortBy" data-test="sortBySelect">
-              <mat-option value="school">Sort by School & Grade</mat-option>
-              <mat-option value="name">Sort by Name</mat-option> <!--Must be provided, otherwise reset won't work -->
-              <mat-option value="name_des">Sort by Name (Des)</mat-option>
-              <mat-option value="type">Sort by Type</mat-option>
-              <mat-option value="quantity">Sort by Required</mat-option>
-              <mat-option value="quantity_des">Sort by Required (Des)</mat-option>
-            </mat-select>
-            <mat-hint>Select Sort Order</mat-hint>
-          </mat-form-field>
-        </div>
-        <br>
-      </mat-card-content>
-    </mat-card>
-  </div>
-</div>
 
-<div class="flex-row">
-  @if (serverFilteredItems()) {
-  <div class="flex-1">
-    <!-- The actual grade requirement list -->
-    <div>
-          @if (sortBy() === "school") {
-            <mat-nav-list class="item-nav-list" color="accent">
-              @for (school of schoolFilteredItems(); track school.grades) {
-                <mat-card class="section-card">
-                <mat-card-content>
-                <mat-toolbar color="primary">
-                <h2 matSubheader><strong>{{ school.school_header }}</strong></h2>
-                <span class="flexExpand"></span>
-                <button mat-raised-button
-                  type="button"
-                  color="accent"
-                  [style.height.px]=30
-                  [disabled]="!populateAllowed"
-                  data-test="populateButtonSchool"
-                  (click)="populateInventory(serverFilteredItems(),school.school_val)"
-                >
-                Add all requirements to Inventory
-                </button>
-                </mat-toolbar>
-                <!--Sublist for each grade-->
-                @for (grade of school.grades; track grade.grade_header) {
-                    <mat-card class="sub-section-card">
-                    <mat-card-content>
-                      <mat-toolbar color="primary">
-                      <h3 matSubheader><strong>{{ grade.grade_header }}</strong></h3>
-                      <span class="flexExpand"></span>
-                      <button mat-raised-button
-                        type="button"
-                        color="accent"
-                        [style.height.px]=30
-                        data-test="populateButton"
-                        [disabled]="!populateAllowed"
-                        routerLink="/grade_list/new"
-                        (click)="updateOrigin(school.school_val, grade.grade_val)"
-                      >
-                      New Requirement
-                      </button>
-                      <button mat-raised-button
-                        type="button"
-                        color="warn"
-                        [style.height.px]=30
-                        data-test="populateButton"
-                        [disabled]="!populateAllowed"
-                        (click)="populateInventory(serverFilteredItems(),school.school_val, grade.grade_val)"
-                      >
-                      Add {{grade.grade_header}} requirements to Inventory
-                      </button>
-                      </mat-toolbar>
-                      @for (item of grade.items; track item._id) {
-                        <a mat-list-item [routerLink]="['/grade_list', item._id]" class="item-list-item">
-                        <span matListItemTitle mat-line class="item-list-name"> x<strong>{{item.required}}</strong> ~ {{item.name}}</span>
-                        <span matListItemLine class="item-list-desc"> {{item.desc}} ~ required for {{item.school}}, {{item.grade}}</span>
-                        @if (item.pack > 1) {
-                          <span matListItemLine class="item-list-desc">Package of {{item.pack}} ct.</span>
-                        }
-                      </a>
-                      }
-                    </mat-card-content>
-                    </mat-card>
-                }
-                </mat-card-content>
-                </mat-card>
-              }
-            </mat-nav-list>
-          }
-          @else if (sortBy() === "type") { <!-- Special sectioned list for type -->
-            <mat-nav-list class="item-nav-list" color="accent">
-              @for (collection of typeFilteredItems(); track collection.items) {
-                <mat-card class = "section-card">
-                <mat-card-content>
-                <mat-toolbar color="primary">
-                <h2 matSubheader>{{ collection.header }}</h2>
-                </mat-toolbar>
-                <!--Sublist for each item type-->
-                @for (item of collection.items; track item._id) {
-                    <a mat-list-item [routerLink]="['/grade_list', item._id]" class="item-list-item">
-                    <span matListItemTitle mat-line class="item-list-name"> x<strong>{{item.required}}</strong> ~ {{item.name}}</span>
-                    <span matListItemLine class="item-list-desc"> {{item.desc}} ~ required for {{item.school}}, {{item.grade}}</span>
-                    @if (item.pack > 1) {
-                      <span matListItemLine class="item-list-desc">Package of {{item.pack}} ct.</span>
-                    }
-                    </a>
-                }
-                </mat-card-content>
-                </mat-card>
-              }
-            </mat-nav-list>
-          }
-          @else { <!--Regular, untyped sorting-->
-            <mat-card>
-            <mat-card-content>
-            <mat-nav-list class="item-nav-list" color="accent">
-              @for (item of filteredItems(); track item._id) {
-                  <a mat-list-item [routerLink]="['/grade_list', item._id]" class="item-list-item">
-                  <span matListItemTitle mat-line class="item-list-name"> <strong>x{{item.required}}</strong> ~ {{item.name}}</span>
-                  <span matListItemLine class="item-list-desc"> {{item.desc}} ~ required for {{item.school}}, {{item.grade}}</span>
-                  @if (item.pack > 1) {
-                    <span matListItemLine class="item-list-desc">Package of {{item.pack}} ct.</span>
-                  }
-                  </a>
-              }
-            </mat-nav-list>
-          </mat-card-content>
-          </mat-card>
-          }
-    </div>
-  </div>
-  } @else {
-  <div class="flex-1" class="item-error">
-    <mat-error>
-      <strong>Loading items...</strong>
-    </mat-error>
-    <mat-error>
-      If items aren't loading, check your network and server.
-    </mat-error>
-  </div>
-  }
+<!--Supply List Display-->
 
-</div>
 
-<button mat-fab class="add-item-fab"
-  matTooltip="Add Requirement"
-  matTooltipPosition="left"
-  routerLink="/grade_list/new"
-  (click)="updateOrigin()"
-  data-test="addItemButton">
-  <mat-icon class="md-24" aria-label="Add Item">add</mat-icon>
-</button>
+

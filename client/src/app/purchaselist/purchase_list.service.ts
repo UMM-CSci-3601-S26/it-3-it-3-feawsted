@@ -1,41 +1,27 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { SupplyList } from './purchase_list';
+import { PurchaseList } from './purchase_list';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
-export class SupplyListService {
+export class PurchaseListService {
   private httpClient = inject(HttpClient);
 
-  readonly supplylistUrl: string = `${environment.apiUrl}supplylist`;
+  readonly purchaselistUrl: string = `${environment.apiUrl}purchaselist`;
 
-  private readonly schoolKey = 'school';
-  private readonly gradeKey = 'grade';
   private readonly itemKey = 'item';
   private readonly brandKey = 'brand';
   private readonly colorKey = 'color';
-  private readonly countKey = 'count';
   private readonly sizeKey = 'size';
-  private readonly typeKey = 'type';
-  private readonly materialKey = 'material';
-  private readonly styleKey = 'style';
-  private readonly quantityKey = 'quantity';
-  private readonly notesKey = 'notes';
 
-  getSupplyList(filters?: {school?: string; grade?: string; item?: string; brand?: string; color?: string;
-    count?: number; size?: string; type?: string; material?: string; style?: string; quantity?: number; notes?: string}): Observable<SupplyList[]> {
+  getPurchaseList(filters?: {school?: string; grade?: string; item?: string; brand?: string; color?: string;
+    count?: number; size?: string; type?: string; material?: string; style?: string; quantity?: number; notes?: string}): Observable<PurchaseList[]> {
 
     let httpParams: HttpParams = new HttpParams();
     if (filters) {
-      if (filters.school) {
-        httpParams = httpParams.set(this.schoolKey, filters.school);
-      }
-      if (filters.grade) {
-        httpParams = httpParams.set(this.gradeKey, filters.grade);
-      }
       if (filters.item) {
         httpParams = httpParams.set(this.itemKey, filters.item);
       }
@@ -48,29 +34,9 @@ export class SupplyListService {
       if (filters.size) {
         httpParams = httpParams.set(this.sizeKey, filters.size);
       }
-      if (filters.type) {
-        httpParams = httpParams.set(this.typeKey, filters.type);
-      }
-      if (filters.material) {
-        httpParams = httpParams.set(this.materialKey, filters.material);
-      }
-      if (filters.style) {
-        httpParams = httpParams.set(this.styleKey, filters.style);
-      }
 
     }
-    return this.httpClient.get<SupplyList[]>(this.supplylistUrl, { params: httpParams });
+    return this.httpClient.get<PurchaseList[]>(this.purchaselistUrl, { params: httpParams });
   }
 
-  deleteSupplyList(id: string): Observable<unknown> {
-    return this.httpClient.delete<void>(`${this.supplylistUrl}/${id}`);
-  }
-
-  addSupplyList(newItem: Partial<SupplyList>): Observable<void> {
-    return this.httpClient.post<void>(this.supplylistUrl, newItem);
-  }
-
-  editSupplyList(id: string, updatedItem: Partial<SupplyList>): Observable<void> {
-    return this.httpClient.put<void>(`${this.supplylistUrl}/${id}`, updatedItem);
-  }
 }
