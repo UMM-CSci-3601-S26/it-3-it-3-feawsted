@@ -96,6 +96,7 @@ describe('Misbehaving Family List', () => {
   let familyServiceStub: {
     getFamilies: () => Observable<Family[]>;
     exportFamilies: () => Observable<string>;
+    editInventory: (id: string, family: Family) => Observable<void>;
   };
 
   // Set up a stub for the FamilyService that simulates an error when getFamilies() is called, and returns an empty string for exportFamilies()
@@ -105,7 +106,8 @@ describe('Misbehaving Family List', () => {
         new Observable((observer) => {
           observer.error('getFamilies() Observer generates an error');
         }),
-      exportFamilies: () => of('')
+      exportFamilies: () => of(''),
+      editInventory: () => of(void 0)
     };
   });
 
@@ -136,4 +138,32 @@ describe('Misbehaving Family List', () => {
   it('it will return an empty array when the service experiences an error', () => {
     expect(familyList.families()).toEqual([]);
   });
+
+
+  it('should call familyService.editInventory when updateFamily is triggered', () => {
+    const updatedFamily: Family = { _id: '123', guardianName: 'New Name' } as Family;
+    // We spy on the stub to see if it's called
+    const editSpy = spyOn(familyServiceStub, 'editInventory').and.returnValue(of(void 0));
+
+    // Prevent the actual page reload during tests which would crash the test runner
+    spyOn(window.location, 'reload');
+
+    familyList.updateFamily(updatedFamily);
+
+    expect(editSpy).toHaveBeenCalledWith('123', updatedFamily);
+  });
+
+  it('should alert the user if the update fails', () => {
+    const updatedFamily: Family = { _id: '123' } as Family;
+    // Simulate a server error (like the 404 you saw earlier)
+    spyOn(familyServiceStub, 'editInventory').and.returnValue(
+      new Observable(obs => obs.error('Server Error'))
+    );
+    spyOn(window, 'alert');
+
+    familyList.updateFamily(updatedFamily);
+
+    expect(window.alert).toHaveBeenCalledWith('Could not save changes. Check the console.');
+  });
+
 });
