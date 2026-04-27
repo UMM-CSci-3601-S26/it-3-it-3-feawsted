@@ -3,7 +3,7 @@ package umm3601.checklist;
 
 // Static Imports
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+//import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -465,6 +465,54 @@ class ChecklistControllerSpec {
     when(ctx.queryParam("name")).thenReturn(null);
 
     checklistController.exportFilteredChecklistsPdf(ctx);
+
+    verify(ctx).contentType("application/pdf");
+    verify(ctx).header(eq("Content-Disposition"), contains("checklists.pdf"));
+    verify(ctx).result(byteCaptor.capture());
+
+    String pdfText = new String(byteCaptor.getValue());
+
+    assertTrue(pdfText.contains("Student: Layla"));
+    assertTrue(pdfText.contains("Student: Bonny"));
+    assertTrue(pdfText.contains("Student: Willy"));
+  }
+
+  @Test
+  void printAllChecklistsPdf() {
+    MongoCollection<Document> families = db.getCollection("families");
+    families.drop();
+
+    families.insertMany(List.of(
+      new Document()
+          .append("guardianName", "Sondra Sanderson")
+          .append("altPickUp", "None")
+          .append("students", List.of(
+              new Document()
+                  .append("name", "Layla")
+                  .append("school", "MAES")
+                  .append("grade", "4")
+          )),
+      new Document()
+          .append("guardianName", "John Bobson")
+          .append("altPickUp", "None")
+          .append("students", List.of(
+              new Document()
+                  .append("name", "Bonny")
+                  .append("school", "MAES")
+                  .append("grade", "41")
+          )),
+      new Document()
+          .append("guardianName", "Bob Johnson")
+          .append("altPickUp", "None")
+          .append("students", List.of(
+              new Document()
+                  .append("name", "Willy")
+                  .append("school", "St. Mary's")
+                  .append("grade", "8")
+          ))
+    ));
+
+    checklistController.exportChecklistsPdf(ctx);
 
     verify(ctx).contentType("application/pdf");
     verify(ctx).header(eq("Content-Disposition"), contains("checklists.pdf"));
