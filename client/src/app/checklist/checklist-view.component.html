@@ -85,6 +85,9 @@
 </div>
 
  <!-- Export Checklists -->
+<button mat-raised-button (click)="downloadPDFforFilteredChecklists()" matTooltipPosition="left"class="export-filtered-pdf-button" data-test="exportFilteredPDFButton">
+  Export Filtered Checklists
+</button>
 <button mat-raised-button (click)="downloadPDFforChecklists()" matTooltipPosition="left"class="export-pdf-button" data-test="exportPDFButton">
   Export All Checklists
 </button>
