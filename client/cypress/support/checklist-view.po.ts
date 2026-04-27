@@ -9,6 +9,7 @@ export class ChecklistViewPage {
   //private readonly checklistRoleDropdownSelector = '[data-test=checklistRoleSelect]';
   private readonly dropdownOptionSelector = 'mat-option';
   private readonly exportPDFButtonSelector = '[data-test=exportPDFButton]';
+  private readonly exportFilteredPDFButtonSelector = '[data-test=exportFilteredPDFButton]';
   private readonly filterInputSelector = '[data-test=checklistFilterInput]';
 
   navigateTo() {
@@ -48,6 +49,10 @@ export class ChecklistViewPage {
 
   getExportPDFButton() {
     return cy.get(this.exportPDFButtonSelector);
+  }
+
+  getExportFilteredPDFButton() {
+    return cy.get(this.exportFilteredPDFButtonSelector);
   }
 
   getGenerateChecklistsButton() {

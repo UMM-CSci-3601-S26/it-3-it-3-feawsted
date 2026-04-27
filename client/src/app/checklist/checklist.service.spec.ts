@@ -113,10 +113,6 @@ describe('ChecklistService', () => {
 
 
 
-
-
-
-
   afterEach(() => {
     httpTestingController.verify();
   });
@@ -274,6 +270,42 @@ describe('ChecklistService', () => {
         expect(mockedMethod).toHaveBeenCalledTimes(1);
         expect(mockedMethod).toHaveBeenCalledWith(`${checklistService.checklistUrl}/${checklistId}`);
       });
+    });
+  });
+
+  describe('printFilteredChecklists()', () => {
+    it('should call GET /api/checklists with the correct filter parameters', () => {
+      const mockResponse =testChecklists;
+      checklistService.printFilteredChecklists({ studentName: 'Bob', school: 'Herman', grade: '7' }).subscribe(result => {
+        expect(result).toEqual(mockResponse);
+      });
+
+      const req = httpTestingController.expectOne(req =>
+        req.method === 'GET' &&
+        req.url === `${checklistService.checklistUrl}/filtered` &&
+        req.params.get('studentName') === 'Bob' &&
+        req.params.get('school') === 'Herman' &&
+        req.params.get('grade') === '7'
+      );
+      expect(req.request.method).toBe('GET');
+      req.flush(mockResponse);
+    });
+
+    it('should omit undefined filter parameters from the HTTP request', () => {
+      const mockResponse = testChecklists;
+      checklistService.printFilteredChecklists({ studentName: 'Bob', school: undefined, grade: '7' }).subscribe(result => {
+        expect(result).toEqual(mockResponse);
+      });
+
+      const req = httpTestingController.expectOne(req =>
+        req.method === 'GET' &&
+        req.url === `${checklistService.checklistUrl}/filtered` &&
+        req.params.get('studentName') === 'Bob' &&
+        !req.params.has('school') &&
+        req.params.get('grade') === '7'
+      );
+      expect(req.request.method).toBe('GET');
+      req.flush(mockResponse);
     });
   });
 });

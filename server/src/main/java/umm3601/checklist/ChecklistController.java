@@ -122,7 +122,7 @@ public class ChecklistController implements Controller {
   }
 
   // Grades considered "high school" for expansion purposes
-  static final String[] HS_GRADES = {"9", "10", "11", "12"};
+  static final String[] HS_GRADES = { "9", "10", "11", "12" };
 
   /**
    * Expands any supply list entry whose grade normalizes to "highschool" into
@@ -373,7 +373,7 @@ public class ChecklistController implements Controller {
   }
 
   public void exportFilteredChecklistsPdf(Context ctx) {
-    //Bson filter = constructFilter(ctx);
+    // Bson filter = constructFilter(ctx);
     // // Fetch your checklist data
     List<Family> families = familyCollection.find().into(new ArrayList<>());
 
@@ -391,7 +391,7 @@ public class ChecklistController implements Controller {
     if (school != null) {
       checklists = checklists.stream()
           .filter(c -> c.school != null
-          &&
+              &&
               c.school.toLowerCase().contains(school.toLowerCase()))
           .collect(Collectors.toList());
     }
@@ -399,7 +399,7 @@ public class ChecklistController implements Controller {
     if (grade != null) {
       checklists = checklists.stream()
           .filter(c -> c.grade != null
-          &&
+              &&
               c.grade.toLowerCase().contains(grade.toLowerCase()))
           .collect(Collectors.toList());
     }
@@ -407,93 +407,12 @@ public class ChecklistController implements Controller {
     if (name != null) {
       checklists = checklists.stream()
           .filter(c -> c.studentName != null
-          &&
+              &&
               c.studentName.toLowerCase().contains(name.toLowerCase()))
           .collect(Collectors.toList());
     }
-
-    // Build PDF content manually
-    StringBuilder pdf = new StringBuilder();
-    pdf.append("%PDF-1.4\n");
-
-    // PDF objects
-    pdf.append("1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n");
-    pdf.append("2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n");
-
-    // Build the text content
-    StringBuilder text = new StringBuilder();
-    text.append("BT /F1 12 Tf 50 750 Td\n");
-
-    for (Checklist c : checklists) {
-      text.append("(")
-          .append("Student: ").append(c.studentName)
-          .append(") Tj T* ");
-
-      text.append("(")
-          .append("Guardian: ").append(c.guardianName)
-          .append(" | Alt Pickup: ").append(c.altPickUp)
-          .append(") Tj T* ");
-
-      text.append("(")
-          .append(c.school)
-          .append(", Grade ").append(c.grade)
-          .append(") Tj T* ");
-
-      for (ChecklistItem item : c.checklist) {
-        text.append("(")
-            .append(" - ").append(String.join(", ", item.supply.item))
-            .append(" | completed: ").append(item.completed)
-            .append(" | unreceived: ").append(item.unreceived)
-            .append(" | option: ").append(item.selectedOption)
-            .append(") Tj T* ");
-      }
-
-      text.append("() Tj T* "); // blank line
-    }
-
-    text.append("ET");
-
-    // PDF page object
-    pdf.append("3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792]")
-        .append(" /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj\n");
-
-    // PDF content stream
-    byte[] textBytes = text.toString().getBytes();
-    pdf.append("4 0 obj << /Length ").append(textBytes.length).append(" >> stream\n");
-    pdf.append(text.toString()).append("\nendstream endobj\n");
-
-    // Font object
-    pdf.append("5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj\n");
-
-    // Trailer
-    pdf.append("xref\n0 6\n0000000000 65535 f \n");
-    pdf.append("trailer << /Size 6 /Root 1 0 R >>\nstartxref\n");
-    pdf.append(pdf.length()).append("\n%%EOF");
-
-    byte[] pdfBytes = pdf.toString().getBytes();
-
-    ctx.contentType("application/pdf");
-    ctx.header("Content-Disposition", "inline; filename=checklists.pdf");
-    ctx.result(pdfBytes);
+    ctx.json(checklists);
   }
-
-  // GET /api/checklist/family/{guardianName} — all students in a family
-  // public void printChecklistsByFamily(Context ctx) {
-  // String guardianName = ctx.pathParam("guardianName");
-  // List<SupplyList> allSupplies = supplyListCollection.find().into(new
-  // ArrayList<>());
-  // List<Family> families = familyCollection.find(
-  // Filters.regex("guardianFirstName", guardianName, "i")).into(new
-  // ArrayList<>());
-  // if (families.isEmpty()) {
-  // throw new NotFoundResponse("No family found for guardian: " + guardianName);
-  // }
-  // List<Checklist> checklists = families.stream()
-  // .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
-  // .collect(Collectors.toList());
-  // ctx.json(checklists);
-  // ctx.status(HttpStatus.OK);
-  // }
 
   // POST /api/checklist — snapshot all families into the checklists collection
   public void generateDigitalChecklists(Context ctx) {
@@ -580,23 +499,20 @@ public class ChecklistController implements Controller {
 
     if (ctx.queryParamMap().containsKey(SCHOOL_KEY)) {
       Pattern pattern = Pattern.compile(
-        Pattern.quote(ctx.queryParam(SCHOOL_KEY)),
-        Pattern.CASE_INSENSITIVE
-      );
+          Pattern.quote(ctx.queryParam(SCHOOL_KEY)),
+          Pattern.CASE_INSENSITIVE);
       filters.add(regex("school", pattern));
     }
     if (ctx.queryParamMap().containsKey(GRADE_KEY)) {
       Pattern pattern = Pattern.compile(
-        Pattern.quote(ctx.queryParam(GRADE_KEY)),
-        Pattern.CASE_INSENSITIVE
-      );
+          Pattern.quote(ctx.queryParam(GRADE_KEY)),
+          Pattern.CASE_INSENSITIVE);
       filters.add(regex("grade", pattern));
     }
     if (ctx.queryParamMap().containsKey(NAME_KEY)) {
       Pattern pattern = Pattern.compile(
-        Pattern.quote(ctx.queryParam(NAME_KEY)),
-        Pattern.CASE_INSENSITIVE
-      );
+          Pattern.quote(ctx.queryParam(NAME_KEY)),
+          Pattern.CASE_INSENSITIVE);
       filters.add(regex("studentName", pattern));
     }
 
@@ -675,7 +591,7 @@ public class ChecklistController implements Controller {
     server.post(API_CHECKLIST, this::generateDigitalChecklists);
     server.get(API_CHECKLIST, this::getStoredChecklists);
     server.get("/checklists/export/pdf", this::exportChecklistsPdf);
-
+    server.get("/api/checklists/filtered", this::exportFilteredChecklistsPdf);
     server.get(API_CHECKLIST_BY_ID, this::getStoredChecklistById);
     // server.patch(API_CHECKLIST_ITEM, this::updateChecklistItem);
   }

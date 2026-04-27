@@ -96,6 +96,13 @@
   z-index: 9999;
 }
 
+.export-filtered-pdf-button {
+  position: fixed;
+  bottom: 60px;
+  right: 20px;
+  z-index: 9999;
+}
+
 @media (max-width: 768px) {
   .checklist-cards-container {
     justify-content: center;

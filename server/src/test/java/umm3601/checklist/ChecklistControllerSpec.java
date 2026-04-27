@@ -147,8 +147,8 @@ class ChecklistControllerSpec {
                     .append("supply", new Document()
                         .append("item", Arrays.asList("Pencils"))
                         .append("brand", new Document()
-                        .append("allOf", Arrays.asList("Ticonderoga"))
-                        .append("anyOf", new ArrayList<>())))
+                            .append("allOf", Arrays.asList("Ticonderoga"))
+                            .append("anyOf", new ArrayList<>())))
                     .append("completed", false)
                     .append("unreceived", false)
                     .append("selectedOption", null))));
@@ -163,8 +163,8 @@ class ChecklistControllerSpec {
                     .append("supply", new Document()
                         .append("item", Arrays.asList("Notebooks"))
                         .append("brand", new Document()
-                        .append("allOf", Arrays.asList("Five Star"))
-                        .append("anyOf", new ArrayList<>())))
+                            .append("allOf", Arrays.asList("Five Star"))
+                            .append("anyOf", new ArrayList<>())))
                     .append("completed", false)
                     .append("unreceived", false)
                     .append("selectedOption", null))));
@@ -179,8 +179,8 @@ class ChecklistControllerSpec {
                     .append("supply", new Document()
                         .append("item", Arrays.asList("Erasers"))
                         .append("brand", new Document()
-                        .append("allOf", Arrays.asList("Pink Pearl"))
-                        .append("anyOf", new ArrayList<>())))
+                            .append("allOf", Arrays.asList("Pink Pearl"))
+                            .append("anyOf", new ArrayList<>())))
                     .append("completed", false)
                     .append("unreceived", false)
                     .append("selectedOption", null))));
@@ -198,7 +198,7 @@ class ChecklistControllerSpec {
                 .append("supply", new Document()
                     .append("item", Arrays.asList("Markers"))
                     .append("brand", new Document().append("allOf", Arrays.asList("Crayola"))
-                    .append("anyOf", new ArrayList<>())))
+                        .append("anyOf", new ArrayList<>())))
                 .append("completed", false)
                 .append("unreceived", false)
                 .append("selectedOption", null)));
@@ -225,29 +225,29 @@ class ChecklistControllerSpec {
   @Test
   void printChecklistByStudentPdfWorks() throws IOException {
 
-    //Creates a family with a student to test this
+    // Creates a family with a student to test this
     MongoCollection<Document> families = db.getCollection("families");
     families.drop();
 
     Document studentDoc = new Document()
-      .append("name", "Timmy")
-      .append("school", "St. Mary's")
-      .append("grade", "3");
+        .append("name", "Timmy")
+        .append("school", "St. Mary's")
+        .append("grade", "3");
 
     Document familyDoc = new Document()
-      .append("guardianName", "Thomas Jackson")
-      .append("students", List.of(studentDoc));
+        .append("guardianName", "Thomas Jackson")
+        .append("students", List.of(studentDoc));
 
     families.insertOne(familyDoc);
 
-    //Create a supply list so we can test that the method reads this
+    // Create a supply list so we can test that the method reads this
     MongoCollection<Document> supplies = db.getCollection("supplies");
     supplies.drop();
     supplies.insertOne(new Document()
-      .append("category", "Pencil")
-      .append("items", List.of("Markers")));
+        .append("category", "Pencil")
+        .append("items", List.of("Markers")));
 
-    //Mock the path parameters
+    // Mock the path parameters
     when(ctx.pathParam("name")).thenReturn("Timmy");
 
     // Capture PDF bytes
@@ -266,7 +266,7 @@ class ChecklistControllerSpec {
 
     assertTrue(pdfText.contains("Timmy"));
     assertTrue(pdfText.contains("St. Mary's"));
-    //assertTrue(pdfText.contains("Markers"));
+    // assertTrue(pdfText.contains("Markers"));
     assertTrue(pdfText.contains("3"));
   }
 
@@ -316,20 +316,6 @@ class ChecklistControllerSpec {
           ))
     ));
 
-    MongoCollection<Document> supplies = db.getCollection("supplies");
-    supplies.drop();
-
-    supplies.insertMany(List.of(
-      new Document()
-          .append("school", "MAHS")
-          .append("grade", "4")
-          .append("item", List.of("Pencils")),
-      new Document()
-          .append("school", "AHS")
-          .append("grade", "8")
-          .append("item", List.of("Notebooks"))
-    ));
-
     // Recreates checklist controller after data is established
     checklistController = new ChecklistController(db);
 
@@ -337,26 +323,19 @@ class ChecklistControllerSpec {
     when(ctx.queryParam("grade")).thenReturn(null);
     when(ctx.queryParam("school")).thenReturn(null);
 
-    when(ctx.queryParamMap()).thenReturn(Map.of(
-        "name", List.of("Alice")));
-
-    ArgumentCaptor<byte[]> pdfCaptor = ArgumentCaptor.forClass(byte[].class);
+    ArgumentCaptor<List<Checklist>> pdfCaptor = ArgumentCaptor.forClass(List.class);
 
     checklistController.exportFilteredChecklistsPdf(ctx);
 
-    verify(ctx).contentType("application/pdf");
-    verify(ctx).result(pdfCaptor.capture());
+    verify(ctx).json(pdfCaptor.capture());
 
-    String pdfText = new String(pdfCaptor.getValue());
+    List<Checklist> pdfChecklists = pdfCaptor.getValue();
 
-    assertTrue(pdfText.contains("Student: Alice"));
-    assertTrue(pdfText.contains("MAES"));
-    assertTrue(pdfText.contains("Sondra Sanderson"));
-
-    // assertFalse(pdfText.contains("Student: Willy"));
-    // assertFalse(pdfText.contains("Student: Bonny"));
+    assertEquals(3, pdfChecklists.size());
+    assertEquals("Alice", pdfChecklists.get(0).studentName);
+    assertEquals("MAES", pdfChecklists.get(0).school);
+    assertEquals("Sondra Sanderson", pdfChecklists.get(0).guardianName);
   }
-
 
   @Test
   void printFilteredChecklistsPdfPrintsChecklistsBasedOnMultipleFilters() {
@@ -364,117 +343,108 @@ class ChecklistControllerSpec {
     families.drop();
 
     families.insertMany(List.of(
-      new Document()
-          .append("guardianName", "Sondra Sanderson")
-          .append("altPickUp", "None")
-          .append("students", List.of(
-              new Document()
-                  .append("name", "Alice")
-                  .append("school", "MAES")
-                  .append("grade", "4")
-          )),
-      new Document()
-          .append("guardianName", "John Bobson")
-          .append("altPickUp", "None")
-          .append("students", List.of(
-              new Document()
-                  .append("name", "Bonny")
-                  .append("school", "MAES")
-                  .append("grade", "41")
-          )),
-      new Document()
-          .append("guardianName", "Bob Johnson")
-          .append("altPickUp", "None")
-          .append("students", List.of(
-              new Document()
-                  .append("name", "Willy")
-                  .append("school", "St. Mary's")
-                  .append("grade", "8")
-          ))
-    ));
+        new Document()
+            .append("guardianName", "Sondra Sanderson")
+            .append("altPickUp", "None")
+            .append("students", List.of(
+                new Document()
+                    .append("name", "Alice")
+                    .append("school", "MAES")
+                    .append("grade", "4"))),
+        new Document()
+            .append("guardianName", "John Bobson")
+            .append("altPickUp", "None")
+            .append("students", List.of(
+                new Document()
+                    .append("name", "Bonny")
+                    .append("school", "MAES")
+                    .append("grade", "4"))),
+        new Document()
+            .append("guardianName", "Bob Johnson")
+            .append("altPickUp", "None")
+            .append("students", List.of(
+                new Document()
+                    .append("name", "Willy")
+                    .append("school", "St. Mary's")
+                    .append("grade", "8")))));
     // Recreate controller so it reads the new DB state
     checklistController = new ChecklistController(db);
 
-    // Mock filters: must match ALL THREE
-    when(ctx.queryParam("school")).thenReturn("MAES");
+    when(ctx.queryParam("name")).thenReturn(null);
     when(ctx.queryParam("grade")).thenReturn("4");
-    when(ctx.queryParam("name")).thenReturn("Alice");
+    when(ctx.queryParam("school")).thenReturn("MAES");
 
-    when(ctx.queryParamMap()).thenReturn(Map.of(
-        "school", List.of("MAES"),
-        "grade", List.of("4"),
-        "name", List.of("Alice")
-    ));
-
-    ArgumentCaptor<byte[]> pdfCaptor = ArgumentCaptor.forClass(byte[].class);
+    ArgumentCaptor<List<Checklist>> pdfCaptor = ArgumentCaptor.forClass(List.class);
 
     checklistController.exportFilteredChecklistsPdf(ctx);
 
-    verify(ctx).contentType("application/pdf");
-    verify(ctx).result(pdfCaptor.capture());
+    verify(ctx).json(pdfCaptor.capture());
 
-    String pdfText = new String(pdfCaptor.getValue());
+    List<Checklist> pdfChecklists = pdfCaptor.getValue();
 
-    assertTrue(pdfText.contains("Student: Alice"));
-    assertTrue(pdfText.contains("Sondra Sanderson"));
-    assertTrue(pdfText.contains("MAES"));
-    assertTrue(pdfText.contains("Grade 4"));
-
-    // PDF should not include Bonny or Willy, but this fails for some reason
-    // assertFalse(pdfText.contains("Student: Bonny"));
-    // assertFalse(pdfText.contains("Student: Willy"));
+    assertEquals(2, pdfChecklists.size());
+    assertEquals("Alice", pdfChecklists.get(0).studentName);
+    assertEquals("Bonny", pdfChecklists.get(1).studentName);
+    assertEquals("MAES", pdfChecklists.get(0).school);
+    assertEquals("MAES", pdfChecklists.get(1).school);
+    assertEquals("4", pdfChecklists.get(0).grade);
+    assertEquals("4", pdfChecklists.get(1).grade);
   }
 
   @Test
-  void printFilteredChecklistsPdfPrintsChecklistsBasedOnNoFilters() {
+  void getFilteredChecklistsReturnsAllWhenNoFilters() {
     MongoCollection<Document> families = db.getCollection("families");
     families.drop();
 
     families.insertMany(List.of(
-      new Document()
-          .append("guardianName", "Sondra Sanderson")
-          .append("altPickUp", "None")
-          .append("students", List.of(
-              new Document()
-                  .append("name", "Layla")
-                  .append("school", "MAES")
-                  .append("grade", "4")
-          )),
-      new Document()
-          .append("guardianName", "John Bobson")
-          .append("altPickUp", "None")
-          .append("students", List.of(
-              new Document()
-                  .append("name", "Bonny")
-                  .append("school", "MAES")
-                  .append("grade", "41")
-          )),
-      new Document()
-          .append("guardianName", "Bob Johnson")
-          .append("altPickUp", "None")
-          .append("students", List.of(
-              new Document()
-                  .append("name", "Willy")
-                  .append("school", "St. Mary's")
-                  .append("grade", "8")
-          ))
-    ));
+        new Document()
+            .append("guardianName", "Sondra Sanderson")
+            .append("altPickUp", "None")
+            .append("students", List.of(
+                new Document()
+                    .append("name", "Layla")
+                    .append("school", "MAES")
+                    .append("grade", "4"))),
+        new Document()
+            .append("guardianName", "John Bobson")
+            .append("altPickUp", "None")
+            .append("students", List.of(
+                new Document()
+                    .append("name", "Bonny")
+                    .append("school", "MAES")
+                    .append("grade", "41"))),
+        new Document()
+            .append("guardianName", "Bob Johnson")
+            .append("altPickUp", "None")
+            .append("students", List.of(
+                new Document()
+                    .append("name", "Willy")
+                    .append("school", "St. Mary's")
+                    .append("grade", "8")))));
 
     when(ctx.queryParam("school")).thenReturn(null);
     when(ctx.queryParam("grade")).thenReturn(null);
-    when(ctx.queryParam("name")).thenReturn(null);
+    when(ctx.queryParam("studentName")).thenReturn(null);
+
+    // 👇 Capture JSON output
+    ArgumentCaptor<List<Checklist>> checklistCaptor = ArgumentCaptor.forClass(List.class);
 
     checklistController.exportFilteredChecklistsPdf(ctx);
 
-    verify(ctx).contentType("application/pdf");
-    verify(ctx).header(eq("Content-Disposition"), contains("checklists.pdf"));
-    verify(ctx).result(byteCaptor.capture());
+    verify(ctx).json(checklistCaptor.capture());
 
-    String pdfText = new String(byteCaptor.getValue());
+    List<Checklist> result = checklistCaptor.getValue();
 
-    assertTrue(pdfText.contains("Student: Layla"));
-    assertTrue(pdfText.contains("Student: Bonny"));
-    assertTrue(pdfText.contains("Student: Willy"));
+    // ✅ Assertions on actual data
+    assertEquals(3, result.size());
+
+    List<String> names = result.stream()
+        .map(c -> c.studentName)
+        .toList();
+
+    assertTrue(names.contains("Layla"));
+    assertTrue(names.contains("Bonny"));
+    assertTrue(names.contains("Willy"));
   }
 
   @Test
@@ -483,34 +453,30 @@ class ChecklistControllerSpec {
     families.drop();
 
     families.insertMany(List.of(
-      new Document()
-          .append("guardianName", "Sondra Sanderson")
-          .append("altPickUp", "None")
-          .append("students", List.of(
-              new Document()
-                  .append("name", "Layla")
-                  .append("school", "MAES")
-                  .append("grade", "4")
-          )),
-      new Document()
-          .append("guardianName", "John Bobson")
-          .append("altPickUp", "None")
-          .append("students", List.of(
-              new Document()
-                  .append("name", "Bonny")
-                  .append("school", "MAES")
-                  .append("grade", "41")
-          )),
-      new Document()
-          .append("guardianName", "Bob Johnson")
-          .append("altPickUp", "None")
-          .append("students", List.of(
-              new Document()
-                  .append("name", "Willy")
-                  .append("school", "St. Mary's")
-                  .append("grade", "8")
-          ))
-    ));
+        new Document()
+            .append("guardianName", "Sondra Sanderson")
+            .append("altPickUp", "None")
+            .append("students", List.of(
+                new Document()
+                    .append("name", "Layla")
+                    .append("school", "MAES")
+                    .append("grade", "4"))),
+        new Document()
+            .append("guardianName", "John Bobson")
+            .append("altPickUp", "None")
+            .append("students", List.of(
+                new Document()
+                    .append("name", "Bonny")
+                    .append("school", "MAES")
+                    .append("grade", "41"))),
+        new Document()
+            .append("guardianName", "Bob Johnson")
+            .append("altPickUp", "None")
+            .append("students", List.of(
+                new Document()
+                    .append("name", "Willy")
+                    .append("school", "St. Mary's")
+                    .append("grade", "8")))));
 
     checklistController.exportChecklistsPdf(ctx);
 
@@ -524,7 +490,6 @@ class ChecklistControllerSpec {
     assertTrue(pdfText.contains("Student: Bonny"));
     assertTrue(pdfText.contains("Student: Willy"));
   }
-
 
   // Makes sure that asking for all families returns everything in the database.
   // Also checks that the controller responds with a 200 OK. @Test
@@ -642,7 +607,7 @@ class ChecklistControllerSpec {
     assertEquals("4", result.grade);
     assertEquals(List.of("headphones"), result.requestedSupplies);
 
-    //Assert guardian fields are copied
+    // Assert guardian fields are copied
     assertEquals("Test Guardian", result.guardianName);
     assertEquals("Test Alternative Pickup", result.altPickUp);
 
@@ -924,7 +889,6 @@ class ChecklistControllerSpec {
     String g = "Test Guardian";
     String a = "Test Alt";
 
-
     Checklist result = controller.createChecklist(student, g, a, List.of(supplyNullSchool, supplyNullGrade));
     assertEquals(0, result.checklist.size());
   }
@@ -1004,7 +968,8 @@ class ChecklistControllerSpec {
     assertTrue(result.stream().noneMatch(s -> "High School".equalsIgnoreCase(s.grade)));
   }
 
-  // If a specific grade already exists at the same school, that grade is skipped during expansion
+  // If a specific grade already exists at the same school, that grade is skipped
+  // during expansion
   @Test
   void expandHighSchoolSkipsGradeWithExistingEntry() {
     SupplyList existing10 = makeSchoolSupply("MAHS", "10", "Pencils");
@@ -1012,7 +977,8 @@ class ChecklistControllerSpec {
 
     List<SupplyList> result = ChecklistController.expandHighSchoolSupplies(List.of(existing10, hs));
 
-    // Grade 10 already had an entry, so expansion should only add 9, 11, 12 (not a duplicate 10)
+    // Grade 10 already had an entry, so expansion should only add 9, 11, 12 (not a
+    // duplicate 10)
     long hsExpanded = result.stream()
         .filter(s -> "MAHS".equals(s.school) && List.of("9", "10", "11", "12").contains(s.grade))
         .count();
@@ -1074,7 +1040,8 @@ class ChecklistControllerSpec {
     assertTrue(result.stream().noneMatch(s -> "HIGH SCHOOL".equalsIgnoreCase(s.grade)));
   }
 
-  // Entries with null school or null grade are passed through without expansion or crashing
+  // Entries with null school or null grade are passed through without expansion
+  // or crashing
   @Test
   void expandHighSchoolNullSchoolOrGradePassesThrough() {
     SupplyList nullSchool = new SupplyList();
@@ -1161,8 +1128,8 @@ class ChecklistControllerSpec {
   // Unstaged supplies appear after all staged supplies
   @Test
   void applySupplyOrderUnstagedComesAfterStaged() {
-    SupplyList folderSupply = makeSupply("folder");  // unstaged
-    SupplyList notebookSupply = makeSupply("notebook");  // staged
+    SupplyList folderSupply = makeSupply("folder"); // unstaged
+    SupplyList notebookSupply = makeSupply("notebook"); // staged
 
     List<Settings.SupplyItemOrder> order = List.of(
         orderEntry("notebook", "staged"),
@@ -1234,69 +1201,69 @@ class ChecklistControllerSpec {
 // @Test
 // void exportChecklistPdfWorks() throws IOException {
 
-//   MongoCollection<Document> families = db.getCollection("families");
-//   families.drop();
+// MongoCollection<Document> families = db.getCollection("families");
+// families.drop();
 
-//   families.insertOne(new Document()
-//       .append("students", List.of(
-//           new Document()
-//               .append("name", "Elmo")
-//               .append("school", "MAHS")
-//               .append("grade", "4")
-//               .append("requestedSupplies", List.of()),
-//           new Document()
-//               .append("name", "johnny")
-//               .append("school", "AHS")
-//               .append("grade", "8")
-//               .append("requestedSupplies", List.of()),
-//           new Document()
-//               .append("name", "Rocco")
-//               .append("school", "SSHS")
-//               .append("grade", "2")
-//               .append("requestedSupplies", List.of())
-//       )));
+// families.insertOne(new Document()
+// .append("students", List.of(
+// new Document()
+// .append("name", "Elmo")
+// .append("school", "MAHS")
+// .append("grade", "4")
+// .append("requestedSupplies", List.of()),
+// new Document()
+// .append("name", "johnny")
+// .append("school", "AHS")
+// .append("grade", "8")
+// .append("requestedSupplies", List.of()),
+// new Document()
+// .append("name", "Rocco")
+// .append("school", "SSHS")
+// .append("grade", "2")
+// .append("requestedSupplies", List.of())
+// )));
 
-//   MongoCollection<Document> supplies = db.getCollection("supplyList");
-//   supplies.drop();
+// MongoCollection<Document> supplies = db.getCollection("supplyList");
+// supplies.drop();
 
-//   supplies.insertMany(List.of(
-//       new Document()
-//           .append("school", "MAHS")
-//           .append("grade", "4th-Grade")
-//           .append("item", List.of("Pencils")),
-//       new Document()
-//           .append("school", "AHS")
-//           .append("grade", "8th-Grade")
-//           .append("item", List.of("Notebooks")),
-//       new Document()
-//           .append("school", "SSHS")
-//           .append("grade", "2nd-Grade")
-//           .append("item", List.of("Erasers"))
-//   ));
+// supplies.insertMany(List.of(
+// new Document()
+// .append("school", "MAHS")
+// .append("grade", "4th-Grade")
+// .append("item", List.of("Pencils")),
+// new Document()
+// .append("school", "AHS")
+// .append("grade", "8th-Grade")
+// .append("item", List.of("Notebooks")),
+// new Document()
+// .append("school", "SSHS")
+// .append("grade", "2nd-Grade")
+// .append("item", List.of("Erasers"))
+// ));
 
-//   ArgumentCaptor<byte[]> pdfCaptor = ArgumentCaptor.forClass(byte[].class);
+// ArgumentCaptor<byte[]> pdfCaptor = ArgumentCaptor.forClass(byte[].class);
 
-//   checklistController.exportChecklistsPdf(ctx);
+// checklistController.exportChecklistsPdf(ctx);
 
-//   verify(ctx).contentType("application/pdf");
-//   verify(ctx).header("Content-Disposition", "inline; filename=checklists.pdf");
-//   verify(ctx).result(pdfCaptor.capture());
+// verify(ctx).contentType("application/pdf");
+// verify(ctx).header("Content-Disposition", "inline; filename=checklists.pdf");
+// verify(ctx).result(pdfCaptor.capture());
 
-//   String pdf = new String(pdfCaptor.getValue());
+// String pdf = new String(pdfCaptor.getValue());
 
-//   assertTrue(pdf.startsWith("%PDF-1.4"));
-//   assertTrue(pdf.contains("Catalog"));
-//   assertTrue(pdf.contains("Page"));
+// assertTrue(pdf.startsWith("%PDF-1.4"));
+// assertTrue(pdf.contains("Catalog"));
+// assertTrue(pdf.contains("Page"));
 
-//   assertTrue(pdf.contains("Elmo"));
-//   assertTrue(pdf.contains("johnny"));
-//   assertTrue(pdf.contains("Rocco"));
+// assertTrue(pdf.contains("Elmo"));
+// assertTrue(pdf.contains("johnny"));
+// assertTrue(pdf.contains("Rocco"));
 
-//   assertTrue(pdf.contains("Pencils"));
-//   assertTrue(pdf.contains("Notebooks"));
-//   assertTrue(pdf.contains("Erasers"));
+// assertTrue(pdf.contains("Pencils"));
+// assertTrue(pdf.contains("Notebooks"));
+// assertTrue(pdf.contains("Erasers"));
 
-//   assertTrue(pdf.contains("completed: false"));
-//   assertTrue(pdf.contains("unreceived: false"));
+// assertTrue(pdf.contains("completed: false"));
+// assertTrue(pdf.contains("unreceived: false"));
 // }
 // }

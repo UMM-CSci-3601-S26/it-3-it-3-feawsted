@@ -46,6 +46,10 @@ describe('Checklist list', () => {
     });
   });
 
+  it('should call generateChecklists when generate=true in query params')  () => {
+    
+  }
+
   // Compile the component and its template before running tests, and initialize the component instance and loader
   beforeEach(fakeAsync(() => {
     TestBed.compileComponents().then(() => {
@@ -195,7 +199,7 @@ describe('Checklist list', () => {
       snackBar = TestBed.inject(MatSnackBar);
       snackBarSpy = spyOn(snackBar, 'open').and.returnValue({
         onAction: () => of(void 0),
-        close: () => {},
+        close: () => { },
         afterDismissed: () => of({ dismissedByAction: false }),
       } as unknown as MatSnackBarRef<SimpleSnackBar>);
     });
@@ -268,7 +272,7 @@ describe('Checklist list', () => {
         snackBar = TestBed.inject(MatSnackBar);
         snackBarSpy = spyOn(snackBar, 'open').and.returnValue({
           onAction: () => of(void 0),
-          close: () => {},
+          close: () => { },
           afterDismissed: () => of({ dismissedByAction: false }),
         } as unknown as MatSnackBarRef<SimpleSnackBar>);
       });
@@ -338,7 +342,7 @@ describe('Checklist list', () => {
       const snackBar = TestBed.inject(MatSnackBar);
       spyOn(snackBar, 'open').and.returnValue({
         onAction: () => of(void 0),
-        close: () => {},
+        close: () => { },
         afterDismissed: () => of({ dismissedByAction: false }),
       } as unknown as MatSnackBarRef<SimpleSnackBar>);
 
@@ -359,7 +363,7 @@ describe('Checklist list', () => {
       const snackBar = TestBed.inject(MatSnackBar);
       spyOn(snackBar, 'open').and.returnValue({
         onAction: () => of(void 0),
-        close: () => {},
+        close: () => { },
         afterDismissed: () => of({ dismissedByAction: false }),
       } as unknown as MatSnackBarRef<SimpleSnackBar>);
 
@@ -367,6 +371,25 @@ describe('Checklist list', () => {
       tick();
 
       expect(URL.createObjectURL).not.toHaveBeenCalled();
+    }));
+  });
+  describe('downloadPDFforFilteredChecklists()', () => {
+    let checklistService: ChecklistService;
+
+    beforeEach(() => {
+      checklistService = TestBed.inject(ChecklistService);
+      // Prevent actual file downloads in headless tests
+      spyOn(URL, 'createObjectURL').and.returnValue('blob:test');
+      spyOn(URL, 'revokeObjectURL');
+    });
+
+    it('should call printFilteredChecklists on the service', fakeAsync(() => {
+      spyOn(checklistService, 'printFilteredChecklists').and.returnValue(of(MockChecklistService.testChecklists));
+
+      checklistList.downloadPDFforFilteredChecklists();
+      tick();
+
+      expect(checklistService.printFilteredChecklists).toHaveBeenCalled();
     }));
   });
 });
