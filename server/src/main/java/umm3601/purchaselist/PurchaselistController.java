@@ -128,7 +128,29 @@ public class PurchaselistController implements Controller {
   }
 
 //create a needs list before making purchaselist
+public Map<Item, Integer> calculateNeeds(List<Checklist> checklists) {
+  Map<Item, Integer> totals = new HashMap<>();
 
+  for (Checklist checklist : checklists){
+    for (Checklist.ChecklistItem ci : checklist.checklist) {
+
+      if (ci.supply == null) continue;
+
+      Item key = new Item();
+
+      key.size = ci.supply.size;
+     // key.color = ci.supply.color;
+
+      int quantity = ci.supply.quantity > 0 ? ci.supply.quantity : 1;
+
+      totals.put(key, totals.getOrDefault(key, 0) + quantity);
+
+
+    }
+  }
+
+  return totals;
+}
 
 
 //Purchase compare code
