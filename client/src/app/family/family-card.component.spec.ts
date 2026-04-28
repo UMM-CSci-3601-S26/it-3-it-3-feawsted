@@ -1,6 +1,8 @@
 // Angular Testing Imports
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { FamilyCardComponent } from './family-card.component';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 // Family Interface Import
 import { Family } from './family';
@@ -15,6 +17,10 @@ describe('FamilyCardComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         FamilyCardComponent
+      ],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
       ]
     })
     // Compile the component and its template before running tests

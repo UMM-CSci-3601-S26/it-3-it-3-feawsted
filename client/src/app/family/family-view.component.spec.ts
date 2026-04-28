@@ -146,12 +146,20 @@ describe('Misbehaving Family List', () => {
     const editSpy = spyOn(familyServiceStub, 'editInventory').and.returnValue(of(void 0));
 
     // Prevent the actual page reload during tests which would crash the test runner
-    spyOn(window.location, 'reload');
 
     familyList.updateFamily(updatedFamily);
 
     expect(editSpy).toHaveBeenCalledWith('123', updatedFamily);
   });
+
+  it('should log an error if the update fails', () => {
+    const updatedFamily: Family = {guardianName: 'No ID'} as Family;
+    const consoleSpy = spyOn(console, 'error');
+    familyList.updateFamily(updatedFamily);
+
+    expect(consoleSpy).toHaveBeenCalledWith('Cannot update: Family ID is missing.');
+  });
+
 
   it('should alert the user if the update fails', () => {
     const updatedFamily: Family = { _id: '123' } as Family;
