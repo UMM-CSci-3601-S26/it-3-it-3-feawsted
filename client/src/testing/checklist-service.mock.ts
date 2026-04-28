@@ -141,7 +141,7 @@ export class MockChecklistService implements Pick<ChecklistService, 'getChecklis
     return of(MockChecklistService.mockChecklist);
   }
 
-  printFilteredChecklists(filters: { studentName?: string; school?: string; grade?: string }): Observable<Checklist[]> {
+  printFilteredChecklists(): Observable<Checklist[]> {
     return of(MockChecklistService.testChecklists);
   }
 }
