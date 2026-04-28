@@ -1,6 +1,8 @@
 // Angular Testing Imports
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { FamilyCardComponent } from './family-card.component';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 // Family Interface Import
 import { Family } from './family';
@@ -15,6 +17,10 @@ describe('FamilyCardComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         FamilyCardComponent
+      ],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
       ]
     })
     // Compile the component and its template before running tests
@@ -67,5 +73,41 @@ describe('FamilyCardComponent', () => {
   // Test to check that the guardian's name in the family data is correctly displayed as "Chris"
   it('should be the family named Chris', () => {
     expect(component.family().guardianName).toEqual('Chris');
+  });
+
+
+  describe('Editing Logic', () => {
+    it('should enter edit mode and clone the family data when startEditing is called', () => {
+      component.startEditing();
+
+      expect(component.isEditing()).toBeTrue();
+      // Verify it's a copy, not the same reference, to avoid accidental mutations
+      expect(component.editForm()).toEqual(expectedFamily);
+      expect(component.editForm()).not.toBe(expectedFamily);
+    });
+
+    it('should exit edit mode and clear the form when cancelEdit is called', () => {
+      component.startEditing();
+      component.cancelEdit();
+
+      expect(component.isEditing()).toBeFalse();
+      expect(component.editForm()).toBeNull();
+    });
+
+    it('should emit familyUpdated with the modified data when saveEdit is called', () => {
+    // Setup the spy on the output
+      const emitSpy = spyOn(component.familyUpdated, 'emit');
+
+      component.startEditing();
+
+      // Simulate a user change in the edit form
+      const editedData = { ...expectedFamily, guardianName: 'Updated Name' };
+      component.editForm.set(editedData);
+
+      component.saveEdit();
+
+      expect(emitSpy).toHaveBeenCalledWith(editedData);
+      expect(component.isEditing()).toBeFalse();
+    });
   });
 });

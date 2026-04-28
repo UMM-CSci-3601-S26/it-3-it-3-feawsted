@@ -248,4 +248,18 @@ describe('FamilyService', () => {
 
     req.flush(mockCsv);
   })
+  it('should call editInventory and send a PUT request with the updated family data', () => {
+    const id = 'john_id';
+    const updatedFamily: Partial<Family> = { guardianName: 'John Updated' };
+
+    familyService.editInventory(id, updatedFamily).subscribe();
+
+    // Check that the request was made to the correct URL
+    const req = httpTestingController.expectOne(`${familyService.familyUrl}/${id}`);
+
+    expect(req.request.method).toEqual('PUT');
+    expect(req.request.body).toEqual(updatedFamily);
+
+    req.flush(null); // Simulate a successful empty response
+  });
 });

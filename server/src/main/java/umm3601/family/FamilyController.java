@@ -225,6 +225,27 @@ public class FamilyController implements Controller {
     ctx.status(HttpStatus.OK);
     ctx.result(csv.toString());
   }
+  /**
+ * Update a family in the database based on the ID provided in the URL.
+ */
+public void updateFamily(Context ctx) {
+    String id = ctx.pathParam("id");
+    Family updatedFamily;
+
+    try {
+        // Parse the request body into a Family object
+        updatedFamily = ctx.bodyAsClass(Family.class);
+    } catch (Exception e) {
+        throw new BadRequestResponse("The requested body was not a valid Family object.");
+    }
+
+    // Use replaceOne to update the document in the database
+    // eq("_id", id) finds the correct record
+    familyCollection.replaceOne(eq("_id", id), updatedFamily);
+
+    // Return a 204 No Content status on success
+    ctx.status(HttpStatus.NO_CONTENT);
+}
 
   /**
    * Registers all API routes for this controller.
@@ -237,6 +258,8 @@ public class FamilyController implements Controller {
   public void addRoutes(Javalin server) {
     server.get(API_FAMILY, this::getFamilies);
     server.post(API_FAMILY, this::addNewFamily);
+
+    server.put(API_FAMILY + "/{id}", this::updateFamily);
 
     // Specific routes FIRST
     server.get(API_FAMILY_EXPORT, this::exportFamiliesAsCSV);

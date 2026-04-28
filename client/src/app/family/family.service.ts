@@ -65,4 +65,7 @@ export class FamilyService {
       responseType: 'text'
     });
   }
+  editInventory(id: string, updateFamily: Partial<Family>): Observable<void> {
+    return this.httpClient.put<void>(`${this.familyUrl}/${id}`, updateFamily);
+  }
 }

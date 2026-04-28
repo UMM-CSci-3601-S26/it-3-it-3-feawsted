@@ -1,6 +1,7 @@
 // This sets the font size to be the same for both the Angular Material
 // list item title and list item line.
 .mat-mdc-list-item {
+
   &-title,
   &-line {
     font-size: 1rem;
@@ -13,22 +14,47 @@
 }
 
 .family-card-email {
-  display: block; /* Make it a block-level element */
-  color: inherit; /* Inherit the text color from the parent element */
-  text-decoration: none; /* Remove default underline */
-  padding: 0; /* Reset padding */
-  margin: 0; /* Reset margin */
-  cursor: pointer; /* Change cursor to pointer on hover */
+  display: block;
+  /* Make it a block-level element */
+  color: inherit;
+  /* Inherit the text color from the parent element */
+  text-decoration: none;
+  /* Remove default underline */
+  padding: 0;
+  /* Reset padding */
+  margin: 0;
+  /* Reset margin */
+  cursor: pointer;
+  /* Change cursor to pointer on hover */
+}
+
+.family-card {
+  position: relative; // For the absolute edit button if used
+
+  // 1. Make all form fields fill the width of the list item
+  mat-form-field {
+    width: 100%;
+    margin-top: 4px;
+
+    // This removes the bottom gap reserved for hints/errors
+    // to keep the card from becoming too tall.
+    ::v-deep .mat-mdc-form-field-subscript-wrapper {
+      height: 0;
+      visibility: hidden;
+    }
+  }
 }
 
 .student-list {
-  margin-left: 32px; /* aligns with Material icon spacing */
+  margin-left: 32px;
+  /* aligns with Material icon spacing */
   padding-bottom: 8px;
 }
 
 .student-item {
   padding: 0;
-  min-height: 32px; /* tighter list for multiple students */
+  min-height: auto;
+  /* tighter list for multiple students */
 }
 
 .student-icon {
@@ -36,3 +62,53 @@
   opacity: 0.75;
 }
 
+
+
+.height-auto {
+  height: auto !important;
+  padding-bottom: 8px;
+}
+
+
+mat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  .mat-mdc-card-header-text {
+    flex-grow: 1;
+  }
+}
+
+.student-edit-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 2fr auto; // Name, Grade, School, Delete Button
+  gap: 8px;
+  width: 450px; // Set a max width for the editing form
+  align-items: start;
+  padding: 4px 0;
+
+  mat-form-field {
+    width: 100%;
+
+    // Removes the extra space for error messages to keep the card compact
+    ::v-deep .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+  }
+}
+
+.editing-student {
+  height: auto !important; // Allows the list item to grow for inputs
+  min-height: auto;
+  padding: 8px 0;
+}
+
+.student-list {
+  margin-left: 16px;
+}
+
+.mat-list-item {
+  height: auto !important;
+  min-height: auto;
+}
