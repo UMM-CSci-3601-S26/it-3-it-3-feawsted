@@ -86,7 +86,7 @@ export class ChecklistViewComponent {
   serverFilteredChecklists = toSignal(
     combineLatest([this.studentName$, this.guardianName$, this.altPickUp$, this.school$, this.grade$, this.refresh$]).pipe(
       debounceTime(300),
-      switchMap(([studentName, school, grade]) =>
+      switchMap(([studentName, , , school, grade]) =>
         this.checklistService.getChecklists({ studentName, school, grade })
       ),
       catchError((err) => {

@@ -287,34 +287,30 @@ class ChecklistControllerSpec {
     families.drop();
 
     families.insertMany(List.of(
-      new Document()
-          .append("guardianName", "Sondra Sanderson")
-          .append("altPickUp", "None")
-          .append("students", List.of(
-              new Document()
-                  .append("name", "Alice")
-                  .append("school", "MAES")
-                  .append("grade", "4")
-          )),
-      new Document()
-          .append("guardianName", "John Bobson")
-          .append("altPickUp", "None")
-          .append("students", List.of(
-              new Document()
-                  .append("name", "Bonny")
-                  .append("school", "MAES")
-                  .append("grade", "41")
-          )),
-      new Document()
-          .append("guardianName", "Bob Johnson")
-          .append("altPickUp", "None")
-          .append("students", List.of(
-              new Document()
-                  .append("name", "Willy")
-                  .append("school", "St. Mary's")
-                  .append("grade", "8")
-          ))
-    ));
+        new Document()
+            .append("guardianName", "Sondra Sanderson")
+            .append("altPickUp", "None")
+            .append("students", List.of(
+                new Document()
+                    .append("name", "Alice")
+                    .append("school", "MAES")
+                    .append("grade", "4"))),
+        new Document()
+            .append("guardianName", "John Bobson")
+            .append("altPickUp", "None")
+            .append("students", List.of(
+                new Document()
+                    .append("name", "Bonny")
+                    .append("school", "MAES")
+                    .append("grade", "41"))),
+        new Document()
+            .append("guardianName", "Bob Johnson")
+            .append("altPickUp", "None")
+            .append("students", List.of(
+                new Document()
+                    .append("name", "Willy")
+                    .append("school", "St. Mary's")
+                    .append("grade", "8")))));
 
     // Recreates checklist controller after data is established
     checklistController = new ChecklistController(db);
@@ -426,16 +422,14 @@ class ChecklistControllerSpec {
     when(ctx.queryParam("grade")).thenReturn(null);
     when(ctx.queryParam("studentName")).thenReturn(null);
 
-    // 👇 Capture JSON output
-    ArgumentCaptor<List<Checklist>> checklistCaptor = ArgumentCaptor.forClass(List.class);
+    ArgumentCaptor<List<Checklist>> checklistListCaptor = ArgumentCaptor.forClass(List.class);
 
     checklistController.exportFilteredChecklistsPdf(ctx);
 
-    verify(ctx).json(checklistCaptor.capture());
+    verify(ctx).json(checklistListCaptor.capture());
 
-    List<Checklist> result = checklistCaptor.getValue();
+    List<Checklist> result = checklistListCaptor.getValue();
 
-    // ✅ Assertions on actual data
     assertEquals(3, result.size());
 
     List<String> names = result.stream()

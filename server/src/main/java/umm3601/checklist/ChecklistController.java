@@ -122,7 +122,7 @@ public class ChecklistController implements Controller {
   }
 
   // Grades considered "high school" for expansion purposes
-  static final String[] HS_GRADES = { "9", "10", "11", "12" };
+  static final String[] HS_GRADES = {"9", "10", "11", "12"};
 
   /**
    * Expands any supply list entry whose grade normalizes to "highschool" into

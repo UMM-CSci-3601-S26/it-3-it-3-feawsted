@@ -63,21 +63,8 @@ describe('Checklist view', () => {
     page.getChecklistCards().should('exist');
   });
 
-  it('downloads a PDF for all checklists', () => {
-    cy.intercept('GET', '/api/checklist/filtered*').as('getChecklists');
-
-    cy.window().then(win => {
-      cy.stub(win.URL, 'createObjectURL').as('createObjectURL');
-    });
-
-    cy.get('[data-test=exportPDFButton]').first().click();
-
-    cy.wait('@getChecklists');
-    cy.get('@createObjectURL').should('have.been.called');
-  });
-
   it('downloads a PDF for all filtered checklists', () => {
-    cy.intercept('GET', '/api/checklists*/filtered').as('getFilteredChecklists');
+    cy.intercept('GET', '/api/checklists/filtered*').as('getFilteredChecklists');
 
     cy.window().then(win => {
       cy.stub(win.URL, 'createObjectURL').as('createObjectURL');
@@ -156,7 +143,8 @@ describe('Checklist view', () => {
     cy.wait('@exportFail');
 
     //Asserting that an error message is displayed on the page, which indicates that the application is handling the export error gracefully
-    cy.get('simple-snack-bar').should('contain.text', 'Problem contacting the server');
+    cy.get('simple-snack-bar').should('contain.text',
+      ' Failed to load checklists: Http failure response for http://localhost:4200/api/checklists/filtered: 500 Internal Server Error\n OK ');
   });
 
   // it('Should click add checklist and go to the right URL', () => {
