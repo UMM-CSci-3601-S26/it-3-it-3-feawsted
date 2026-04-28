@@ -50,8 +50,10 @@ import io.javalin.http.HttpStatus;
 import io.javalin.json.JavalinJackson;
 import umm3601.family.Family;
 import umm3601.family.Family.StudentInfo;
+import umm3601.inventory.InventoryController;
 import umm3601.settings.Settings;
-import umm3601.supplylist.SupplyList;
+import umm3601.checklist.Checklist;
+import umm3601.checklist.ChecklistController;
 
 // /**
 //  * Tests for the PurchaselistController using a real MongoDB "test" database.
@@ -75,6 +77,12 @@ class PurchaselistControllerSpec {
 
   private PurchaselistController purchaselistController;
   private ObjectId testPurchaselistId;
+
+  private InventoryController inventoryController;
+  private ObjectId inventoryId;
+
+  private ChecklistController checklistController;
+  private ObjectId testChecklistId;
 
   private static MongoClient mongoClient;
   private static MongoDatabase db;
@@ -192,113 +200,87 @@ class PurchaselistControllerSpec {
     }
 
     // Setup Supplylist database
-    MongoCollection<Document> supplylistDocuments = db.getCollection("supplylist");
-    supplylistDocuments.drop();
-    List<Document> testSupplyList = new ArrayList<>();
-    testSupplyList.add(
+    MongoCollection<Document> checklistDocuments = db.getCollection("checklists");
+    checklistDocuments.drop();
+    List<Document> testChecklists = new ArrayList<>();
+    testChecklists.add(
         new Document()
-            .append("school", "MHS")
-            .append("grade", "PreK")
-            .append("item", Arrays.asList("Pencil"))
-            .append("brand", new Document()
-                .append("allOf", Arrays.asList("Ticonderoga"))
-                .append("anyOf", new ArrayList<>()))
-            .append("color", new Document()
-                .append("allOf", Arrays.asList("yellow"))
-                .append("anyOf", new ArrayList<>()))
-            .append("count", 1)
-            .append("size", "N/A")
-            .append("quantity", 10)
-            .append("notes", "N/A")
-            .append("type", new Document()
-                .append("allOf", Arrays.asList("#2"))
-                .append("anyOf", new ArrayList<>()))
-            .append("material", new Document()
-                .append("allOf", Arrays.asList("wood"))
-                .append("anyOf", new ArrayList<>()))
-            .append("style", new Document()
-              .append("allOf", Arrays.asList("hexagonal"))
-              .append("anyOf", new ArrayList<>())));
-    testSupplyList.add(
+            .append("school", "MAHS")
+            .append("grade", "4")
+            .append("studentName", "Elmo")
+            .append("requestedSupplies", List.of("headphones"))
+            .append("checklist", List.of(
+                new Document()
+                    .append("supply", new Document()
+                        .append("item", Arrays.asList("Pencils"))
+                        .append("brand", new Document()
+                        .append("allOf", Arrays.asList("Ticonderoga"))
+                        .append("anyOf", new ArrayList<>())))
+                    .append("completed", false)
+                    .append("unreceived", false)
+                    .append("selectedOption", null))));
+    testChecklists.add(
         new Document()
-            .append("school", "CHS")
-            .append("grade", "12th grade")
-            .append("item", Arrays.asList("Eraser"))
-            .append("brand", new Document()
-                .append("allOf", Arrays.asList("Pink Pearl"))
-                .append("anyOf", new ArrayList<>()))
-            .append("color", new Document()
-                .append("allOf", Arrays.asList("pink"))
-                .append("anyOf", new ArrayList<>()))
-            .append("count", 1)
-            .append("size", "Small")
-            .append("quantity", 5)
-            .append("notes", "N/A")
-            .append("type", new Document()
-                .append("allOf", Arrays.asList("rubber"))
-                .append("anyOf", new ArrayList<>()))
-            .append("material", new Document()
-                .append("allOf", Arrays.asList("rubber"))
-                .append("anyOf", new ArrayList<>()))
-            .append("style", new Document()
-                .append("allOf", new ArrayList<>())
-                .append("anyOf", new ArrayList<>())));
-    testSupplyList.add(
+            .append("school", "AHS")
+            .append("grade", "8")
+            .append("studentName", "johnny")
+            .append("requestedSupplies", List.of("backpack"))
+            .append("checklist", List.of(
+                new Document()
+                    .append("supply", new Document()
+                        .append("item", Arrays.asList("Notebooks"))
+                        .append("brand", new Document()
+                        .append("allOf", Arrays.asList("Five Star"))
+                        .append("anyOf", new ArrayList<>())))
+                    .append("completed", false)
+                    .append("unreceived", false)
+                    .append("selectedOption", null))));
+    testChecklists.add(
         new Document()
-            .append("school", "MHS")
-            .append("grade", "PreK")
-            .append("item", Arrays.asList("Notebook"))
-            .append("brand", new Document()
-                .append("allOf", Arrays.asList("Five Star"))
-                .append("anyOf", new ArrayList<>()))
-            .append("color", new Document()
-                .append("allOf", Arrays.asList("blue"))
-                .append("anyOf", new ArrayList<>()))
-            .append("count", 1)
-            .append("size", "N/A")
-            .append("quantity", 3)
-            .append("notes", "N/A")
-            .append("type", new Document()
-                .append("allOf", Arrays.asList("spiral"))
-                .append("anyOf", new ArrayList<>()))
-            .append("material", new Document()
-                .append("allOf", Arrays.asList("paper"))
-                .append("anyOf", new ArrayList<>()))
-            .append("style", new Document()
-                .append("allOf", new ArrayList<>())
-                .append("anyOf", new ArrayList<>())));
+            .append("school", "SSHS")
+            .append("grade", "2")
+            .append("studentName", "Rocco")
+            .append("requestedSupplies", List.of(""))
+            .append("checklist", List.of(
+                new Document()
+                    .append("supply", new Document()
+                        .append("item", Arrays.asList("Erasers"))
+                        .append("brand", new Document()
+                        .append("allOf", Arrays.asList("Pink Pearl"))
+                        .append("anyOf", new ArrayList<>())))
+                    .append("completed", false)
+                    .append("unreceived", false)
+                    .append("selectedOption", null))));
 
-    samsId = new ObjectId();
-    Document sam = new Document()
-        .append("_id", samsId)
-        .append("school", "MHS")
-        .append("grade", "PreK")
-        .append("item", Arrays.asList("Backpack"))
-        .append("brand", new Document()
-            .append("allOf", Arrays.asList("JanSport"))
-            .append("anyOf", new ArrayList<>()))
-        .append("color", new Document()
-            .append("allOf", Arrays.asList("black"))
-            .append("anyOf", new ArrayList<>()))
-        .append("count", 1)
-        .append("size", "Standard")
-        .append("quantity", 2)
-        .append("notes", "Plain colors only")
-        .append("type", new Document()
-            .append("allOf", Arrays.asList("shoulder bag"))
-            .append("anyOf", new ArrayList<>()))
-        .append("material", new Document()
-            .append("allOf", Arrays.asList("fabric"))
-            .append("anyOf", new ArrayList<>()))
-        .append("style", new Document()
-            .append("allOf", Arrays.asList("standard"))
-            .append("anyOf", new ArrayList<>()));
+    testChecklistId = new ObjectId();
 
-    supplylistDocuments.insertMany(testSupplyList);
-    supplylistDocuments.insertOne(sam);
+    Document specialChecklist = new Document()
+        .append("_id", testChecklistId)
+        .append("school", "Nowhere")
+        .append("grade", "12")
+        .append("studentName", "bart")
+        .append("requestedSupplies", List.of())
+        .append("checklist", List.of(
+            new Document()
+                .append("supply", new Document()
+                    .append("item", Arrays.asList("Markers"))
+                    .append("brand", new Document().append("allOf", Arrays.asList("Crayola"))
+                    .append("anyOf", new ArrayList<>())))
+                .append("completed", false)
+                .append("unreceived", false)
+                .append("selectedOption", null)));
 
-    supplylistController = new SupplyListController(db);
+    checklistDocuments.insertMany(testChecklists);
+    checklistDocuments.insertOne(specialChecklist);
+
+    checklistController = new ChecklistController(db);
   }}
+
+
+  //test for checking if a needs list is being made
+
+
+  //test for if purchase list is being generated
 
 //   // Runs before every test. We clear out the families collection, insert a small
 //   // set of sample families, and reset all the mocks. This keeps each test
