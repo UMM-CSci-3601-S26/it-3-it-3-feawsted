@@ -1,6 +1,6 @@
 // Angular Imports
 import { ComponentFixture, TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { MatSnackBar, MatSnackBarRef, SimpleSnackBar } from '@angular/material/snack-bar';
@@ -195,10 +195,42 @@ describe('Checklist list', () => {
       snackBar = TestBed.inject(MatSnackBar);
       snackBarSpy = spyOn(snackBar, 'open').and.returnValue({
         onAction: () => of(void 0),
-        close: () => {},
+        close: () => { },
         afterDismissed: () => of({ dismissedByAction: false }),
       } as unknown as MatSnackBarRef<SimpleSnackBar>);
     });
+
+    it('should call generateChecklists when generate=true in query params', fakeAsync(() => {
+      const generateSpy = spyOn(ChecklistViewComponent.prototype, 'generateChecklists');
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [ChecklistViewComponent],
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          {
+            provide: ChecklistService,
+            useClass: MockChecklistService
+          },
+          {
+            provide: ActivatedRoute,
+            useValue: {
+              queryParamMap: of({
+                get: (key: string) => key === 'generate' ? 'true' : null
+              })
+            }
+          }
+        ]
+      }).compileComponents();
+
+      flushMicrotasks();
+
+      const fixture = TestBed.createComponent(ChecklistViewComponent);
+      fixture.detectChanges(); // triggers constructor subscription
+
+      expect(generateSpy).toHaveBeenCalled();
+    }));
 
     // Test that error message is set with status code when HTTP error occurs
     it('should set error message with status code and message when HTTP error occurs', fakeAsync(() => {
@@ -268,7 +300,7 @@ describe('Checklist list', () => {
         snackBar = TestBed.inject(MatSnackBar);
         snackBarSpy = spyOn(snackBar, 'open').and.returnValue({
           onAction: () => of(void 0),
-          close: () => {},
+          close: () => { },
           afterDismissed: () => of({ dismissedByAction: false }),
         } as unknown as MatSnackBarRef<SimpleSnackBar>);
       });
@@ -338,7 +370,7 @@ describe('Checklist list', () => {
       const snackBar = TestBed.inject(MatSnackBar);
       spyOn(snackBar, 'open').and.returnValue({
         onAction: () => of(void 0),
-        close: () => {},
+        close: () => { },
         afterDismissed: () => of({ dismissedByAction: false }),
       } as unknown as MatSnackBarRef<SimpleSnackBar>);
 
@@ -359,7 +391,7 @@ describe('Checklist list', () => {
       const snackBar = TestBed.inject(MatSnackBar);
       spyOn(snackBar, 'open').and.returnValue({
         onAction: () => of(void 0),
-        close: () => {},
+        close: () => { },
         afterDismissed: () => of({ dismissedByAction: false }),
       } as unknown as MatSnackBarRef<SimpleSnackBar>);
 
@@ -367,6 +399,25 @@ describe('Checklist list', () => {
       tick();
 
       expect(URL.createObjectURL).not.toHaveBeenCalled();
+    }));
+  });
+  describe('downloadPDFforFilteredChecklists()', () => {
+    let checklistService: ChecklistService;
+
+    beforeEach(() => {
+      checklistService = TestBed.inject(ChecklistService);
+      // Prevent actual file downloads in headless tests
+      spyOn(URL, 'createObjectURL').and.returnValue('blob:test');
+      spyOn(URL, 'revokeObjectURL');
+    });
+
+    it('should call printFilteredChecklists on the service', fakeAsync(() => {
+      spyOn(checklistService, 'printFilteredChecklists').and.returnValue(of(MockChecklistService.testChecklists));
+
+      checklistList.downloadPDFforFilteredChecklists();
+      tick();
+
+      expect(checklistService.printFilteredChecklists).toHaveBeenCalled();
     }));
   });
 });

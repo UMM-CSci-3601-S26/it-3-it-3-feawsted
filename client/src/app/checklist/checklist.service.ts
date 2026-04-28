@@ -69,6 +69,20 @@ export class ChecklistService {
     return this.httpClient.get<Checklist>(`${this.checklistUrl}/${_id}`);
   }
 
+  printFilteredChecklists(filters: { studentName?: string; school?: string; grade?: string }): Observable<Checklist[]> {
+    let httpParams: HttpParams = new HttpParams();
+    if (filters.studentName) {
+      httpParams = httpParams.set('studentName', filters.studentName);
+    }
+    if (filters.school) {
+      httpParams = httpParams.set('school', filters.school);
+    }
+    if (filters.grade) {
+      httpParams = httpParams.set('grade', filters.grade);
+    }
+    return this.httpClient.get<Checklist[]>(`${this.checklistUrl}/filtered`, { params: httpParams });
+  }
+
   // downloadPDF() {
   //   this.checklistService.printAllChecklists().subscribe(checklists => {
   //     const doc = new jsPDF();

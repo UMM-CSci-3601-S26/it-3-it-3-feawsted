@@ -63,10 +63,13 @@ public class ChecklistController implements Controller {
 
   private static final String API_CHECKLIST = "/api/checklists";
   // private static final String API_CHECKLIST_PRINT = "/api/checklists/print";
-  // private static final String API_CHECKLIST_BY_NAME = "/api/checklists/student/{name}";
-  // private static final String API_CHECKLIST_FAMILY = "/api/checklists/family/{guardianName}";
+  // private static final String API_CHECKLIST_BY_NAME =
+  // "/api/checklists/student/{name}";
+  // private static final String API_CHECKLIST_FAMILY =
+  // "/api/checklists/family/{guardianName}";
   private static final String API_CHECKLIST_BY_ID = "/api/checklists/{id}";
-  // private static final String API_CHECKLIST_ITEM = "/api/checklists/{id}/item/{index}";
+  // private static final String API_CHECKLIST_ITEM =
+  // "/api/checklists/{id}/item/{index}";
 
   static final String SCHOOL_KEY = "school";
   static final String GRADE_KEY = "grade";
@@ -95,7 +98,7 @@ public class ChecklistController implements Controller {
     familyCollection = JacksonMongoCollection.builder().build(
         db, "families", Family.class, UuidRepresentation.STANDARD);
     supplyListCollection = JacksonMongoCollection.builder().build(
-      db, "supplylist", SupplyList.class, UuidRepresentation.STANDARD);
+        db, "supplylist", SupplyList.class, UuidRepresentation.STANDARD);
     checklistCollection = JacksonMongoCollection.builder().build(
         db, "checklists", Checklist.class, UuidRepresentation.STANDARD);
     settingsCollection = JacksonMongoCollection.builder().build(
@@ -124,7 +127,7 @@ public class ChecklistController implements Controller {
   /**
    * Expands any supply list entry whose grade normalizes to "highschool" into
    * individual copies — one per HS grade (9–12) — but only for grades that do
-   * not already have a specific entry at the same school.  The original
+   * not already have a specific entry at the same school. The original
    * "High School" entry is consumed (not kept) once expanded.
    *
    * This lets operators enter a single "High School" row that automatically
@@ -132,7 +135,8 @@ public class ChecklistController implements Controller {
    * needing to know where each district's high school starts.
    */
   static List<SupplyList> expandHighSchoolSupplies(List<SupplyList> supplies) {
-    // Collect (normalizedSchool|normalizedGrade) keys that already have specific entries
+    // Collect (normalizedSchool|normalizedGrade) keys that already have specific
+    // entries
     Set<String> existingKeys = new HashSet<>();
     for (SupplyList s : supplies) {
       if (s.school != null && s.grade != null
@@ -183,8 +187,7 @@ public class ChecklistController implements Controller {
 
   // Builds a Checklist for a single student from the supply list (not persisted)
   public Checklist createChecklist(
-    StudentInfo student, String guardianName, String altPickUp, List<SupplyList> allSupplies
-  ) {
+      StudentInfo student, String guardianName, String altPickUp, List<SupplyList> allSupplies) {
     String studentSchool = normalizeSchool(student.school);
     String studentGrade = normalizeGrade(student.grade);
     List<Checklist.ChecklistItem> items = allSupplies.stream()
@@ -213,10 +216,8 @@ public class ChecklistController implements Controller {
     List<Checklist> checklists = familyCollection.find()
         .into(new ArrayList<>())
         .stream()
-        .flatMap((Family f) ->
-          f.students.stream()
-            .map((StudentInfo s) ->
-              createChecklist(s, f.guardianName, f.altPickUp,  pdfSupplies)))
+        .flatMap((Family f) -> f.students.stream()
+            .map((StudentInfo s) -> createChecklist(s, f.guardianName, f.altPickUp, pdfSupplies)))
         .collect(Collectors.toList());
 
     // Build PDF content manually
@@ -232,37 +233,37 @@ public class ChecklistController implements Controller {
     text.append("BT /F1 12 Tf 50 750 Td\n");
 
     for (Checklist c : checklists) {
+      text.append("(")
+          .append("Student: ").append(c.studentName)
+          .append(") Tj T* ");
+
+      text.append("(")
+          .append("Guardian: ").append(c.guardianName)
+          .append(" | Alt Pickup: ").append(c.altPickUp)
+          .append(") Tj T* ");
+
+      text.append("(")
+          .append(c.school)
+          .append(", Grade ").append(c.grade)
+          .append(") Tj T* ");
+
+      for (ChecklistItem item : c.checklist) {
         text.append("(")
-            .append("Student: ").append(c.studentName)
+            .append(" - ").append(item.supply)
+            .append(" | completed: ").append(item.completed)
+            .append(" | unreceived: ").append(item.unreceived)
+            .append(" | option: ").append(item.selectedOption)
             .append(") Tj T* ");
+      }
 
-        text.append("(")
-            .append("Guardian: ").append(c.guardianName)
-            .append(" | Alt Pickup: ").append(c.altPickUp)
-            .append(") Tj T* ");
-
-        text.append("(")
-            .append(c.school)
-            .append(", Grade ").append(c.grade)
-            .append(") Tj T* ");
-
-        for (ChecklistItem item : c.checklist) {
-            text.append("(")
-                .append(" - ").append(item.supply)
-                .append(" | completed: ").append(item.completed)
-                .append(" | unreceived: ").append(item.unreceived)
-                .append(" | option: ").append(item.selectedOption)
-                .append(") Tj T* ");
-        }
-
-        text.append("() Tj T* "); // blank line
+      text.append("() Tj T* "); // blank line
     }
 
     text.append("ET");
 
     // PDF page object
     pdf.append("3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792]")
-       .append(" /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj\n");
+        .append(" /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj\n");
 
     // PDF content stream
     byte[] textBytes = text.toString().getBytes();
@@ -285,109 +286,133 @@ public class ChecklistController implements Controller {
   }
 
   public void printChecklistByStudentPdf(Context ctx) {
-      String name = ctx.pathParam("name");
+    String name = ctx.pathParam("name");
 
-      // Expand supplies (same as your all-PDF version)
-      List<SupplyList> pdfSupplies = expandHighSchoolSupplies(
-          supplyListCollection.find().into(new ArrayList<>())
-      );
+    // Expand supplies (same as your all-PDF version)
+    List<SupplyList> pdfSupplies = expandHighSchoolSupplies(
+        supplyListCollection.find().into(new ArrayList<>()));
 
-      // Find the student and build ONE checklist
-      Checklist checklist = null;
+    // Find the student and build ONE checklist
+    Checklist checklist = null;
 
-      for (Family family : familyCollection.find().into(new ArrayList<>())) {
-          for (StudentInfo student : family.students) {
-              if (student.name.equalsIgnoreCase(name)) {
-                  checklist = createChecklist(student, family.guardianName, family.altPickUp, pdfSupplies);
-                  break;
-              }
-          }
-          if (checklist != null) {
-            break;
-          }
+    for (Family family : familyCollection.find().into(new ArrayList<>())) {
+      for (StudentInfo student : family.students) {
+        if (student.name.equalsIgnoreCase(name)) {
+          checklist = createChecklist(student, family.guardianName, family.altPickUp, pdfSupplies);
+          break;
+        }
       }
-
-      if (checklist == null) {
-          throw new NotFoundResponse("No student found with name: " + name);
+      if (checklist != null) {
+        break;
       }
+    }
 
-      // Build PDF
-      StringBuilder pdf = new StringBuilder();
-      pdf.append("%PDF-1.4\n");
+    if (checklist == null) {
+      throw new NotFoundResponse("No student found with name: " + name);
+    }
 
-      pdf.append("1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n");
-      pdf.append("2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n");
+    // Build PDF
+    StringBuilder pdf = new StringBuilder();
+    pdf.append("%PDF-1.4\n");
 
-      StringBuilder text = new StringBuilder();
-      text.append("BT /F1 12 Tf 50 750 Td\n");
+    pdf.append("1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n");
+    pdf.append("2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n");
 
-      // Header
+    StringBuilder text = new StringBuilder();
+    text.append("BT /F1 12 Tf 50 750 Td\n");
+
+    // Header
+    text.append("(")
+        .append("Student: ").append(checklist.studentName)
+        .append(") Tj T* ");
+
+    text.append("(")
+        .append("Guardian: ").append(checklist.guardianName)
+        .append(" | Alt Pickup: ").append(checklist.altPickUp)
+        .append(") Tj T* ");
+
+    text.append("(")
+        .append(checklist.school)
+        .append(", Grade ").append(checklist.grade)
+        .append(") Tj T* ");
+
+    // Items
+    for (ChecklistItem item : checklist.checklist) {
       text.append("(")
-          .append("Student: ").append(checklist.studentName)
+          .append(" - ").append(item.supply)
+          .append(" | completed: ").append(item.completed)
+          .append(" | unreceived: ").append(item.unreceived)
+          .append(" | option: ").append(item.selectedOption)
           .append(") Tj T* ");
+    }
 
-      text.append("(")
-          .append("Guardian: ").append(checklist.guardianName)
-          .append(" | Alt Pickup: ").append(checklist.altPickUp)
-          .append(") Tj T* ");
+    text.append("ET\n");
 
-      text.append("(")
-          .append(checklist.school)
-          .append(", Grade ").append(checklist.grade)
-          .append(") Tj T* ");
-
-      // Items
-      for (ChecklistItem item : checklist.checklist) {
-          text.append("(")
-              .append(" - ").append(item.supply)
-              .append(" | completed: ").append(item.completed)
-              .append(" | unreceived: ").append(item.unreceived)
-              .append(" | option: ").append(item.selectedOption)
-              .append(") Tj T* ");
-      }
-
-      text.append("ET\n");
-
-      // Page object
-      pdf.append("3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792]")
+    // Page object
+    pdf.append("3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792]")
         .append(" /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj\n");
 
-      // Content stream
-      byte[] textBytes = text.toString().getBytes();
-      pdf.append("4 0 obj << /Length ").append(textBytes.length).append(" >> stream\n");
-      pdf.append(text.toString()).append("\nendstream endobj\n");
+    // Content stream
+    byte[] textBytes = text.toString().getBytes();
+    pdf.append("4 0 obj << /Length ").append(textBytes.length).append(" >> stream\n");
+    pdf.append(text.toString()).append("\nendstream endobj\n");
 
-      // Font
-      pdf.append("5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj\n");
+    // Font
+    pdf.append("5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj\n");
 
-      // Trailer
-      pdf.append("xref\n0 6\n0000000000 65535 f \n");
-      pdf.append("trailer << /Size 6 /Root 1 0 R >>\nstartxref\n");
-      pdf.append(pdf.length()).append("\n%%EOF");
+    // Trailer
+    pdf.append("xref\n0 6\n0000000000 65535 f \n");
+    pdf.append("trailer << /Size 6 /Root 1 0 R >>\nstartxref\n");
+    pdf.append(pdf.length()).append("\n%%EOF");
 
-      byte[] pdfBytes = pdf.toString().getBytes();
+    byte[] pdfBytes = pdf.toString().getBytes();
 
-      ctx.contentType("application/pdf");
-      ctx.header("Content-Disposition", "inline; filename=checklist.pdf");
-      ctx.result(pdfBytes);
+    ctx.contentType("application/pdf");
+    ctx.header("Content-Disposition", "inline; filename=checklist.pdf");
+    ctx.result(pdfBytes);
   }
 
+  public void exportFilteredChecklistsPdf(Context ctx) {
+    // Bson filter = constructFilter(ctx);
+    // // Fetch your checklist data
+    List<Family> families = familyCollection.find().into(new ArrayList<>());
 
-  // GET /api/checklist/family/{guardianName} — all students in a family
-  // public void printChecklistsByFamily(Context ctx) {
-  //   String guardianName = ctx.pathParam("guardianName");
-  //   List<SupplyList> allSupplies = supplyListCollection.find().into(new ArrayList<>());
-  //   List<Family> families = familyCollection.find(
-  //       Filters.regex("guardianFirstName", guardianName, "i")).into(new ArrayList<>());
-  //   if (families.isEmpty()) {
-  //     throw new NotFoundResponse("No family found for guardian: " + guardianName);
-  //   }
-  //   List<Checklist> checklists = families.stream()
-  //       .flatMap(f -> f.students.stream().map(s -> createChecklist(s, allSupplies)))
-  //       .collect(Collectors.toList());
-  //   ctx.json(checklists);
-  //   ctx.status(HttpStatus.OK);
-  // }
+    List<SupplyList> pdfSupplies = expandHighSchoolSupplies(
+        supplyListCollection.find().into(new ArrayList<>()));
+    List<Checklist> checklists = families.stream()
+        .flatMap((Family f) -> f.students.stream()
+            .map((StudentInfo s) -> createChecklist(s, f.guardianName, f.altPickUp, pdfSupplies)))
+        .collect(Collectors.toList());
+
+    String school = ctx.queryParam(SCHOOL_KEY);
+    String grade = ctx.queryParam(GRADE_KEY);
+    String name = ctx.queryParam(NAME_KEY);
+
+    if (school != null) {
+      checklists = checklists.stream()
+          .filter(c -> c.school != null
+              &&
+              c.school.toLowerCase().contains(school.toLowerCase()))
+          .collect(Collectors.toList());
+    }
+
+    if (grade != null) {
+      checklists = checklists.stream()
+          .filter(c -> c.grade != null
+              &&
+              c.grade.toLowerCase().contains(grade.toLowerCase()))
+          .collect(Collectors.toList());
+    }
+
+    if (name != null) {
+      checklists = checklists.stream()
+          .filter(c -> c.studentName != null
+              &&
+              c.studentName.toLowerCase().contains(name.toLowerCase()))
+          .collect(Collectors.toList());
+    }
+    ctx.json(checklists);
+  }
 
   // POST /api/checklist — snapshot all families into the checklists collection
   public void generateDigitalChecklists(Context ctx) {
@@ -405,8 +430,7 @@ public class ChecklistController implements Controller {
 
     final List<SupplyList> allSupplies = expandHighSchoolSupplies(orderedSupplies);
     List<Checklist> checklists = familyCollection.find().into(new ArrayList<>()).stream()
-        .flatMap((Family f) ->
-          f.students.stream()
+        .flatMap((Family f) -> f.students.stream()
             .map((StudentInfo s) -> createChecklist(s, f.guardianName, f.altPickUp, rawSupplies)))
         .collect(Collectors.toList());
     checklistCollection.insertMany(checklists);
@@ -416,8 +440,9 @@ public class ChecklistController implements Controller {
 
   /**
    * Orders and filters the supply list according to the saved drive-day order.
-   * - "staged"   items come first, in their saved order
-   * - "unstaged" items come after all staged items (original fetch order preserved)
+   * - "staged" items come first, in their saved order
+   * - "unstaged" items come after all staged items (original fetch order
+   * preserved)
    * - "notGiven" items are excluded entirely
    */
   static List<SupplyList> applySupplyOrder(List<SupplyList> supplies,
@@ -425,9 +450,11 @@ public class ChecklistController implements Controller {
     // Build a map of itemTerm -> staged position
     Map<String, Integer> stagedIndex = new HashMap<>();
     Set<String> notGivenTerms = new HashSet<>();
-    // Set the index of staged items to their position in the supplyOrder list; unstaged items will default to MAX_VALUE
+    // Set the index of staged items to their position in the supplyOrder list;
+    // unstaged items will default to MAX_VALUE
     int pos = 0;
-    // Iterate in order and record the index of each staged term, and collect notGiven terms
+    // Iterate in order and record the index of each staged term, and collect
+    // notGiven terms
     for (Settings.SupplyItemOrder entry : supplyOrder) {
       if ("staged".equals(entry.status)) {
         stagedIndex.put(entry.itemTerm, pos++);
@@ -437,12 +464,15 @@ public class ChecklistController implements Controller {
     }
 
     // Exclude supplies whose item list contains any notGiven term.
-    // Sort remaining: staged supplies (by lowest matching term index) before unstaged.
+    // Sort remaining: staged supplies (by lowest matching term index) before
+    // unstaged.
     return supplies.stream()
-        // Exclude supplies that have any notGiven terms in their item list; if item is null,
+        // Exclude supplies that have any notGiven terms in their item list; if item is
+        // null,
         // keep it (could be a non-standard supply that doesn't match any terms)
         .filter(s -> s.item == null || s.item.stream().noneMatch(notGivenTerms::contains))
-        // Supplies with a staged term get their lowest index; unstaged supplies default to MAX_VALUE, so come last
+        // Supplies with a staged term get their lowest index; unstaged supplies default
+        // to MAX_VALUE, so come last
         .sorted(Comparator.comparingInt(s -> {
           if (s.item == null) {
             return Integer.MAX_VALUE;
@@ -468,16 +498,22 @@ public class ChecklistController implements Controller {
     List<Bson> filters = new ArrayList<>();
 
     if (ctx.queryParamMap().containsKey(SCHOOL_KEY)) {
-      Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(SCHOOL_KEY)), Pattern.CASE_INSENSITIVE);
-      filters.add(regex(SCHOOL_KEY, pattern));
+      Pattern pattern = Pattern.compile(
+          Pattern.quote(ctx.queryParam(SCHOOL_KEY)),
+          Pattern.CASE_INSENSITIVE);
+      filters.add(regex("school", pattern));
     }
     if (ctx.queryParamMap().containsKey(GRADE_KEY)) {
-      Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(GRADE_KEY)), Pattern.CASE_INSENSITIVE);
-      filters.add(regex(GRADE_KEY, pattern));
+      Pattern pattern = Pattern.compile(
+          Pattern.quote(ctx.queryParam(GRADE_KEY)),
+          Pattern.CASE_INSENSITIVE);
+      filters.add(regex("grade", pattern));
     }
     if (ctx.queryParamMap().containsKey(NAME_KEY)) {
-      Pattern pattern = Pattern.compile(Pattern.quote(ctx.queryParam(NAME_KEY)), Pattern.CASE_INSENSITIVE);
-      filters.add(regex(NAME_KEY, pattern));
+      Pattern pattern = Pattern.compile(
+          Pattern.quote(ctx.queryParam(NAME_KEY)),
+          Pattern.CASE_INSENSITIVE);
+      filters.add(regex("studentName", pattern));
     }
 
     return filters.isEmpty() ? new Document() : and(filters);
@@ -486,7 +522,7 @@ public class ChecklistController implements Controller {
   // // GET /api/checklist/{id} — get a single stored checklist by id
   public void getStoredChecklistById(Context ctx) {
     String id = ctx.pathParam("id");
-     System.out.println("Looking for checklist ID: " + id);
+    System.out.println("Looking for checklist ID: " + id);
 
     Checklist checklist;
     try {
@@ -504,43 +540,44 @@ public class ChecklistController implements Controller {
   // // PATCH /api/checklist/{id}/item/{index} — update a single item (completed,
   // // unreceived, selectedOption)
   // public void updateChecklistItem(Context ctx) {
-  //   String id = ctx.pathParam("id");
-  //   int index;
-  //   try {
-  //     index = Integer.parseInt(ctx.pathParam("index"));
-  //   } catch (NumberFormatException e) {
-  //     throw new BadRequestResponse("Item index must be an integer.");
-  //   }
-  //   Checklist checklist;
-  //   try {
-  //     checklist = checklistCollection.find(Filters.eq("_id", new ObjectId(id))).first();
-  //   } catch (IllegalArgumentException e) {
-  //     throw new BadRequestResponse("Invalid checklist ID.");
-  //   }
-  //   if (checklist == null) {
-  //     throw new NotFoundResponse("Checklist not found.");
-  //   }
-  //   if (index < 0 || index >= checklist.checklist.size()) {
-  //     throw new BadRequestResponse("Item index out of range.");
-  //   }
-  //   // Parse only the fields present in the request body
-  //   var body = ctx.bodyAsClass(ItemUpdateRequest.class);
-  //   Checklist.ChecklistItem item = checklist.checklist.get(index);
-  //   if (body.completed != null)
-  //     item.completed = body.completed;
-  //   if (body.unreceived != null)
-  //     item.unreceived = body.unreceived;
-  //   if (body.selectedOption != null)
-  //     item.selectedOption = body.selectedOption;
-  //   checklistCollection.save(checklist);
-  //   ctx.json(checklist);
-  //   ctx.status(HttpStatus.OK);
+  // String id = ctx.pathParam("id");
+  // int index;
+  // try {
+  // index = Integer.parseInt(ctx.pathParam("index"));
+  // } catch (NumberFormatException e) {
+  // throw new BadRequestResponse("Item index must be an integer.");
+  // }
+  // Checklist checklist;
+  // try {
+  // checklist = checklistCollection.find(Filters.eq("_id", new
+  // ObjectId(id))).first();
+  // } catch (IllegalArgumentException e) {
+  // throw new BadRequestResponse("Invalid checklist ID.");
+  // }
+  // if (checklist == null) {
+  // throw new NotFoundResponse("Checklist not found.");
+  // }
+  // if (index < 0 || index >= checklist.checklist.size()) {
+  // throw new BadRequestResponse("Item index out of range.");
+  // }
+  // // Parse only the fields present in the request body
+  // var body = ctx.bodyAsClass(ItemUpdateRequest.class);
+  // Checklist.ChecklistItem item = checklist.checklist.get(index);
+  // if (body.completed != null)
+  // item.completed = body.completed;
+  // if (body.unreceived != null)
+  // item.unreceived = body.unreceived;
+  // if (body.selectedOption != null)
+  // item.selectedOption = body.selectedOption;
+  // checklistCollection.save(checklist);
+  // ctx.json(checklist);
+  // ctx.status(HttpStatus.OK);
   // }
   // // Request body for PATCH item update
   // public static class ItemUpdateRequest {
-  //   public Boolean completed;
-  //   public Boolean unreceived;
-  //   public String selectedOption;
+  // public Boolean completed;
+  // public Boolean unreceived;
+  // public String selectedOption;
   // }
 
   @Override
@@ -554,7 +591,7 @@ public class ChecklistController implements Controller {
     server.post(API_CHECKLIST, this::generateDigitalChecklists);
     server.get(API_CHECKLIST, this::getStoredChecklists);
     server.get("/checklists/export/pdf", this::exportChecklistsPdf);
-
+    server.get("/api/checklists/filtered", this::exportFilteredChecklistsPdf);
     server.get(API_CHECKLIST_BY_ID, this::getStoredChecklistById);
     // server.patch(API_CHECKLIST_ITEM, this::updateChecklistItem);
   }

@@ -63,16 +63,16 @@ describe('Checklist view', () => {
     page.getChecklistCards().should('exist');
   });
 
-  it('downloads a PDF for all checklists', () => {
-    cy.intercept('GET', '/api/checklists*').as('getChecklists');
+  it('downloads a PDF for all filtered checklists', () => {
+    cy.intercept('GET', '/api/checklists/filtered*').as('getFilteredChecklists');
 
     cy.window().then(win => {
       cy.stub(win.URL, 'createObjectURL').as('createObjectURL');
     });
 
-    cy.get('[data-test=exportPDFButton]').first().click();
+    cy.get('[data-test=exportFilteredPDFButton]').first().click();
 
-    cy.wait('@getChecklists');
+    cy.wait('@getFilteredChecklists');
     cy.get('@createObjectURL').should('have.been.called');
   });
 
@@ -105,7 +105,24 @@ describe('Checklist view', () => {
     cy.get('@createObjectURL').should('have.been.called');
   });
 
-  it('Should get error message if export fails', () => {
+  it('Should export filtered checklists as PDF when export filtered checklists button is clicked', () => {
+    //way to reference the real window we are running
+    cy.window().then(win => {
+      //win.URL.createObjectURL is called when the file is generated and ready to be downloaded
+      //cy.stub(..) replaces the real implementation of createObjectURL with a stub that we can monitor
+      //We don't care about the actual file being downloaded, just that the function to create the download link is called
+      cy.stub(win.URL, 'createObjectURL').as('createObjectURL');
+    });
+
+    //export button is clicked
+    page.getExportFilteredPDFButton().click();
+
+    cy.wait(500); // Wait for the file to be generated and downloaded
+    //This asserts that @creatObjectURL was called, which indicates that the file was generated and the download process was initiated
+    cy.get('@createObjectURL').should('have.been.called');
+  });
+
+  it('Should get error message if export all checklists fails', () => {
     //Intercepting the GET request to /api/checklists/export and simulating a server error with a 500 status code
     cy.intercept('GET', '/api/checklists*', { statusCode: 500 }).as('exportFail');
 
@@ -115,6 +132,19 @@ describe('Checklist view', () => {
 
     //Asserting that an error message is displayed on the page, which indicates that the application is handling the export error gracefully
     cy.get('simple-snack-bar').should('contain.text', 'Problem contacting the server');
+  });
+
+  it('Should get error message if export all filtered checklists fails', () => {
+    //Intercepting the GET request to /api/checklists/export and simulating a server error with a 500 status code
+    cy.intercept('GET', '/api/checklists/filtered*', { statusCode: 500 }).as('exportFail');
+
+    //Click the export button to trigger the GET request and wait for the intercepted request to complete
+    page.getExportFilteredPDFButton().click();
+    cy.wait('@exportFail');
+
+    //Asserting that an error message is displayed on the page, which indicates that the application is handling the export error gracefully
+    cy.get('simple-snack-bar').should('contain.text',
+      ' Failed to load checklists: Http failure response for http://localhost:4200/api/checklists/filtered: 500 Internal Server Error\n OK ');
   });
 
   // it('Should click add checklist and go to the right URL', () => {

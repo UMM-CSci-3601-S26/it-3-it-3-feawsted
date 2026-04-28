@@ -140,4 +140,8 @@ export class MockChecklistService implements Pick<ChecklistService, 'getChecklis
     //fallback so checklist is always returned
     return of(MockChecklistService.mockChecklist);
   }
+
+  printFilteredChecklists(): Observable<Checklist[]> {
+    return of(MockChecklistService.testChecklists);
+  }
 }
