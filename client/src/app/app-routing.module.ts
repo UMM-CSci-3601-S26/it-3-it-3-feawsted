@@ -9,7 +9,7 @@ import { SupplyListComponent } from './supplylist/supplylist.component';
 import { SettingsComponent } from './settings/settings.component';
 import { AddSupplyListComponent } from './supplylist/add-supplylist.component';
 import { ChecklistViewComponent } from './checklist/checklist-view.component';
-import { PurchaseListComponent } from './purchaselist/purchase_list.component';
+import { PurchaseListComponent } from './purchaselist/purchaselist.component';
 
 // Routing configuration for the application
 const routes: Routes = [

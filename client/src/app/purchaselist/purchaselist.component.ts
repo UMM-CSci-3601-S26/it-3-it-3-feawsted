@@ -1,5 +1,5 @@
 //Angular Imports
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -16,17 +16,20 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatTreeModule } from '@angular/material/tree';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+// import { RouterLink } from '@angular/router';
 
+// RxJS Imports
+import { of } from 'rxjs';
 
 // Purchase List Imports
-import { PurchaseListService } from './purchaselist.service';
+import { PurchaselistService } from './purchaselist.service';
+import { catchError } from 'rxjs/internal/operators/catchError';
 
 @Component({
   selector: 'app-purchaselist-component',
   standalone: true,
-  templateUrl: './purchase_list.component.html',
-  styleUrls: ['./purchase_list.component.scss'],
+  templateUrl: './purchaselist.component.html',
+  styleUrls: ['./purchaselist.component.scss'],
   imports: [
     MatTableModule,
     MatSortModule,
@@ -46,13 +49,28 @@ import { PurchaseListService } from './purchaselist.service';
     MatIconModule,
     MatButtonModule,
     CommonModule,
-    RouterLink
-  ],
+  ], //RouterLink
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 
-export class PurchaseListComponent {
-  // Define the columns to be displayed in the table, including an 'actions' column for the menu
+export class PurchaselistComponent {
 
+
+  private checklistService = inject(ChecklistService);
+  private snackBar = inject(MatSnackBar);
+
+  ErrMsg = signal<string | undefined>(undefined);
+  // Define the columns to be displayed in the table, including an 'actions' column for the menu
+  generatePurchaselist() {
+    this.purchaselistService.generatePurchaselist().pipe(
+      catchError(() => {
+        this.errMsg.set('Failed to generate purchaselist.');
+        this.snackBar.open(this.errMsg() ?? '', 'OK', { duration: 6000 });
+        return of([]);
+      })
+    ).subscribe(() => {
+      this.refreshTrigger.update(v => v + 1);
+    });
+  }
 }
-export { PurchaseListService };
+export { PurchaselistService };
