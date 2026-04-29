@@ -7,153 +7,72 @@
 
       <mat-card-content>
         <p class="page-description">
-          Welcome to the Purchase List page! Here, you can view the items a student in each grade at each school needs, as well as filter them by various attributes. In the future, functionality for generating supply sheets and other similar features may be added!
+          Welcome to the purchase list page! Here, you can view all items specified in student checklists, the quantity of those needed items,
+          the quantity of those items in inventory, and the quantity that is needed to be purchased. Additionally, filtering by item and
+          priority is provided, as well as a sort by feature for item quantities (needs, inventory, and purchase amounts).
         </p>
         <hr style="margin: 1rem 0;" />
 
         <p class="filters-description">
-          Use the fields below to filter the inventory by school, grade, item, brand, color, size, type, and material. The filters will be applied as you type, and you can clear them all at once using the "Clear" button on the bottom.
+          Use the fields below to filter by item and priority. Add more to this...
         </p>
+        <button mat-raised-button color="primary" (click)="generatePurchaselist()"
+          data-cy="generate-purchaselist-button">
+          <mat-icon>refresh</mat-icon> Generate Purchase List
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
 
 
-        !-- Datalists for inline-edit autocomplete — must be outside the table element
 
-<table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8 demo-table">
+
+<table mat-table [dataSource]="purchaselist()" matSort class="mat-elevation-z8 demo-table">
   <!-- Item Column -->
   <ng-container matColumnDef="item">
     <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by item">Item</th>
-    <td mat-cell *matCellDef="let element" class="inventory-item" data-cy="inventory-item">
+    <td mat-cell *matCellDef="let element" class="item" data-cy="item">
+      {{ element.item }}
     </td>
   </ng-container>
 
-  <!-- Brand Column -->
-  <ng-container matColumnDef="brand">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by brand">Brand</th>
-    <td mat-cell *matCellDef="let element" class="inventory-brand" data-cy="inventory-brand">
+  <!-- Description Column -->
+  <ng-container matColumnDef="description">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by description">Description
+    </th>
+    <td mat-cell *matCellDef="let element" class="decsription" data-cy="description">
+      {{ element.description }}
     </td>
   </ng-container>
 
-  <!-- Color Column -->
-  <ng-container matColumnDef="color">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by color">Color</th>
-    <td mat-cell *matCellDef="let element" class="inventory-color" data-cy="inventory-color">
+  <!-- Need Quantity Column -->
+  <ng-container matColumnDef="needQuantity">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by need quantity">Need Quantity
+    </th>
+    <td mat-cell *matCellDef="let element" class="need-quantity" data-cy="need-quantity">
+      {{ element.needQuantity }}
     </td>
   </ng-container>
 
-  <!-- Size Column -->
-  <ng-container matColumnDef="size">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by size">Size</th>
-    <td mat-cell *matCellDef="let element" class="inventory-size" data-cy="inventory-size">
+  <!-- Inventory Quantity Column -->
+  <ng-container matColumnDef="inventoryQuantity">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by inventory quantity">Inventory
+      Quantity</th>
+    <td mat-cell *matCellDef="let element" class="inventory-quantity" data-cy="inventory-quantity">
+      {{ element.inventoryQuantity }}
     </td>
   </ng-container>
 
-
-        <!-- Filter Fields
-        <div class="filter-container">
-          <mat-form-field appearance="outline">
-            <mat-label>School</mat-label>
-            <input
-              matInput
-              [ngModel]="school() ?? ''"
-              (ngModelChange)="school.set($event?.trim() || undefined)"
-              placeholder="contains..."
-              data-cy="filter-school"
-            />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label class="filter">Grade</mat-label>
-            <input
-              matInput
-              [ngModel]="grade() ?? ''"
-              (ngModelChange)="grade.set($event?.trim() || undefined)"
-              placeholder="contains..."
-              data-cy="filter-grade"
-            />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label class="filter">Item</mat-label>
-            <input
-              matInput
-              [ngModel]="item() ?? ''"
-              (ngModelChange)="item.set($event?.trim() || undefined)"
-              placeholder="contains..."
-              data-cy="filter-item"
-            />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label class="filter">Brand</mat-label>
-            <input
-              matInput
-              [ngModel]="brand() ?? ''"
-              (ngModelChange)="brand.set($event?.trim() || undefined)"
-              placeholder="contains..."
-              data-cy="filter-brand"
-            />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label class="filter">Color</mat-label>
-            <input
-              matInput
-              [ngModel]="color() ?? ''"
-              (ngModelChange)="color.set($event?.trim() || undefined)"
-              placeholder="contains..."
-              data-cy="filter-color"
-            />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label class="filter">Size</mat-label>
-            <input
-              matInput
-              [ngModel]="size() ?? ''"
-              (ngModelChange)="size.set($event?.trim() || undefined)"
-              placeholder="contains..."
-              data-cy="filter-size"
-            />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label class="filter">Type</mat-label>
-            <input
-              matInput
-              [ngModel]="type() ?? ''"
-              (ngModelChange)="type.set($event?.trim() || undefined)"
-              placeholder="contains..."
-              data-cy="filter-type"
-            />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label class="filter">Material</mat-label>
-            <input
-              matInput
-              [ngModel]="material() ?? ''"
-              (ngModelChange)="material.set($event?.trim() || undefined)"
-              placeholder="contains..."
-              data-cy="filter-material"
-            />
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label class="filter">Style</mat-label>
-            <input
-              matInput
-              [ngModel]="style() ?? ''"
-              (ngModelChange)="style.set($event?.trim() || undefined)"
-              placeholder="contains..."
-              data-cy="filter-style"
-            />
-          </mat-form-field>
-        </div>
-
-
-
-
-<!--Supply List Display-->
-
-
+  <!-- Purchase Quantity Column -->
+  <ng-container matColumnDef="purchaseQuantity">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by purchase quantity">Purchase
+      Quantity</th>
+    <td mat-cell *matCellDef="let element" class="purchase-quantity" data-cy="purchase-quantity">
+      {{ element.purchaseQuantity }}
+    </td>
+  </ng-container>
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+</table>
 

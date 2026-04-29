@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { Purchaselist } from './purchaselist';
 import { environment } from 'src/environments/environment';
 import { Checklist } from '../checklist/checklist';
+//import { Checklist } from '../checklist/checklist';
 
 @Injectable({
   providedIn: 'root'
@@ -39,7 +40,7 @@ export class PurchaselistService {
     // }
     return this.httpClient.get<Purchaselist[]>(this.purchaselistUrl); //, { params: httpParams });
   }
-  generatePurchaselist(): Observable<Purchaselist[]> {
-    return this.httpClient.post<Purchaselist[]>(this.purchaselistUrl, {});
+  addChecklist(checklist: Checklist): Observable<Checklist> {
+    return this.httpClient.post<Checklist>(`${environment.apiUrl}checklists`, checklist);
   }
 }

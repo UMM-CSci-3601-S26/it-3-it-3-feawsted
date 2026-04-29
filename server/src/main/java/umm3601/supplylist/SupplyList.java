@@ -12,7 +12,8 @@ import org.mongojack.ObjectId;
 @SuppressWarnings({ "VisibilityModifier" })
 public class SupplyList {
 
-  @ObjectId @Id
+  @ObjectId
+  @Id
   @SuppressWarnings({ "MemberName" })
   public String _id; // MongoDB ObjectId stored as a string
 
@@ -29,11 +30,13 @@ public class SupplyList {
   public AttributeOptions type;
   public AttributeOptions style;
   public AttributeOptions material;
-    // Helper class for allOf/anyOf attributes
-    public static class AttributeOptions {
-      public List<String> allOf;
-      public List<String> anyOf;
-    }
+
+  // Helper class for allOf/anyOf attributes
+  public static class AttributeOptions {
+    public List<String> allOf;
+    public List<String> anyOf;
+  }
+
   public int count;
   public int quantity;
   public String notes;

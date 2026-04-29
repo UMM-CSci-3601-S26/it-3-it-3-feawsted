@@ -34,4 +34,8 @@ public class Purchaselist {
   public int hashCode() {
     return _id != null ? _id.hashCode() : 0;
   }
+
+
+
+
 }

@@ -23,10 +23,12 @@ import io.javalin.http.HttpStatus;
 import umm3601.Controller;
 import umm3601.inventory.Inventory;
 import umm3601.checklist.Checklist;
+import umm3601.checklist.Checklist.ChecklistItem;
 
 public class PurchaselistController implements Controller {
 
   private static final String API_PURCHASELIST = "/api/purchaselist";
+  private static final String API_CHECKLIST = "/api/checklist";
 
   // static final String ITEM_KEY = "item";
   // static final String DESC_KEY = "description";
@@ -68,6 +70,8 @@ public class PurchaselistController implements Controller {
   // }
   // return g.trim().toLowerCase().replaceAll("[\\s\\-]", "");
   // }
+
+
 
   public void getPurchaselist(Context ctx) {
 
@@ -132,7 +136,7 @@ public class PurchaselistController implements Controller {
 
       Purchaselist purchaselist = new Purchaselist();
       purchaselist.item = itemName;
-      purchaselist.description = ""; // optional: fill from supply list if you have descriptions
+      purchaselist.description = "";
       purchaselist.needQuantity = needQuantity;
       purchaselist.inventoryQuantity = invQuantity;
       purchaselist.purchaseQuantity = purchaseQuantity;

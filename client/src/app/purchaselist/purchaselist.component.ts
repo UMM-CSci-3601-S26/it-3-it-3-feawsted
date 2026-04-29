@@ -1,5 +1,5 @@
 //Angular Imports
-import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -19,12 +19,13 @@ import { CommonModule } from '@angular/common';
 // import { RouterLink } from '@angular/router';
 
 // RxJS Imports
-import { of } from 'rxjs';
+//import { of } from 'rxjs';
 
 // Purchase List Imports
 import { PurchaselistService } from './purchaselist.service';
-import { catchError } from 'rxjs/internal/operators/catchError';
-
+//import { catchError } from 'rxjs/operators';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Purchaselist } from './purchaselist';
 @Component({
   selector: 'app-purchaselist-component',
   standalone: true,
@@ -54,23 +55,39 @@ import { catchError } from 'rxjs/internal/operators/catchError';
 })
 
 export class PurchaselistComponent {
-
-
-  private checklistService = inject(ChecklistService);
+  private purchaselistService = inject(PurchaselistService);
   private snackBar = inject(MatSnackBar);
 
   ErrMsg = signal<string | undefined>(undefined);
+  refreshTrigger = signal(0);
+
   // Define the columns to be displayed in the table, including an 'actions' column for the menu
   generatePurchaselist() {
-    this.purchaselistService.generatePurchaselist().pipe(
-      catchError(() => {
-        this.errMsg.set('Failed to generate purchaselist.');
-        this.snackBar.open(this.errMsg() ?? '', 'OK', { duration: 6000 });
-        return of([]);
-      })
-    ).subscribe(() => {
-      this.refreshTrigger.update(v => v + 1);
+    // Step 1: generate checklists on server
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.purchaselistService.addChecklist({} as any).subscribe(() => {
+
+      // Step 2: fetch purchaselist
+      this.purchaselistService.getPurchaselist().subscribe({
+        next: (data) => this.purchaselist.set(data),
+        error: () => {
+          this.ErrMsg.set('Failed to load purchaselist.');
+          this.snackBar.open(this.ErrMsg() ?? '', 'OK', { duration: 6000 });
+        }
+      });
+
     });
   }
+
+  displayedColumns: string[] = [
+    'item',
+    'needQuantity',
+    'inventoryQuantity',
+    'purchaseQuantity'
+  ];
+
+  purchaselist = signal<Purchaselist[]>([]);
+
+
 }
 export { PurchaselistService };

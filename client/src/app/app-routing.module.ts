@@ -9,7 +9,7 @@ import { SupplyListComponent } from './supplylist/supplylist.component';
 import { SettingsComponent } from './settings/settings.component';
 import { AddSupplyListComponent } from './supplylist/add-supplylist.component';
 import { ChecklistViewComponent } from './checklist/checklist-view.component';
-import { PurchaseListComponent } from './purchaselist/purchaselist.component';
+import { PurchaselistComponent } from './purchaselist/purchaselist.component';
 
 // Routing configuration for the application
 const routes: Routes = [
@@ -22,7 +22,7 @@ const routes: Routes = [
   {path: 'supplylist', component: SupplyListComponent, title: 'Supply List'},
   {path: 'settings', component: SettingsComponent, title: 'Settings'},
   {path: 'supplylist/new', component: AddSupplyListComponent, title: 'Add Supply List Item'},
-  {path: 'purchaselist', component: PurchaseListComponent, title: 'Purchase List'}
+  {path: 'purchaselist', component: PurchaselistComponent, title: 'Purchase List'}
 ];
 
 @NgModule({

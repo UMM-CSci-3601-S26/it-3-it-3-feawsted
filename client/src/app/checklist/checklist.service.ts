@@ -57,7 +57,7 @@ export class ChecklistService {
 
   // Method to export checklist data in CSV format by sending a GET request to the API endpoint for exporting. It returns an Observable of the CSV data as a string.
   // exportChecklists(): Observable<string> {
-  //   return this.httpClient.get(`${this.checklistUrl}/export`, {
+  //   return this.httpClient.get(`${this.checklistUrl}/export`,
   //     responseType: 'text'
   //   });
   // }
