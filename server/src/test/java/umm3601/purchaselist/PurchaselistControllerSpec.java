@@ -197,7 +197,7 @@ class PurchaselistControllerSpec {
     inventoryDocuments.insertOne(sam);
 
     inventoryController = new InventoryController(db);
-    }
+
 
     // Setup Supplylist database
     MongoCollection<Document> checklistDocuments = db.getCollection("checklists");
