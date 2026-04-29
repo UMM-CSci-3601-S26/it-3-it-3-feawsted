@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { HomeComponent } from './home/home.component';
+
 import { OperatorDashComponent } from './operator-dash/operator-dash.component';
 import { FamilyViewComponent } from './family/family-view.component';
 import { AddFamilyComponent } from './family/add-family.component';
@@ -12,7 +12,6 @@ import { ChecklistViewComponent } from './checklist/checklist-view.component';
 
 // Routing configuration for the application
 const routes: Routes = [
-  {path: '', component: HomeComponent, title: 'Home'},
   {path: 'dashboard', component: OperatorDashComponent, title: 'Operator Dashboard'},
   {path: 'checklists', component: ChecklistViewComponent, title: 'Checklists'},
   {path: 'families', component: FamilyViewComponent, title: 'Families'},
