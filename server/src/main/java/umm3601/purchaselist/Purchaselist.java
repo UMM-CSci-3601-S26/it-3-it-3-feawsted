@@ -1,14 +1,8 @@
 // Packages
 package umm3601.purchaselist;
 
-// Java Imports
-import java.util.List;
-
 import org.mongojack.Id;
 import org.mongojack.ObjectId;
-
-import umm3601.inventory.Inventory;
-import umm3601.checklist.Checklist;
 
 @SuppressWarnings({"VisibilityModifier"})
 public class Purchaselist {

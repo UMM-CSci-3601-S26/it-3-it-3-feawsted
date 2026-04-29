@@ -1,50 +1,26 @@
 //Packages
 package umm3601.purchaselist;
 
-// Static imports
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.regex;
-
 // Java Imports
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 // Org Imports
 import org.mongojack.JacksonMongoCollection;
-import org.bson.Document;
 import org.bson.UuidRepresentation;
-import org.bson.conversions.Bson;
 
 // Com Imports
-import com.mongodb.client.model.Filters;
 import com.mongodb.client.MongoDatabase;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 // IO Imports
 import io.javalin.Javalin;
-import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
-import io.javalin.http.NotFoundResponse;
 
 // Misc Imports
 import umm3601.Controller;
-import umm3601.family.Family;
-import umm3601.family.Family.StudentInfo;
-import umm3601.purchaselist.Purchaselist;
-import umm3601.settings.Settings;
-import umm3601.settings.SettingsController;
 import umm3601.inventory.Inventory;
 import umm3601.checklist.Checklist;
 
@@ -60,6 +36,15 @@ public class PurchaselistController implements Controller {
 
   private final JacksonMongoCollection<Checklist> checklistCollection;
   private final JacksonMongoCollection<Inventory> inventoryCollection;
+
+  // constructor used for testing
+  public PurchaselistController(
+    JacksonMongoCollection<Checklist> checklistCollection,
+    JacksonMongoCollection<Inventory> inventoryCollection) {
+
+  this.checklistCollection = checklistCollection;
+  this.inventoryCollection = inventoryCollection;
+}
 
   public PurchaselistController(MongoDatabase db) {
     checklistCollection = JacksonMongoCollection.builder().build(
@@ -116,8 +101,10 @@ public class PurchaselistController implements Controller {
 
       for (Checklist.ChecklistItem checklistItem : checklist.checklist) {
         System.out.println("CHECKLIST ITEM FOUND");
-        if (checklistItem.supply == null ||
-            checklistItem.supply.item == null ||
+        if (checklistItem.supply == null
+        ||
+            checklistItem.supply.item == null
+            ||
             checklistItem.supply.item.isEmpty()) {
           continue;
         }
