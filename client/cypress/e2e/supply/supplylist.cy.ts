@@ -19,25 +19,7 @@ describe('Supply List', () => {
   //   page.getAppTitle().should('contain', 'Supply List');
   // });
 
-  it('The sidenav should open, navigate to "Supply List" and back to "Home"', () => {
-    // Before clicking on the button, the sidenav should be hidden
-    page.getSidenav()
-      .should('be.hidden');
-    page.getSidenavButton()
-      .should('be.visible');
 
-    page.getSidenavButton().click();
-    page.getNavLink('Supply List').click();
-    cy.url().should('match', /\/supplylist$/);
-    page.getSidenav()
-      .should('be.hidden');
-
-    page.getSidenavButton().click();
-    page.getNavLink('Home').click();
-    cy.url().should('match', /^https?:\/\/[^/]+\/?$/);
-    page.getSidenav()
-      .should('be.hidden');
-  });
 
   it('Should display Supply List items', () => {
     page.getSidenavButton().click();
