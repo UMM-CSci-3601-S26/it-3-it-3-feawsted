@@ -19,6 +19,7 @@ import { MatTreeModule } from '@angular/material/tree';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 // RxJS Imports
 import { catchError, combineLatest, debounceTime, map, of, switchMap } from 'rxjs';
@@ -52,7 +53,8 @@ import { SettingsService } from '../settings/settings.service';
     MatIconModule,
     MatButtonModule,
     CommonModule,
-    RouterLink
+    RouterLink,
+    MatAutocompleteModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -105,6 +107,21 @@ export class SupplyListComponent {
   type = signal<string | undefined>(undefined);
   material = signal<string | undefined>(undefined);
   style = signal<string | undefined>(undefined);
+
+  filteredItemOptions = computed(() => {
+    const input = (this.item() || '').toLowerCase();
+    if (!input) return this.supplylistService.itemOptions;
+    return this.supplylistService.itemOptions.filter(option =>
+      option.label.toLowerCase().includes(input) || option.value.toLowerCase().includes(input)
+    );
+  });
+
+  displayItemLabel = (value: string | null): string => {
+    if (!value) return '';
+    const match = this.filteredItemOptions().find(option => option.value === value);
+    return match ? match.label : value;
+  };
+
 
   errMsg = signal<string | undefined>(undefined);
 

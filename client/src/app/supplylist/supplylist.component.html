@@ -41,13 +41,17 @@
 
           <mat-form-field appearance="outline">
             <mat-label class="filter">Item</mat-label>
-            <input
-              matInput
-              [ngModel]="item() ?? ''"
-              (ngModelChange)="item.set($event?.trim() || undefined)"
-              placeholder="contains..."
-              data-cy="filter-item"
-            />
+            <input matInput [ngModel]="item() ?? ''" (ngModelChange)="item.set($event?.trim() || undefined)"
+              placeholder="contains..." data-cy="filter-item"
+              [matAutocomplete]="auto"
+              data-test="itemDescSelect" />
+              <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayItemLabel">
+            <mat-option [value]="''">Any Item</mat-option>
+            @for (option of filteredItemOptions(); track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+            </mat-autocomplete>
+            <mat-hint>Search by type</mat-hint>
           </mat-form-field>
 
           <mat-form-field appearance="outline">

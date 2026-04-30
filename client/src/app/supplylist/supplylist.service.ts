@@ -25,6 +25,28 @@ export class SupplyListService {
   private readonly quantityKey = 'quantity';
   private readonly notesKey = 'notes';
 
+  itemOptions = [
+    { value: 'pencil', label: 'Pencils' },
+    { value: 'colored_pencil', label: 'Colored Pencils' },
+    { value: 'sharpener', label: 'Sharpeners' },
+    { value: 'marker', label: 'Markers' },
+    { value: 'highlighter', label: 'Highlighters' },
+    { value: 'dry_erase_marker', label: 'Dry-Erase Markers' },
+    { value: 'crayon', label: 'Crayons' },
+    { value: 'pen', label: 'Pens' },
+    { value: 'eraser', label: 'Erasers' },
+    { value: 'folder', label: 'Folders' },
+    { value: 'binder', label: 'Binders' },
+    { value: 'notebook', label: 'Notebooks' },
+    { value: 'glue', label: 'Glue' },
+    { value: 'ruler', label: 'Rulers' },
+    { value: 'scissor', label: 'Scissors' },
+    { value: 'headphone', label: 'Headphones' },
+    { value: 'backpack', label: 'Backpacks' },
+    { value: 'box', label: 'Boxes' },
+    { value: 'other', label: 'Other' }
+  ];
+
   getSupplyList(filters?: {school?: string; grade?: string; item?: string; brand?: string; color?: string;
     count?: number; size?: string; type?: string; material?: string; style?: string; quantity?: number; notes?: string}): Observable<SupplyList[]> {
 
