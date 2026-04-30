@@ -6,6 +6,7 @@ import com.mongodb.client.MongoDatabase;
 import umm3601.checklist.ChecklistController;
 import umm3601.family.FamilyController;
 import umm3601.inventory.InventoryController;
+import umm3601.purchaselist.PurchaselistController;
 import umm3601.settings.SettingsController;
 import umm3601.supplylist.SupplyListController;
 import umm3601.terms.TermsController;
@@ -48,7 +49,8 @@ public class Main {
         new SupplyListController(database),
         new ChecklistController(database),
         new SettingsController(database),
-        new TermsController(database)
+        new TermsController(database),
+        new PurchaselistController(database)
     };
     return controllers;
   }

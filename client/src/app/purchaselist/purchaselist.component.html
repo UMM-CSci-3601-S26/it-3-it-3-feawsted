@@ -1,0 +1,78 @@
+<div class="flex-row">
+  <div class="flex-1">
+    <mat-card class="search-grid">
+      <mat-card-header>
+        <mat-card-title class="purchaselist-title">Purchase List</mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <p class="page-description">
+          Welcome to the purchase list page! Here, you can view all items specified in student checklists, the quantity of those needed items,
+          the quantity of those items in inventory, and the quantity that is needed to be purchased. Additionally, filtering by item and
+          priority is provided, as well as a sort by feature for item quantities (needs, inventory, and purchase amounts).
+        </p>
+        <hr style="margin: 1rem 0;" />
+
+        <p class="filters-description">
+          Use the fields below to filter by item and priority. Add more to this...
+        </p>
+        <button mat-raised-button color="primary" (click)="generatePurchaselist()"
+          data-cy="generate-purchaselist-button">
+          <mat-icon>refresh</mat-icon> Generate Purchase List
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+
+
+
+
+<table mat-table [dataSource]="purchaselist()" matSort class="mat-elevation-z8 demo-table">
+  <!-- Item Column -->
+  <ng-container matColumnDef="item">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by item">Item</th>
+    <td mat-cell *matCellDef="let element" class="item" data-cy="item">
+      {{ element.item }}
+    </td>
+  </ng-container>
+
+  <!-- Description Column -->
+  <ng-container matColumnDef="description">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by description">Description
+    </th>
+    <td mat-cell *matCellDef="let element" class="decsription" data-cy="description">
+      {{ element.description }}
+    </td>
+  </ng-container>
+
+  <!-- Need Quantity Column -->
+  <ng-container matColumnDef="needQuantity">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by need quantity">Need Quantity
+    </th>
+    <td mat-cell *matCellDef="let element" class="need-quantity" data-cy="need-quantity">
+      {{ element.needQuantity }}
+    </td>
+  </ng-container>
+
+  <!-- Inventory Quantity Column -->
+  <ng-container matColumnDef="inventoryQuantity">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by inventory quantity">Inventory
+      Quantity</th>
+    <td mat-cell *matCellDef="let element" class="inventory-quantity" data-cy="inventory-quantity">
+      {{ element.inventoryQuantity }}
+    </td>
+  </ng-container>
+
+  <!-- Purchase Quantity Column -->
+  <ng-container matColumnDef="purchaseQuantity">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by purchase quantity">Purchase
+      Quantity</th>
+    <td mat-cell *matCellDef="let element" class="purchase-quantity" data-cy="purchase-quantity">
+      {{ element.purchaseQuantity }}
+    </td>
+  </ng-container>
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+</table>
+

@@ -83,6 +83,7 @@ public class ChecklistController implements Controller {
   private final JacksonMongoCollection<Checklist> checklistCollection;
   private final JacksonMongoCollection<Settings> settingsCollection;
 
+
   // constructor used for testing:
   public ChecklistController(JacksonMongoCollection<Family> familyCollection,
       JacksonMongoCollection<SupplyList> supplyListCollection,

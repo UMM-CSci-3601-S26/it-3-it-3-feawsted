@@ -18,7 +18,6 @@ describe('Supply List', () => {
   // it('Should have the correct title', () => {
   //   page.getAppTitle().should('contain', 'Supply List');
   // });
-
   it('The sidenav should open, navigate to "Supply List" and back to "Home"', () => {
     // Before clicking on the button, the sidenav should be hidden
     page.getSidenav()
