@@ -25,6 +25,8 @@ import { InventoryTableComponent } from './inventory-table.component';
  * is called with the correct parameters when a user confirms deletion of an item, and that appropriate error messages are set when deletion fails or when required parameters are missing.
  */
 
+//Tests for autofill
+
 // Tests for the InventoryTableComponent
 describe('Inventory Table', () => {
   let inventoryTable: InventoryTableComponent;
@@ -439,6 +441,8 @@ describe('Inventory Table', () => {
     expect(inventoryTable.dataSource.data.some(r => r._id === '__new__')).toBeFalse();
   });
 
+
+
   // Test to verify that resetFilters clears all filter signals back to undefined
   it('should reset all filter signals to undefined when resetFilters is called', fakeAsync(() => {
     inventoryTable.item.set('Markers');
@@ -462,6 +466,7 @@ describe('Inventory Table', () => {
     expect(inventoryTable.bin()).toBeUndefined();
   }));
 });
+
 
 // Tests for the InventoryTableComponent when the InventoryService is not set up properly, ensuring that appropriate error messages are shown and that the component handles the error gracefully
 describe('Misbehaving Inventory Table', () => {
