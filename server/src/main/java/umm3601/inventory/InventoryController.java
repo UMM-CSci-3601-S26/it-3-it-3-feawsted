@@ -35,6 +35,7 @@ import io.javalin.http.NotFoundResponse;
 
 // Misc Imports
 import umm3601.Controller;
+import umm3601.supplylist.SupplyList;
 
 /**
  * Controller for handling Inventory-related API routes.
@@ -52,7 +53,9 @@ public class InventoryController implements Controller {
 
   private static final String API_INVENTORY = "/api/inventory";
   private static final String API_INVENTORY_BY_ID = "/api/inventory/{id}";
-  // private static final String API_INVENTORY_BY_ITEM = "/api/inventory/item/{item}";
+
+  // private static final String API_INVENTORY_BY_ITEM =
+  // "/api/inventory/item/{item}";
 
   static final String ITEM_KEY = "item";
   static final String BRAND_KEY = "brand";
@@ -68,15 +71,29 @@ public class InventoryController implements Controller {
   static final String SORT_ORDER_KEY = "sortorder";
 
   private final JacksonMongoCollection<Inventory> inventoryCollection;
+  private final JacksonMongoCollection<SupplyList> supplyListCollection;
 
-  public InventoryController(MongoDatabase database) {
-    // Connects to the "inventory" collection using Jackson for serialization
-    inventoryCollection = JacksonMongoCollection.builder().build(
+  public InventoryController(
+      MongoDatabase database,
+      JacksonMongoCollection<SupplyList> supplyListCollection) {
+
+    this.inventoryCollection = JacksonMongoCollection.builder().build(
         database,
         "inventory",
         Inventory.class,
         UuidRepresentation.STANDARD);
+
+    this.supplyListCollection = supplyListCollection;
   }
+
+  public InventoryController(MongoDatabase database) {
+
+  this.inventoryCollection = JacksonMongoCollection.builder().build(
+      database, "inventory", Inventory.class, UuidRepresentation.STANDARD);
+
+  this.supplyListCollection = JacksonMongoCollection.builder().build(
+      database, "supplylist", SupplyList.class, UuidRepresentation.STANDARD);
+}
 
   /**
    * GET /api/inventory/{id}
@@ -278,6 +295,80 @@ public class InventoryController implements Controller {
     ctx.status(HttpStatus.OK);
   }
 
+  public void syncFromSupplyList(List<SupplyList> supplyLists) {
+
+  for (SupplyList sl : supplyLists) {
+
+    if (sl.item == null || sl.item.isEmpty()) {
+      continue;
+    }
+
+    String itemName = sl.item.get(0);
+
+    // Build filter safely (only include fields that actually exist)
+    List<Bson> filterParts = new ArrayList<>();
+
+    filterParts.add(eq("item", itemName));
+
+    if (sl.brand != null && sl.brand.anyOf != null && !sl.brand.anyOf.isEmpty()) {
+      filterParts.add(eq("brand", sl.brand.anyOf.get(0)));
+    }
+
+    if (sl.size != null && !sl.size.isBlank()) {
+      filterParts.add(eq("size", sl.size));
+    }
+
+    if (sl.color != null && sl.color.anyOf != null && !sl.color.anyOf.isEmpty()) {
+      filterParts.add(eq("color", sl.color.anyOf.get(0)));
+    }
+
+    Bson filter = filterParts.size() == 1
+        ? filterParts.get(0)
+        : and(filterParts);
+
+    Inventory existing = inventoryCollection.find(filter).first();
+
+    if (existing == null) {
+      Inventory newInv = new Inventory();
+
+      newInv.item = itemName;
+
+      newInv.brand = (sl.brand != null && sl.brand.anyOf != null && !sl.brand.anyOf.isEmpty())
+          ? sl.brand.anyOf.get(0)
+          : null;
+
+      newInv.size = sl.size;
+
+      newInv.color = (sl.color != null && sl.color.anyOf != null && !sl.color.anyOf.isEmpty())
+          ? sl.color.anyOf.get(0)
+          : null;
+
+      newInv.type = (sl.type != null)
+          ? (sl.type.anyOf != null ? sl.type.anyOf.toArray(new String[0])
+              : sl.type.allOf != null ? sl.type.allOf.toArray(new String[0])
+              : null)
+          : null;
+
+      newInv.material = (sl.material != null)
+          ? (sl.material.anyOf != null ? sl.material.anyOf.toArray(new String[0])
+              : sl.material.allOf != null ? sl.material.allOf.toArray(new String[0])
+              : null)
+          : null;
+
+      newInv.style = (sl.style != null)
+          ? (sl.style.anyOf != null ? sl.style.anyOf.toArray(new String[0])
+              : sl.style.allOf != null ? sl.style.allOf.toArray(new String[0])
+              : null)
+          : null;
+
+      newInv.count = sl.count;
+      newInv.quantity = 0;
+
+      inventoryCollection.insertOne(newInv);
+    }
+  }
+}
+
   /**
    * Registers API routes for this controller.
    */
@@ -288,5 +379,12 @@ public class InventoryController implements Controller {
     server.post(API_INVENTORY, this::addInventory);
     server.put(API_INVENTORY_BY_ID, this::editInventory);
     server.delete(API_INVENTORY_BY_ID, this::deleteInventory);
+    server.post("/api/inventory/sync", ctx -> {
+      List<SupplyList> supplyLists = supplyListCollection.find().into(new ArrayList<>());
+
+      this.syncFromSupplyList(supplyLists);
+
+      ctx.status(HttpStatus.OK);
+    });
   }
 }
