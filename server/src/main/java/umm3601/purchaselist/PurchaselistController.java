@@ -23,7 +23,6 @@ import io.javalin.http.HttpStatus;
 import umm3601.Controller;
 import umm3601.inventory.Inventory;
 import umm3601.checklist.Checklist;
-import umm3601.checklist.Checklist.ChecklistItem;
 
 public class PurchaselistController implements Controller {
 

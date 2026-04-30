@@ -35,7 +35,4 @@ public class Purchaselist {
     return _id != null ? _id.hashCode() : 0;
   }
 
-
-
-
 }
