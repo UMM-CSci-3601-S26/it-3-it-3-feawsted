@@ -14,10 +14,10 @@ export class PurchaselistService {
 
   readonly purchaselistUrl: string = `${environment.apiUrl}purchaselist`;
 
-  private readonly itemKey = 'item';
-  private readonly brandKey = 'brand';
-  private readonly colorKey = 'color';
-  private readonly sizeKey = 'size';
+  // private readonly itemKey = 'item';
+  // private readonly brandKey = 'brand';
+  // private readonly colorKey = 'color';
+  // private readonly sizeKey = 'size';
 
   getPurchaselist(): Observable<Purchaselist[]> { //filters?: {school?: string; grade?: string; item?: string; brand?: string; color?: string;
     //count?: number; size?: string; type?: string; material?: string; style?: string; quantity?: number; notes?: string}
