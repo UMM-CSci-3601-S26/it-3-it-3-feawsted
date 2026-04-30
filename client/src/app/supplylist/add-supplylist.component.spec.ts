@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { MockSupplyListService } from 'src/testing/supplylist.service.mock';
 import { AddSupplyListComponent } from './add-supplylist.component';
@@ -15,14 +16,14 @@ import { TermsService } from '../terms/terms.service';
 
 // Minimal terms object reused across parse / helper tests
 const testTerms = {
-  item:     ['crayon', 'marker', 'notebook', 'pencil', 'folder', 'tissue'],
-  brand:    ['Crayola', 'Kleenex', 'Expo', 'BIC'],
-  color:    ['red', 'blue', 'green', 'yellow', 'black'],
-  size:     ['letter', 'legal'],
+  item: ['crayon', 'marker', 'notebook', 'pencil', 'folder', 'tissue'],
+  brand: ['Crayola', 'Kleenex', 'Expo', 'BIC'],
+  color: ['red', 'blue', 'green', 'yellow', 'black'],
+  size: ['letter', 'legal'],
   // wide ruled / college ruled appear in BOTH type and style to test style-first filtering
-  type:     ['spiral', 'washable', 'wide ruled', 'college ruled'],
+  type: ['spiral', 'washable', 'wide ruled', 'college ruled'],
   material: ['plastic', 'paper'],
-  style:    ['wide ruled', 'college ruled']
+  style: ['wide ruled', 'college ruled']
 };
 
 // ─── Shared provider array ────────────────────────────────────────────────────
@@ -38,7 +39,7 @@ function createComponentWithTerms(): { component: AddSupplyListComponent; fixtur
   const fixture = TestBed.createComponent(AddSupplyListComponent);
   const component = fixture.componentInstance;
   fixture.detectChanges();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   (component as any).terms = testTerms;
   return { component, fixture };
 }
@@ -351,18 +352,18 @@ describe('AddSupplyListComponent#submitForm()', () => {
 
   // All 12 form controls must be supplied for setValue() to work
   const validFormValues = {
-    school:   'MHS',
-    grade:    'PreK',
-    item:     'Markers',
-    brand:    'Crayola',
-    color:    'N/A',
-    count:    '8',
-    size:     'Wide',
-    type:     'Washable',
+    school: 'MHS',
+    grade: 'PreK',
+    item: 'Markers',
+    brand: 'Crayola',
+    color: 'N/A',
+    count: '8',
+    size: 'Wide',
+    type: 'Washable',
     material: 'N/A',
-    style:    '',
+    style: '',
     quantity: '3',
-    notes:    ''
+    notes: ''
   };
 
   beforeEach(waitForAsync(() => {
@@ -550,6 +551,26 @@ describe('AddSupplyListComponent#parseDescription()', () => {
     component.parseDescription('crayons (for art class)');
     expect(component.addSupplyListForm.get('notes')?.value).toBe('existing note; for art class');
   });
+
+  it('should set size from sizeTermMatches when size terms are found', () => {
+    component['terms'] = {
+      item: [],
+      brand: [],
+      color: [],
+      size: ['wide ruled', 'college ruled'],
+      type: [],
+      material: [],
+      style: []
+    };
+
+    component.addSupplyListForm.patchValue({ size: '' });
+
+    component.parseDescription('1 wide ruled notebook');
+
+    expect(component.addSupplyListForm.get('size')?.value)
+      .toBe('wide ruled');
+  });
+
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -589,6 +610,49 @@ describe('AddSupplyListComponent#clearForm()', () => {
     component.clearForm();
     expect(component.showPreview).toBeFalse();
   });
+
+  it('should set size from fallbackSize when no size terms match but fallback exists', () => {
+    component['terms'] = {
+      item: [],
+      brand: [],
+      color: [],
+      size: [],   // no size terms → forces sizeTermMatches = []
+      type: [],
+      material: [],
+      style: []
+    };
+
+    component.addSupplyListForm.patchValue({ size: '' });
+
+    component.parseDescription('1 large binder');
+
+    expect(component.addSupplyListForm.get('size')?.value)
+      .toBe('large');
+  });
+
+  it('should set size using fallbackSize when no size terms match', () => {
+    // No size terms → forces sizeTermMatches = []
+    component['terms'] = {
+      item: [],
+      brand: [],
+      color: [],
+      size: [],   // <— critical: ensures sizeTermMatches.length === 0
+      type: [],
+      material: [],
+      style: []
+    };
+
+    // Ensure form starts empty
+    component.addSupplyListForm.patchValue({ size: '' });
+
+    // "large" is in the fallback list: ['large','medium','small','xl','xxl','xs']
+    component.parseDescription('1 large binder');
+
+    expect(component.addSupplyListForm.get('size')?.value)
+      .toBe('large');
+  });
+
+
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -903,3 +967,5 @@ describe('AddSupplyListComponent#parseDescription() — note filter edge cases',
     expect(component.addSupplyListForm.get('notes')?.value || '').toBe('');
   });
 });
+
+

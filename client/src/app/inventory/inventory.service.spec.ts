@@ -172,6 +172,33 @@ describe('InventoryService', () => {
       });
     });
 
+    it('correctly calls api/inventory with filter parameter \'style\'', () => {
+      const mockedMethod = spyOn(httpClient, 'get').and.returnValue(of(testInventory));
+
+      inventoryService.getInventory({ style: 'Modern' }).subscribe(() => {
+        expect(mockedMethod)
+          .withContext('one call')
+          .toHaveBeenCalledTimes(1);
+        expect(mockedMethod)
+          .withContext('talks to the correct endpoint')
+          .toHaveBeenCalledWith(inventoryService.inventoryUrl, { params: new HttpParams().set('style', 'Modern') });
+      });
+    });
+
+    it('correctly calls api/inventory with filter parameter \'bin\'', () => {
+      const mockedMethod = spyOn(httpClient, 'get').and.returnValue(of(testInventory));
+
+      inventoryService.getInventory({ bin: 7 }).subscribe(() => {
+        expect(mockedMethod)
+          .withContext('one call')
+          .toHaveBeenCalledTimes(1);
+        expect(mockedMethod)
+          .withContext('talks to the correct endpoint')
+          .toHaveBeenCalledWith(inventoryService.inventoryUrl, { params: new HttpParams().set('bin', 7 ) });
+      });
+    });
+
+
     // Test to ensure getInventory() correctly calls the API endpoint with the 'material' filter parameter, and that it is called exactly once with the correct URL and query parameters
     it('correctly calls api/inventory with filter parameter \'material\'', () => {
       const mockedMethod = spyOn(httpClient, 'get').and.returnValue(of(testInventory));
