@@ -38,24 +38,6 @@
             <mat-hint>Search by type</mat-hint>
           </mat-form-field>
 
-           <!-- <mat-form-field class="input-field">
-            <mat-label>Type</mat-label>
-            <input
-              matInput
-              placeholder="Any Type"
-              [ngModel]="itemType()"
-              (ngModelChange)="itemType.set($event)"
-              [matAutocomplete]="auto"
-              data-test="itemDescSelect"
-            >
-            <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayTypeLabel">
-            <mat-option [value]="''">Any Type</mat-option>
-            @for (option of filteredTypeOptions(); track option.value) {
-              <mat-option [value]="option.value">{{ option.label }}</mat-option>
-            }
-            </mat-autocomplete>
-            <mat-hint>Search by type</mat-hint>
-          </mat-form-field> -->
 
           <mat-form-field appearance="outline">
             <mat-label class="filter">Brand</mat-label>
