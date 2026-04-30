@@ -5,5 +5,6 @@ export interface Purchaselist {
   needQuantity: number;
   inventoryQuantity: number;
   purchaseQuantity: number;
+  priority: string;
 }
 

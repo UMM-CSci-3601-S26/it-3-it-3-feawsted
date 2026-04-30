@@ -83,7 +83,8 @@ export class PurchaselistComponent {
     'item',
     'needQuantity',
     'inventoryQuantity',
-    'purchaseQuantity'
+    'purchaseQuantity',
+    'priority'
   ];
 
   purchaselist = signal<Purchaselist[]>([]);
