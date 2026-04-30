@@ -7,15 +7,45 @@
 
       <mat-card-content>
         <p class="page-description">
-          Welcome to the purchase list page! Here, you can view all items specified in student checklists, the quantity of those needed items,
-          the quantity of those items in inventory, and the quantity that is needed to be purchased. Additionally, filtering by item and
-          priority is provided, as well as a sort by feature for item quantities (needs, inventory, and purchase amounts).
+          Welcome to the purchase list! Here, you can view the type of items specified in student checklists, as well
+          as the corresponding quantities for each item as far as what is needed, what is in inventory, and what will
+          need
+          to be purchased. A priority tab will also be provided for each item to organize item importance.
+          Please note that this list is an estimate and doesn't account for specified item attributes when generating
+          the purchase list, so some items may be over or under estimated. For example, if 10 students need a "red
+          shirt"
+          and 5 students need a "blue shirt", the purchase list will show that 15 shirts are needed, without accounting
+          for the different colors. Please use the purchase list as a general guide, but be sure to check the student
+          checklists for more specific details on the items needed until future updates are added.
         </p>
         <hr style="margin: 1rem 0;" />
 
         <p class="filters-description">
-          Use the fields below to filter by item and priority. Add more to this...
+          Use the fields below to filter by item and priority.
         </p>
+
+        <div class="filter-container">
+
+          <!-- Item Filter -->
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">Item</mat-label>
+            <input matInput [ngModel]="itemFilter()" (ngModelChange)="itemFilter.set($event?.trim() || '')" placeholder="contains..." data-cy="filter-item" />
+          </mat-form-field>
+
+          <!-- Priority Filter -->
+          <mat-form-field appearance="outline">
+            <mat-label class="filter">Priority</mat-label>
+            <mat-select [ngModel]="priority() ?? ''" (ngModelChange)="priorityFilter.set($event || undefined)"
+              data-cy="filter-priority">
+              <mat-option value="">Any</mat-option>
+              <mat-option value="low">Low</mat-option>
+              <mat-option value="medium">Medium</mat-option>
+              <mat-option value="high">High</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+        </div>
+
         <button mat-raised-button color="primary" (click)="generatePurchaselist()"
           data-cy="generate-purchaselist-button">
           <mat-icon>refresh</mat-icon> Generate Purchase List
@@ -28,7 +58,7 @@
 
 
 
-<table mat-table [dataSource]="purchaselist()" matSort class="mat-elevation-z8 demo-table">
+<table mat-table [dataSource]="filteredPurchaselist()" matSort class="mat-elevation-z8 demo-table">
   <!-- Item Column -->
   <ng-container matColumnDef="item">
     <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by item">Item</th>
@@ -87,4 +117,3 @@
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
   <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 </table>
-
