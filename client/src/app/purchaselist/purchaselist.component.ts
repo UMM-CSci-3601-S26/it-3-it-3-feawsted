@@ -1,5 +1,5 @@
 //Angular Imports
-import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -55,11 +55,17 @@ import { Purchaselist } from './purchaselist';
 })
 
 export class PurchaselistComponent {
+  item = signal<string | undefined>(undefined);
+  priority = signal<string | undefined>(undefined);
+
   private purchaselistService = inject(PurchaselistService);
   private snackBar = inject(MatSnackBar);
 
   ErrMsg = signal<string | undefined>(undefined);
   refreshTrigger = signal(0);
+
+  itemFilter = signal('');
+  priorityFilter = signal('');
 
   // Define the columns to be displayed in the table, including an 'actions' column for the menu
   generatePurchaselist() {
@@ -88,6 +94,21 @@ export class PurchaselistComponent {
   ];
 
   purchaselist = signal<Purchaselist[]>([]);
+
+  filteredPurchaselist = computed(() => {
+    return this.purchaselist().filter(item => {
+
+      const matchesItem =
+        !this.itemFilter() ||
+        item.item.toLowerCase().includes(this.itemFilter().toLowerCase());
+
+      const matchesPriority =
+        !this.priorityFilter() ||
+        item.priority === this.priorityFilter();
+
+      return matchesItem && matchesPriority;
+    });
+  });
 
 
 }

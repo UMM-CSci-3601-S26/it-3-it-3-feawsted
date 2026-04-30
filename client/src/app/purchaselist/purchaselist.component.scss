@@ -29,3 +29,10 @@ mat-radio-button {
   bottom: 15px;
   right: 30px;
 }
+
+.filter-container {
+  display: flex;
+  gap: 25px;
+  align-items: center;
+  flex-wrap: wrap; // prevents overflow on smaller screens
+}
