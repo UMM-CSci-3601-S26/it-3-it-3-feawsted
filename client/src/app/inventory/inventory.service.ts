@@ -38,6 +38,28 @@ export class InventoryService {
   private readonly quantityKey = 'quantity';
   private readonly notesKey = 'notes';
 
+  itemOptions = [
+    { value: 'pencils', label: 'Pencils' },
+    { value: 'colored_pencils', label: 'Colored Pencils' },
+    { value: 'sharpeners', label: 'Sharpeners' },
+    { value: 'markers', label: 'Markers' },
+    { value: 'highlighters', label: 'Highlighters' },
+    { value: 'dry_erase_markers', label: 'Dry-Erase Markers' },
+    { value: 'crayons', label: 'Crayons' },
+    { value: 'pens', label: 'Pens' },
+    { value: 'erasers', label: 'Erasers' },
+    { value: 'folders', label: 'Folders' },
+    { value: 'binders', label: 'Binders' },
+    { value: 'notebooks', label: 'Notebooks' },
+    { value: 'glue', label: 'Glue' },
+    { value: 'rulers', label: 'Rulers' },
+    { value: 'scissors', label: 'Scissors' },
+    { value: 'headphones', label: 'Headphones' },
+    { value: 'backpacks', label: 'Backpacks' },
+    { value: 'boxes', label: 'Boxes' },
+    { value: 'other', label: 'Other' }
+  ];
+
   // Method to fetch the list of inventory items from the API, with optional filtering parameters. It constructs the appropriate HTTP request and returns an Observable of an array of Inventory objects.
   getInventory(filters?: {item?: string; brand?: string; color?: string;
     count?: number; size?: string; type?: string; style?: string; material?: string; bin?: number; quantity?: number; notes?: string}): Observable<Inventory[]> {

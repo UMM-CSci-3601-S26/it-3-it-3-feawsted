@@ -222,6 +222,16 @@ describe('Inventory Table', () => {
     tick(300);
     expect(spy).toHaveBeenCalledWith({ item: undefined, brand: undefined, color: undefined, size: undefined, type: undefined, style: undefined, material: undefined, bin: 1 });
   }));
+
+  //To check filtered item autofill feature
+  it('filteredItemOptions filters correctly when item is set', () => {
+    inventoryTable.item.set('pen');
+    const result = inventoryTable.filteredItemOptions();
+    expect(result.length).toBeGreaterThan(0);
+    expect(result.every(opt =>
+      opt.label.toLowerCase().includes('pen') || opt.value.toLowerCase().includes('pen')
+    )).toBeTrue();
+  });
   // Test to verify that getInventory is called with the correct parameters when item, brand, color, and type signals change
   it('should call getInventory() when item, brand, color, and material signals change', fakeAsync(() => {
     const spy = spyOn(inventoryService, 'getInventory').and.callThrough();

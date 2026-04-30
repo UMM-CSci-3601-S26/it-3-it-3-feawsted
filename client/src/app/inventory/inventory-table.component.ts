@@ -1,5 +1,5 @@
 // Angular Imports
-import { Component, effect, inject, signal, viewChild } from '@angular/core';
+import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,6 +17,7 @@ import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 // RxJS Imports
 import { catchError, combineLatest, debounceTime, of, switchMap } from 'rxjs';
@@ -52,6 +53,7 @@ import { Terms } from '../terms/terms';
     MatPaginatorModule,
     MatMenu,
     MatMenuModule,
+    MatAutocompleteModule,
   ],
 })
 
@@ -113,6 +115,21 @@ export class InventoryTableComponent {
   material = signal<string | undefined>(undefined);
   bin = signal<number | undefined>(undefined);
   quantity = signal<number | undefined>(undefined);
+
+  filteredItemOptions = computed(() => {
+    const input = (this.item() || '').toLowerCase();
+    if (!input) return this.inventoryService.itemOptions;
+    return this.inventoryService.itemOptions.filter(option =>
+      option.label.toLowerCase().includes(input) || option.value.toLowerCase().includes(input)
+    );
+  });
+
+  displayItemLabel = (value: string | null): string => {
+    if (!value) return '';
+    const match = this.filteredItemOptions().find(option => option.value === value);
+    return match ? match.label : value;
+  };
+
 
   errMsg = signal<string | undefined>(undefined);
 
