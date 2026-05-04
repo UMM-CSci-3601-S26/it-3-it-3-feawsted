@@ -519,4 +519,44 @@ describe('Misbehaving Inventory Table', () => {
       .withContext('the error message will be')
       .toContain('Problem contacting the server – Error Code:');
   });
+
+  // --- Additional branch coverage for filteredItemOptions ---
+
+  it('should return full list when item is undefined', () => {
+    inventoryTable.item.set(undefined as unknown as string);
+    const result = inventoryTable.filteredItemOptions();
+
+    expect(result.length)
+      .toBe(inventoryTable['inventoryService'].itemOptions.length);
+  });
+
+  it('should return full list when item is empty string', () => {
+    inventoryTable.item.set('');
+    const result = inventoryTable.filteredItemOptions();
+
+    expect(result.length)
+      .toBe(inventoryTable['inventoryService'].itemOptions.length);
+  });
+
+  it('should return empty array when no matches found', () => {
+    inventoryTable.item.set('xyz_not_real');
+    const result = inventoryTable.filteredItemOptions();
+
+    expect(result.length).toBe(0);
+  });
+
+  it('should match based on label (case insensitive)', () => {
+    inventoryTable.item.set('pencils');
+    const result = inventoryTable.filteredItemOptions();
+
+    expect(result.some(opt => opt.label === 'Pencils')).toBeTrue();
+  });
+
+  it('should match based on value (case insensitive)', () => {
+    inventoryTable.item.set('dry_erase');
+    const result = inventoryTable.filteredItemOptions();
+
+    expect(result.some(opt => opt.value === 'dry_erase_marker')).toBeTrue();
+  });
+
 });
